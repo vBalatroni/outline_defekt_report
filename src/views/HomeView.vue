@@ -15,31 +15,31 @@ const formData = ref({
 });
 const generalData = ref({
   companyData: { 
-    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: true },
-    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: true },
+    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: true, value: '' },
+    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: true, value: '' },
   },
   freightForwarderData: {
-    freightForwarderName: { type: 'text', label: 'Freight Forwarder Name', id: 'freightForwarderName', isRequired: true },
-    accountNumber: { type: 'text', label: 'Account Number', id: 'accountNumber', isRequired: true },
+    freightForwarderName: { type: 'text', label: 'Freight Forwarder Name', id: 'freightForwarderName', isRequired: true, value: '' },
+    accountNumber: { type: 'text', label: 'Account Number', id: 'accountNumber', isRequired: true, value: '' },
   },
   companyAddress: {
-    address: { type: 'text', label: 'Address', id: 'address', isRequired: true },
-    city: { type: 'text', label: 'City', id: 'city', isRequired: true },
-    country: { type: 'text', label: 'Country', id: 'country', isRequired: true },
-    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: true },
-    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: true },
-    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: true },
-    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: true },
+    address: { type: 'text', label: 'Address', id: 'address', isRequired: true, value: '' },
+    city: { type: 'text', label: 'City', id: 'city', isRequired: true, value: '' },
+    country: { type: 'text', label: 'Country', id: 'country', isRequired: true, value: '' },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: true, value: '' },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: true, value: '' },
+    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: true, value: '' },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: true, value: '' },
   },
   otherReturnAddress: {
-    address: { type: 'text', label: 'Address', id: 'otherAddress', isRequired: false },
-    city: { type: 'text', label: 'City', id: 'otherCity', isRequired: false },
-    country: { type: 'text', label: 'Country', id: 'otherCountry', isRequired: false },
-    zipCode: { type: 'text', label: 'Zip Code', id: 'otherZipCode', isRequired: false },
-    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'otherContactPersonName', isRequired: false },
-    eMail: { type: 'email', label: 'Email', id: 'otherEmail', isRequired: false },
-    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'otherPhoneNumber', isRequired: false },
-  },
+    address: { type: 'text', label: 'Address', id: 'otherAddress', isRequired: false, value: '' },
+    city: { type: 'text', label: 'City', id: 'otherCity', isRequired: false, value: '' },
+    country: { type: 'text', label: 'Country', id: 'otherCountry', isRequired: false, value: '' },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'otherZipCode', isRequired: false, value: '' },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'otherContactPersonName', isRequired: false, value: '' },
+    eMail: { type: 'email', label: 'Email', id: 'otherEmail', isRequired: false, value: '' },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'otherPhoneNumber', isRequired: false, value: '' },
+  }
 });
 
 const additionalData = ref([]);
@@ -73,7 +73,7 @@ const submitForm = () => {
 
 <template>
   <main>
-    <div class="container mx-auto">
+    <div class="container px-0 mx-auto">
       <div v-if="confirmed">
         <TheProgressBar :progressWidth="progressWidth" />
       </div>

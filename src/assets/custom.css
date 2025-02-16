@@ -107,4 +107,34 @@ body {
   background-color: #000;
 }
 
+.section-header {
+  margin-top: 36px;
+  font-size: 29px;
+  font-weight: bold;
+}
+
+.input-list {
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: row;
+}
+.input-list .input-wrapper {
+  justify-content: space-between;
+}
+.input-list .input-wrapper .input-field {
+  display: flex;
+  flex-direction: column;
+  width: 90%;
+}
+.input-list .input-wrapper .input-field label {
+  font-weight: 400;
+  font-size: 14px;
+}
+.input-list .input-wrapper .input-field input {
+  border: 2px solid #000;
+  border-radius: 0;
+  padding: 8px;
+  font-size: 16px;
+}
+
 /*# sourceMappingURL=custom.css.map */

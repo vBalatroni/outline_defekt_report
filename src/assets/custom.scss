@@ -125,3 +125,33 @@ body {
   height: 4px;
   background-color: $black-color;
 }
+
+.section-header {
+    margin-top: 36px;
+    font-size: 29px;
+    font-weight: bold;
+}
+
+.input-list {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+    .input-wrapper {
+        justify-content: space-between;
+        .input-field {
+            display: flex;
+            flex-direction: column;
+            width: 90%;
+            label {
+                font-weight: 400;
+                font-size: 14px;
+            }
+            input {
+                border: 2px solid $black-color;
+                border-radius: 0;
+                padding: 8px;
+                font-size: 16px;
+            }
+        }
+    }
+}
