@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "style": "sass src/assets/custom.scss src/assets/custom.css",
+    "watch-style": "sass --watch src/assets/custom.scss:src/assets/custom.css"
   },
   "dependencies": {
     "boostrap": "^2.0.0",
@@ -18,6 +20,8 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
+    "sass": "^1.85.0",
+    "sass-loader": "^16.0.5",
     "vite": "^6.0.11",
     "vite-plugin-vue-devtools": "^7.7.1"
   }

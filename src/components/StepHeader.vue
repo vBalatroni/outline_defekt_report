@@ -21,24 +21,3 @@ const props = defineProps({
         </div>
     </div>
 </template>
-
-<style>
-.step-title {
-  font-weight: bold;
-  font-size: 47px;
-  display: inline-block;
-  padding-bottom: 0;
-}
-
-.step-subtitle {
-  font-weight: bold;
-  font-size: 29px;
-  margin-bottom: 0;
-}
-.container {
-    width: 100%;
-    text-align: left;
-    margin: auto;
-}
-
-</style>

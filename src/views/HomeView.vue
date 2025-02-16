@@ -4,14 +4,44 @@ import TheWelcome from '../components/TheWelcome.vue';
 import TheProgressBar from '@/components/TheProgressBar.vue';
 import ConfirmationStep from '@/components/ConfirmationStep.vue';
 import Button from '@/components/Button.vue';
+import GeneralDataStep from '@/components/GeneralDataStep.vue';
 
-const step = ref(1);
+const step = ref(0);
 const confirmed = ref(false);
 const showModal = ref(false);
 const formData = ref({
   name: '',
-  surname: ''
+  surname: '',
 });
+const generalData = ref({
+  companyData: { 
+    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: true },
+    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: true },
+  },
+  freightForwarderData: {
+    freightForwarderName: { type: 'text', label: 'Freight Forwarder Name', id: 'freightForwarderName', isRequired: true },
+    accountNumber: { type: 'text', label: 'Account Number', id: 'accountNumber', isRequired: true },
+  },
+  companyAddress: {
+    address: { type: 'text', label: 'Address', id: 'address', isRequired: true },
+    city: { type: 'text', label: 'City', id: 'city', isRequired: true },
+    country: { type: 'text', label: 'Country', id: 'country', isRequired: true },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: true },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: true },
+    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: true },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: true },
+  },
+  otherReturnAddress: {
+    address: { type: 'text', label: 'Address', id: 'otherAddress', isRequired: false },
+    city: { type: 'text', label: 'City', id: 'otherCity', isRequired: false },
+    country: { type: 'text', label: 'Country', id: 'otherCountry', isRequired: false },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'otherZipCode', isRequired: false },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'otherContactPersonName', isRequired: false },
+    eMail: { type: 'email', label: 'Email', id: 'otherEmail', isRequired: false },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'otherPhoneNumber', isRequired: false },
+  },
+});
+
 const additionalData = ref([]);
 const newData = ref('');
 const downloadRecap = ref(false);
@@ -48,18 +78,13 @@ const submitForm = () => {
         <TheProgressBar :progressWidth="progressWidth" />
       </div>
 
-      <div v-if="step === 1" class="confirmation-step col-12">
+      <div v-if="step === 0" class="confirmation-step col-12">
         {{ confirmed }}
-
         <ConfirmationStep :confirmed.sync="confirmed" @next-step="nextStep" />
       </div>
 
-      <div v-else-if="step === 2">
-        <h3>Dati Anagrafici</h3>
-        <input v-model="formData.name" type="text" class="form-control" placeholder="Nome" />
-        <input v-model="formData.surname" type="text" class="form-control mt-2" placeholder="Cognome" />
-        <button class="btn btn-secondary mt-3" @click="prevStep">Indietro</button>
-        <button class="btn btn-primary mt-3 ms-2" @click="nextStep">Avanti</button>
+      <div v-else-if="step === 1" class="col-12">
+        <GeneralDataStep :generalData="generalData" @next-step="nextStep" @prev-step="prevStep" />
       </div>
 
       <div v-else-if="step === 3">
@@ -88,34 +113,3 @@ const submitForm = () => {
     </div>
   </main>
 </template>
-
-<style scoped>
-body {
-  font-family: var(--font-family);
-}
-
-.container {
-  max-width: 1090px;
-  margin: auto;
-}
-
-.step-list {
-  text-align: left;
-  margin: 20px 0;
-  padding-left: 20px;
-}
-
-.step-list li {
-  font-size: 1rem;
-}
-
-.custom-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.modal {
-  background: rgba(0, 0, 0, 0.5);
-}
-</style>

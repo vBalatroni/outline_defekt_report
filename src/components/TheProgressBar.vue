@@ -9,7 +9,7 @@ const props = defineProps({
 
 </script>
 <template>
-    <div class="progress mb-3">
+    <div class="progress progress-custom mb-3">
         <div 
           class="progress-bar" 
           role="progressbar" 
@@ -17,16 +17,3 @@ const props = defineProps({
         ></div>
       </div>
 </template>
-
-<style>
-.progress {
-    height: 20px;
-    background-color: var(--light-color);
-    transition: width 0.6s ease;
-    border-radius: 0;
-}  
-.progress-bar {
-    background-color: var(--black-color);
-    transition: width 0.6s ease;
-}
-</style>
