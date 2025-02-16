@@ -21,6 +21,10 @@ const props = defineProps({
     modelValue: {
         type: [String, Number],
         default: ''
+    },
+    options: {
+        type: Array,
+        default: () => []
     }
 });
 
@@ -36,16 +40,50 @@ const handleInput = (event) => {
 <template>
     <div class="input-field">
         <label :for="id">{{ label }} <span v-if="isRequired">*</span></label>
-        <input 
-            :type="type" 
-            :id="id" 
-            :required="isRequired" 
-            :value="modelValue" 
-            @input="handleInput"
-        />
+        <template v-if="type === 'select'">
+            <select 
+                :id="id" 
+                :required="isRequired" 
+                :value="modelValue" 
+                @input="handleInput"
+                class="form-control"
+            >
+                <option value="">Select an option</option>
+                <option v-for="option in options" :key="option" :value="option">
+                    {{ option }}
+                </option>
+            </select>
+        </template>
+        <template v-else>
+            <input 
+                :type="type" 
+                :id="id" 
+                :required="isRequired" 
+                :value="modelValue" 
+                @input="handleInput"
+                class="form-control"
+            />
+        </template>
     </div>
 </template>
 
 <style scoped>
-/* Add any necessary styles here */
+.input-field {
+    display: flex;
+    flex-direction: column;
+    width: 90%;
+}
+
+.input-field label {
+    font-weight: 400;
+    font-size: 14px;
+}
+
+.input-field input,
+.input-field select {
+    border: 2px solid var(--black-color);
+    border-radius: 0;
+    padding: 8px;
+    font-size: 16px;
+}
 </style>

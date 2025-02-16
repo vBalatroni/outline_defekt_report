@@ -72,6 +72,7 @@ body {
 .button.primary-button {
   background-color: #000;
   color: #E6E6E6;
+  border: 2px solid #000;
 }
 .button.secondary-button {
   background-color: white;
@@ -81,6 +82,25 @@ body {
 .button.disabled {
   pointer-events: none;
   opacity: 0.5;
+}
+
+.custom-modal .modal-dialog {
+  max-width: 1090px;
+  margin: 0 auto;
+  width: 100%;
+  height: 100%;
+  align-content: center;
+}
+.custom-modal .modal-content {
+  padding: 2rem;
+}
+.custom-modal .modal-content .buttons-section {
+  display: flex;
+  justify-content: space-between;
+}
+
+.modal-button .button {
+  padding: 24px 72px;
 }
 
 .progress.progress-custom {
@@ -130,7 +150,7 @@ body {
   font-weight: 400;
   font-size: 14px;
 }
-.input-list .input-wrapper .input-field input {
+.input-list .input-wrapper .input-field input, .input-list .input-wrapper .input-field select {
   border: 2px solid #000;
   border-radius: 0;
   padding: 8px;
