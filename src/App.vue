@@ -1,85 +1,66 @@
-<script setup>
-import { RouterLink, RouterView } from 'vue-router'
-import HelloWorld from './components/HelloWorld.vue'
-</script>
-
 <template>
-  <header>
-    <img alt="Vue logo" class="logo" src="@/assets/logo.svg" width="125" height="125" />
-
-    <div class="wrapper">
-      <HelloWorld msg="You did it!" />
-
-      <nav>
-        <RouterLink to="/">Home</RouterLink>
-        <RouterLink to="/about">About</RouterLink>
-      </nav>
-    </div>
-  </header>
-
   <RouterView />
 </template>
 
-<style scoped>
-header {
-  line-height: 1.5;
-  max-height: 100vh;
+<style>
+:root {
+  --primary-color: #007bff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --black-color: #000;
+  --light-color:#E6E6E6;
+  --font-family: 'IBM Plex Mono', monospace;
 }
 
-.logo {
-  display: block;
-  margin: 0 auto 2rem;
+body {
+  font-family: var(--font-family);
 }
 
-nav {
-  width: 100%;
-  font-size: 12px;
-  text-align: center;
-  margin-top: 2rem;
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 240px;
+}
+/* 
+.cancel-btn {
+  background: var(--light-color);
+  border: 2px solid var(--dark-color);
+  color: var(--dark-color);
+  padding: 10px 20px;
 }
 
-nav a.router-link-exact-active {
-  color: var(--color-text);
+.start-btn {
+  background: var(--secondary-color);
+  color: var(--light-color);
+  padding: 10px 20px;
 }
 
-nav a.router-link-exact-active:hover {
-  background-color: transparent;
+
+.button-group {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+  gap: 20px;
 }
 
-nav a {
-  display: inline-block;
-  padding: 0 1rem;
-  border-left: 1px solid var(--color-border);
+.btn {
+    padding: 10px 20px;
+    border: none;
+    cursor: pointer;
+}
+.primary-btn {
+    background: var(--black-color);
+    color: var(--light-color);
 }
 
-nav a:first-of-type {
-  border: 0;
-}
-
-@media (min-width: 1024px) {
-  header {
-    display: flex;
-    place-items: center;
-    padding-right: calc(var(--section-gap) / 2);
-  }
-
-  .logo {
-    margin: 0 2rem 0 0;
-  }
-
-  header .wrapper {
-    display: flex;
-    place-items: flex-start;
-    flex-wrap: wrap;
-  }
-
-  nav {
-    text-align: left;
-    margin-left: -1rem;
-    font-size: 1rem;
-
-    padding: 1rem 0;
-    margin-top: 1rem;
-  }
-}
+.btn.disabled {
+    opacity: .5; 
+} */
 </style>
+
