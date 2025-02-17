@@ -179,3 +179,15 @@ body {
         }
     }
 }
+
+
+.product-actions, .defekt-actions {
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
+  margin-right: 1rem;
+}
+
+.add-edit-button {
+  margin-bottom: 36px;
+}

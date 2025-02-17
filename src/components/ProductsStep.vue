@@ -1,14 +1,17 @@
 <script setup>
-import { defineProps, ref, computed } from 'vue';
+import { defineProps, ref, computed, watch } from 'vue';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
 import InputField from './InputField.vue';
+import 'bootstrap-icons/font/bootstrap-icons.css';
+
+const emit = defineEmits(['prev-step', 'next-step', 'step-validation', 'update:savedProducts']);
 
 const showModal = ref(false);
 const isBasicInfoValidated = ref(false);
 const isSerialNumberVerified = ref(false);
-const savedProducts = ref([]);
+
 const editingProductIndex = ref(-1);
 const currentProduct = ref(null);
 const currentDefekt = ref(null);
@@ -18,6 +21,14 @@ const props = defineProps({
     productData: {
         type: Object,
         required: true
+    },
+    savedProducts: {
+        type: Array,
+        default: () => []
+    },
+    productToEdit: {
+        type: Object,
+        default: null
     }
 });
 
@@ -30,7 +41,8 @@ const initializeNewProduct = () => {
 const initializeNewDefekt = () => {
     const defekt = {};
     Object.keys(props.productData).forEach(sectionKey => {
-        if (sectionKey !== 'basicInfo') {
+        // Only exclude basicInfo and categoryConfigs
+        if (sectionKey !== 'basicInfo' && sectionKey !== 'categoryConfigs') {
             defekt[sectionKey] = JSON.parse(JSON.stringify(props.productData[sectionKey]));
         }
     });
@@ -97,13 +109,15 @@ const canSave = computed(() => {
 
 const saveData = () => {
     const productToSave = JSON.parse(JSON.stringify(currentProduct.value));
+    const products = [...props.savedProducts];
     
     if (editingProductIndex.value >= 0) {
-        savedProducts.value[editingProductIndex.value] = productToSave;
+        products[editingProductIndex.value] = productToSave;
     } else {
-        savedProducts.value.push(productToSave);
+        products.push(productToSave);
     }
     
+    emit('update:savedProducts', products);
     clearForm();
 };
 
@@ -133,7 +147,7 @@ const deleteDefekt = (index) => {
 };
 
 const editProduct = (index) => {
-    const productToEdit = savedProducts.value[index];
+    const productToEdit = props.savedProducts[index];
     currentProduct.value = JSON.parse(JSON.stringify(productToEdit));
     currentDefekt.value = initializeNewDefekt(); // Initialize defekt form
     editingProductIndex.value = index;
@@ -142,61 +156,142 @@ const editProduct = (index) => {
 };
 
 const deleteProduct = (index) => {
-    savedProducts.value.splice(index, 1);
+    const products = [...props.savedProducts];
+    products.splice(index, 1);
+    emit('update:savedProducts', products);
 };
 
 const openNewProductModal = () => {
     currentProduct.value = initializeNewProduct();
-    currentDefekt.value = initializeNewDefekt(); // Initialize defekt form
+    currentDefekt.value = initializeNewDefekt();
     isBasicInfoValidated.value = false;
     showModal.value = true;
+    
+    // Debug log
+    console.log('Initialized currentProduct:', currentProduct.value);
 };
 
 const canAddDefekt = computed(() => {
-    if (!currentDefekt.value) return false;
+    if (!currentDefekt.value || !currentProduct.value?.basicInfo.category.value) return false;
 
-    // Check each section in the defekt
-    for (const sectionKey in currentDefekt.value) {
-        const section = currentDefekt.value[sectionKey];
-        for (const fieldKey in section) {
-            const field = section[fieldKey];
+    const visibleFields = getVisibleFields.value;
+    if (!visibleFields) return false;
+
+    // Check each section in the visible fields
+    for (const sectionKey in visibleFields) {
+        const fields = visibleFields[sectionKey];
+        for (const fieldKey of fields) {
+            const field = currentDefekt.value[sectionKey][fieldKey];
             if (field.isRequired && !field.value) {
+                console.log(`Required field not filled: ${sectionKey}.${fieldKey}`);
                 return false;
             }
         }
     }
     return true;
 });
+
+// Add debug watch for required fields
+watch(() => currentDefekt.value, () => {
+    if (currentDefekt.value && getVisibleFields.value) {
+        console.log('Checking required fields:');
+        for (const sectionKey in getVisibleFields.value) {
+            const fields = getVisibleFields.value[sectionKey];
+            fields.forEach(fieldKey => {
+                const field = currentDefekt.value[sectionKey][fieldKey];
+                if (field.isRequired) {
+                    console.log(`${sectionKey}.${fieldKey}: ${field.value ? 'filled' : 'empty'}`);
+                }
+            });
+        }
+    }
+}, { deep: true });
+
+const getVisibleFields = computed(() => {
+    if (!currentProduct.value?.basicInfo.category.value) return null;
+    return props.productData.categoryConfigs[currentProduct.value.basicInfo.category.value]?.visibleFields || null;
+});
+
+const isFieldVisible = (sectionKey, fieldKey) => {
+    const visibleFields = getVisibleFields.value;
+    console.log('Visible Fields:', visibleFields);
+    if (!visibleFields) return false;
+    return visibleFields[sectionKey]?.includes(fieldKey);
+};
+
+// Initialize currentDefekt when category changes
+watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
+    if (newCategory && isBasicInfoValidated.value) {
+        currentDefekt.value = initializeNewDefekt();
+    }
+}, { immediate: true });
+
+// Add a debug watch to help troubleshoot
+watch(() => currentDefekt.value, (newVal) => {
+    console.log('Current Defekt:', newVal);
+}, { deep: true });
+
+watch(() => currentProduct.value?.basicInfo.category.value, (newVal) => {
+    console.log('Selected Category:', newVal);
+    console.log('Visible Fields:', getVisibleFields.value);
+}, { immediate: true });
+
+// Add a debug watch for currentProduct
+watch(() => currentProduct.value?.basicInfo, (newVal) => {
+    console.log('Current Product Basic Info:', newVal);
+}, { deep: true });
+
+// Add computed property for next button validation
+const canProceedToNextStep = computed(() => {
+    return props.savedProducts.length > 0;
+});
+
+// Watch savedProducts to emit step validation
+watch(() => props.savedProducts.length, (newLength) => {
+    emit('step-validation', newLength > 0);
+}, { immediate: true });
+
+// Watch for productToEdit changes to load product for editing
+watch(() => props.productToEdit, (newVal) => {
+    if (newVal) {
+        currentProduct.value = JSON.parse(JSON.stringify(newVal));
+        isBasicInfoValidated.value = true;
+        showModal.value = true;
+    }
+}, { immediate: true });
+
 </script>
 <template>
     <div class="products-step">
         <div class="products-wrapper">
             <SectionHeader title="Products" />
             
-            <div v-if="savedProducts.length > 0" class="saved-products mb-5">
-                <h3 class="section-header mb-4">Saved Products</h3>
-                <div class="product-list">
-                    <div v-for="(product, index) in savedProducts" :key="index" class="product-card">
-                        <div class="product-info">
-                            <h4>{{ product.basicInfo.model.value }}</h4>
-                            <p>Serial Number: {{ product.basicInfo.serialNumber.value }}</p>
-                            <p>Category: {{ product.basicInfo.category.value }}</p>
-                        </div>
-                        <div class="product-actions">
-                            <Button :type="'secondary'" :text="'Edit'" @click="editProduct(index)" ></Button>
-                            <Button :type="'primary'" :text="'Delete'" @click="deleteProduct(index)" ></Button>
-                        </div>
-                    </div>
-                </div>
-            </div>
+
 
             <div class="modal-button my-5 mx-auto text-center">
                 <Button @click="openNewProductModal" :type="'primary'" :text="'Add product'"></Button>
             </div>
             <Divider/>
+            <div v-if="savedProducts.length > 0" class="saved-products mb-5">
+                <h3 class="section-header mb-4">Saved Products</h3>
+                <div class="product-list">
+                    <div v-for="(product, index) in savedProducts" :key="index" class="product-card">
+                        <div class="product-actions">
+                            <i @click="editProduct(index)" class="bi bi-pencil"></i>
+                            <i @click="deleteProduct(index)" class="bi bi-trash"></i>
+                        </div>
+                        <div class="product-info">
+                            <h4>{{ product.basicInfo.model.value }}</h4>
+                            <p>Serial Number: {{ product.basicInfo.serialNumber.value }}</p>
+                            <p>Category: {{ product.basicInfo.category.value }}</p>
+                        </div>
+                       
+                    </div>
+                </div>
+            </div>
             <div class="button-group mx-auto justify-content-between">
                 <Button :type="'secondary'" :text="'Back'" :isDisabled="false" @click="$emit('prev-step')"></Button>
-                <Button :type="'primary'" :text="'Next'" :isDisabled="!allRequiredFieldsFilled" @click="$emit('next-step')"></Button>
+                <Button :type="'primary'" :text="'Next'" :isDisabled="!canProceedToNextStep" @click="$emit('next-step')"></Button>
             </div>
         </div>
     </div>
@@ -216,8 +311,8 @@ const canAddDefekt = computed(() => {
                     <SectionHeader title="Report" />
                 </div>
                 <div class="modal-body-custom">
-                    <template v-if="!isBasicInfoValidated">
-                        <h3 class="section-header">Basic Information</h3>
+                    <template v-if="!isBasicInfoValidated && currentProduct">
+                        <h3 class="section-header">Product</h3>
                         <div class="input-list">
                             <div class="input-wrapper col-12 col-md-4" v-for="(field, fieldKey) in currentProduct.basicInfo" :key="fieldKey">
                                 <InputField 
@@ -232,48 +327,140 @@ const canAddDefekt = computed(() => {
                             </div>
                         </div>
                     </template>
-
+                    
                     <template v-else>
-                        <!-- Defekt Form -->
-                        <div v-for="(section, sectionKey) in currentDefekt" :key="sectionKey">
-                            <h3 class="section-header">{{ sectionKey }}</h3>
+                        <!-- Product Summary Section -->
+                        <div class="product-summary mb-4">
+                            <h3 class="section-header">Product</h3>
+                            <div class="product-info-box">
+                                <div>
+                                    <p><strong>Model:</strong> {{ currentProduct.basicInfo.model.value }}</p>
+                                    <p><strong>Serial Number:</strong> {{ currentProduct.basicInfo.serialNumber.value }}</p>
+                                </div>
+                                <Button 
+                                    :type="'secondary'" 
+                                    :text="'Change Product'" 
+                                    @click="isBasicInfoValidated = false"
+                                />
+                            </div>
+                            <Divider />
+                        </div>
+                        
+                        <!-- Defect Form Section -->
+                        <div class="defect-form mb-4">
+                            <h3 class="section-header">Defect</h3>
                             <div class="input-list">
-                                <div class="input-wrapper col-12 col-md-4" v-for="(field, fieldKey) in section" :key="fieldKey">
-                                    <InputField 
-                                        :type="field.type" 
-                                        :label="field.label" 
-                                        :isRequired="field.isRequired" 
-                                        :id="field.id" 
-                                        :options="field.options"
-                                        v-model="field.value"
-                                    />
+                                <template v-if="currentDefekt && currentProduct?.basicInfo.category.value">
+                                    <div 
+                                        v-for="(field, fieldKey) in currentDefekt.symptomInfo" 
+                                        :key="'symptom-' + fieldKey"
+                                        v-show="isFieldVisible('symptomInfo', fieldKey)"
+                                        class="input-wrapper col-12 col-md-4"
+                                    >
+                                        <InputField 
+                                            :type="field.type" 
+                                            :label="field.label" 
+                                            :isRequired="field.isRequired" 
+                                            :id="field.id" 
+                                            :options="field.options"
+                                            v-model="field.value"
+                                        />
+                                    </div>
+
+                                    <div 
+                                        v-for="(field, fieldKey) in currentDefekt.technicalInfo" 
+                                        :key="'technical-' + fieldKey"
+                                        v-show="isFieldVisible('technicalInfo', fieldKey)"
+                                        class="input-wrapper col-12 col-md-4"
+                                    >
+                                        <InputField 
+                                            :type="field.type" 
+                                            :label="field.label" 
+                                            :isRequired="field.isRequired" 
+                                            :id="field.id" 
+                                            :options="field.options"
+                                            v-model="field.value"
+                                        />
+                                    </div>
+
+                                    <div 
+                                        v-for="(field, fieldKey) in currentDefekt.serialNumbers" 
+                                        :key="'serial-' + fieldKey"
+                                        v-show="isFieldVisible('serialNumbers', fieldKey)"
+                                        class="input-wrapper col-12 col-md-4"
+                                    >
+                                        <InputField 
+                                            :type="field.type" 
+                                            :label="field.label" 
+                                            :isRequired="field.isRequired" 
+                                            :id="field.id" 
+                                            :options="field.options"
+                                            v-model="field.value"
+                                        />
+                                    </div>
+
+                                    <div 
+                                        v-for="(field, fieldKey) in currentDefekt.versions" 
+                                        :key="'version-' + fieldKey"
+                                        v-show="isFieldVisible('versions', fieldKey)"
+                                        class="input-wrapper col-12 col-md-4"
+                                    >
+                                        <InputField 
+                                            :type="field.type" 
+                                            :label="field.label" 
+                                            :isRequired="field.isRequired" 
+                                            :id="field.id" 
+                                            :options="field.options"
+                                            v-model="field.value"
+                                        />
+                                    </div>
+
+                                    <div 
+                                        v-for="(field, fieldKey) in currentDefekt.additionalInfo" 
+                                        :key="'additional-' + fieldKey"
+                                        v-show="isFieldVisible('additionalInfo', fieldKey)"
+                                        class="input-wrapper col-12 col-md-4"
+                                    >
+                                        <InputField 
+                                            :type="field.type" 
+                                            :label="field.label" 
+                                            :isRequired="field.isRequired" 
+                                            :id="field.id" 
+                                            :options="field.options"
+                                            v-model="field.value"
+                                        />
+                                    </div>
+                                </template>
+                            </div>
+                            <div class=" add-edit-button text-center mt-4">
+                                <Button 
+                                    :type="'primary'" 
+                                    :text="editingDefektIndex >= 0 ? 'Update Defect' : 'Add Defect'" 
+                                    :isDisabled="!canAddDefekt"
+                                    @click="addDefekt"
+                                />
+                            </div>
+                            <Divider />
+                        </div>
+
+                        <!-- Report Summary Section -->
+                        <div class="report-summary">
+                            <h3 class="section-header">Report Summary</h3>
+                            <div v-if="currentProduct.defekts?.length > 0" class="defects-summary">
+                                <div class="defekt-card" v-for="(defekt, index) in currentProduct.defekts" :key="index">
+                                    <div class="defekt-actions">
+                                        <i @click="editDefekt(index)" class="bi bi-pencil"></i>
+                                        <i @click="deleteDefekt(index)" class="bi bi-trash"></i>
+                                    </div>
+                                    <div class="defekt-info">
+                                        <p><strong>Symptom:</strong> {{ defekt.symptomInfo.symptomFound.value }}</p>
+                                        <p><strong>Area:</strong> {{ defekt.symptomInfo.symptomArea.value }}</p>
+                                        <p><strong>Occurrence:</strong> {{ defekt.symptomInfo.symptomOccurrence.value }}</p>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Add/Update Defekt Button -->
-                        <div class="text-center mt-4 mb-4">
-                            <Button 
-                                :type="'primary'" 
-                                :text="editingDefektIndex >= 0 ? 'Update Defekt' : 'Add Defekt'" 
-                                :isDisabled="!canAddDefekt"
-                                @click="addDefekt"
-                            />
-                        </div>
-
-                        <!-- List of Added Defekts -->
-                        <div v-if="currentProduct.defekts?.length > 0" class="defekts-list">
-                            <Divider class="mb-4" />
-                            <h3 class="section-header">Added Defekts</h3>
-                            <div class="defekt-card" v-for="(defekt, index) in currentProduct.defekts" :key="index">
-                                <div class="defekt-info">
-                                    <p><strong>Symptom:</strong> {{ defekt.symptomInfo.symptomFound.value }}</p>
-                                    <p><strong>Area:</strong> {{ defekt.symptomInfo.symptomArea.value }}</p>
-                                    <p><strong>Occurrence:</strong> {{ defekt.symptomInfo.symptomOccurrence.value }}</p>
-                                </div>
-                                <div class="defekt-actions">
-                                    <Button :type="'secondary'" :text="'Edit'" @click="editDefekt(index)" />
-                                    <Button :type="'primary'" :text="'Delete'" @click="deleteDefekt(index)" />
-                                </div>
+                            <div v-else class="text-center mt-4">
+                                <p>No defects added yet</p>
                             </div>
                         </div>
                     </template>
@@ -284,6 +471,12 @@ const canAddDefekt = computed(() => {
 </template>
 
 <style scoped>
+.defekt-actions {
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    margin-right: 1rem;
+}
 .saved-products {
     margin-top: 2rem;
 }
@@ -355,5 +548,32 @@ const canAddDefekt = computed(() => {
 
 .defekts-list {
     margin-top: 2rem;
+}
+
+.product-info-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border: 2px solid var(--black-color);
+    margin: 1rem 0;
+}
+
+.product-info-box p {
+    margin: 0.25rem 0;
+}
+
+.defect-form {
+    margin: 2rem 0;
+}
+
+.report-summary {
+    margin-top: 2rem;
+}
+
+.section-subheader {
+    font-size: 20px;
+    font-weight: bold;
+    margin: 1rem 0;
 }
 </style>

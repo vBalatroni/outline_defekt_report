@@ -44,7 +44,6 @@ const handleInputChange = () => {
 </script>
 
 <template>
-    {{ allRequiredFieldsFilled }}
     <div class="general-data-step">
         <div class="general-data-wrapper">
             <SectionHeader title="General Information" />

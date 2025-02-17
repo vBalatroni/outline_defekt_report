@@ -22,7 +22,6 @@ const nextStep = () => {
 </script>
 
 <template>
-    {{ localConfirmed }}
     <div class="confirmation-step">
         <div class="confirmation-wrapper">
             <StepHeader title="Before starting" subtitle="Have you completed all the necessary checks before filling out the Defekt Report?"/>
