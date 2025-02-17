@@ -8,7 +8,9 @@
     "build": "vite build",
     "preview": "vite preview",
     "style": "sass src/assets/custom.scss src/assets/custom.css",
-    "watch-style": "sass --watch src/assets/custom.scss:src/assets/custom.css"
+    "watch-style": "sass --watch src/assets/custom.scss:src/assets/custom.css",
+    "build": "vite build",
+    "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {
     "boostrap": "^2.0.0",
@@ -20,6 +22,7 @@
   },
   "devDependencies": {
     "@vitejs/plugin-vue": "^5.2.1",
+    "gh-pages": "^6.3.0",
     "sass": "^1.85.0",
     "sass-loader": "^16.0.5",
     "vite": "^6.0.11",

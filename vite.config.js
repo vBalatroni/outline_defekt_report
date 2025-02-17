@@ -9,7 +9,9 @@ export default defineConfig({
   plugins: [
     vue(),
     vueDevTools(),
+    
   ],
+  base: '/outline_defect_report/',
   resolve: {
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url))
