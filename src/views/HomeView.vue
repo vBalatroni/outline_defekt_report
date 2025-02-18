@@ -17,21 +17,21 @@ const formData = ref({
 });
 const generalData = ref({
   companyData: { 
-    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: false, value: '' },
-    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: false, value: '' },
+    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: true, value: '' },
+    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: true, value: '' },
   },
   freightForwarderData: {
     freightForwarderName: { type: 'text', label: 'Freight Forwarder Name', id: 'freightForwarderName', isRequired: false, value: '' },
     accountNumber: { type: 'text', label: 'Account Number', id: 'accountNumber', isRequired: false, value: '' },
   },
   companyAddress: {
-    address: { type: 'text', label: 'Address', id: 'address', isRequired: false, value: '' },
-    city: { type: 'text', label: 'City', id: 'city', isRequired: false, value: '' },
-    country: { type: 'text', label: 'Country', id: 'country', isRequired: false, value: '' },
-    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: false, value: '' },
-    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: false, value: '' },
-    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: false, value: '' },
-    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: false, value: '' },
+    address: { type: 'text', label: 'Address', id: 'address', isRequired: true, value: '' },
+    city: { type: 'text', label: 'City', id: 'city', isRequired: true, value: '' },
+    country: { type: 'text', label: 'Country', id: 'country', isRequired: true, value: '' },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: true, value: '' },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: true, value: '' },
+    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: true, value: '' },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: true, value: '' },
   },
   otherReturnAddress: {
     address: { type: 'text', label: 'Address', id: 'otherAddress', isRequired: false, value: '' },
