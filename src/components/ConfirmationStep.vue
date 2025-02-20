@@ -33,7 +33,7 @@ const nextStep = () => {
                     <li>Aenean sit amet velit cursus, suscipit mi ut, aliquet sapien.</li>
                     <li>Aliquam eleifend nulla pulvinar, feugiat sem id, pretium turpis.</li>
                 </ul>
-                <div class="form-check custom-checkbox">
+                <div class="form-check custom-checkbox d-flex">
                     <input v-model="localConfirmed" type="checkbox" class="form-check-input" id="confirmCheck" />
                     <label class="form-check-label" for="confirmCheck">I confirm that the required checks have been completed.</label>
                 </div>

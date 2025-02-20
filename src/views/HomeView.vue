@@ -295,7 +295,7 @@ const handlePrevStep = () => {
 
 <template>
   <main>
-    <div class="container mt-5 px-0 mx-auto">
+    <div class="container px-4 px-md-0 mt-5 mx-auto">
       <div v-if="confirmed">
         <TheProgressBar :progressWidth="progressWidth" />
       </div>

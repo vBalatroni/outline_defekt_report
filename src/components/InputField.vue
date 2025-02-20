@@ -25,6 +25,10 @@ const props = defineProps({
     options: {
         type: Array,
         default: () => []
+    },
+    isLoading: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -48,7 +52,7 @@ const handleInput = (event) => {
                 @input="handleInput"
                 class="form-control"
             >
-                <option value="">Select an option</option>
+                <option value="" disabled selected>Select an option</option>
                 <option v-for="option in options" :key="option" :value="option">
                     {{ option }}
                 </option>
@@ -60,6 +64,8 @@ const handleInput = (event) => {
                 :id="id" 
                 :required="isRequired" 
                 :value="modelValue" 
+                :disabled="isLoading"
+                :class="{ 'loading': isLoading }"
                 @input="handleInput"
                 class="form-control"
             />
@@ -68,22 +74,8 @@ const handleInput = (event) => {
 </template>
 
 <style scoped>
-.input-field {
-    display: flex;
-    flex-direction: column;
-    width: 90%;
-}
-
-.input-field label {
-    font-weight: 400;
-    font-size: 14px;
-}
-
-.input-field input,
-.input-field select {
-    border: 2px solid var(--black-color);
-    border-radius: 0;
-    padding: 8px;
-    font-size: 16px;
+.input-field input.loading {
+    background-color: #f5f5f5;
+    cursor: not-allowed;
 }
 </style>

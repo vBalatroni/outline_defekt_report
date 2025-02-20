@@ -63,7 +63,7 @@ const handleInputChange = () => {
                             />
                         </div>
                     </div>
-                    <div v-if="sectionKey === 'companyAddress'" class="form-check custom-checkbox mt-3">
+                    <div v-if="sectionKey === 'companyAddress'" class="form-check custom-checkbox d-flex mt-3">
                         <input v-model="showOtherReturnAddress" type="checkbox" class="form-check-input" id="showOtherReturnAddress" />
                         <label class="form-check-label" for="showOtherReturnAddress">Use a different return address</label>
                     </div>

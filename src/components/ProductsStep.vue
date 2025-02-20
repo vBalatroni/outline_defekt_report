@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref, computed, watch } from 'vue';
+import { defineProps, ref, computed, watch, onBeforeUnmount } from 'vue';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
@@ -11,6 +11,7 @@ const emit = defineEmits(['prev-step', 'next-step', 'step-validation', 'update:s
 const showModal = ref(false);
 const isBasicInfoValidated = ref(false);
 const isSerialNumberVerified = ref(false);
+const serialNumberLoading = ref(false);
 
 const editingProductIndex = ref(-1);
 const currentProduct = ref(null);
@@ -62,9 +63,20 @@ const clearDefektForm = () => {
     editingDefektIndex.value = -1;
 };
 
+// Add debounce time constant
+const SERIAL_NUMBER_DEBOUNCE = 800; // milliseconds
+
 const handleInputChange = (event) => {
-    if (event.id === 'serialNumber' && event.value) {
-        checkSerialNumber(event.value);
+    if (event.id === 'serialNumber') {
+        clearTimeout(validationTimeout);
+        
+        if (event.value) {
+            // Start debounce timer only after user stops typing
+            validationTimeout = setTimeout(() => {
+                serialNumberLoading.value = true;  // Start loading state after debounce
+                checkSerialNumber(event.value);
+            }, SERIAL_NUMBER_DEBOUNCE);
+        }
     }
 };
 
@@ -76,17 +88,17 @@ const basicInfoFieldsFilled = computed(() => {
 
 let validationTimeout;
 const checkSerialNumber = (serialNumber) => {
-    clearTimeout(validationTimeout);
-    validationTimeout = setTimeout(() => {
-        if (currentProduct.value.basicInfo.category.value && 
-            currentProduct.value.basicInfo.model.value) {
-            validateSerialNumber(serialNumber);
-        }
-    }, 1000);
+    if (currentProduct.value.basicInfo.category.value && 
+        currentProduct.value.basicInfo.model.value) {
+        validateSerialNumber(serialNumber);
+    }
 };
 
 const validateSerialNumber = async (serialNumber) => {
     try {
+        // Simulate API call with 1.5 second delay
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
         console.log('Validating serial number:', serialNumber);
         const isValid = true;
         isBasicInfoValidated.value = isValid;
@@ -95,8 +107,17 @@ const validateSerialNumber = async (serialNumber) => {
         console.error('Validation error:', error);
         isBasicInfoValidated.value = false;
         isSerialNumberVerified.value = false;
+    } finally {
+        serialNumberLoading.value = false;
     }
 };
+
+// Clean up timeout when component is destroyed
+onBeforeUnmount(() => {
+    if (validationTimeout) {
+        clearTimeout(validationTimeout);
+    }
+});
 
 const canSave = computed(() => {
     if (!currentProduct.value) return false;
@@ -321,6 +342,7 @@ watch(() => props.productToEdit, (newVal) => {
                                     :isRequired="field.isRequired" 
                                     :id="field.id" 
                                     :options="field.options"
+                                    :isLoading="field.id === 'serialNumber' && serialNumberLoading"
                                     v-model="field.value"
                                     @input-change="handleInputChange"
                                 />
@@ -337,11 +359,7 @@ watch(() => props.productToEdit, (newVal) => {
                                     <p><strong>Model:</strong> {{ currentProduct.basicInfo.model.value }}</p>
                                     <p><strong>Serial Number:</strong> {{ currentProduct.basicInfo.serialNumber.value }}</p>
                                 </div>
-                                <Button 
-                                    :type="'secondary'" 
-                                    :text="'Change Product'" 
-                                    @click="isBasicInfoValidated = false"
-                                />
+                                <p class="change-product-link" @click="isBasicInfoValidated = false">Change Product</p>
                             </div>
                             <Divider />
                         </div>
@@ -471,109 +489,5 @@ watch(() => props.productToEdit, (newVal) => {
 </template>
 
 <style scoped>
-.defekt-actions {
-    display: flex;
-    flex-direction: column;
-    cursor: pointer;
-    margin-right: 1rem;
-}
-.saved-products {
-    margin-top: 2rem;
-}
 
-.product-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-}
-
-.product-card {
-    border: 2px solid var(--black-color);
-    padding: 1rem;
-    min-width: 250px;
-    background-color: white;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.product-info h4 {
-    margin: 0;
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-.product-info p {
-    margin: 0.5rem 0;
-    font-size: 0.9rem;
-}
-
-.product-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.product-actions .button {
-    padding: 8px 16px;
-    font-size: 14px;
-}
-
-.defekts-list {
-    margin-top: 2rem;
-    border-top: 2px solid var(--black-color);
-    padding-top: 1rem;
-}
-
-.defekt-card {
-    border: 1px solid var(--black-color);
-    padding: 1rem;
-    margin-bottom: 1rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-
-.defekt-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.defekt-info {
-    flex: 1;
-}
-
-.defekt-info p {
-    margin: 0.25rem 0;
-}
-
-.defekts-list {
-    margin-top: 2rem;
-}
-
-.product-info-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    border: 2px solid var(--black-color);
-    margin: 1rem 0;
-}
-
-.product-info-box p {
-    margin: 0.25rem 0;
-}
-
-.defect-form {
-    margin: 2rem 0;
-}
-
-.report-summary {
-    margin-top: 2rem;
-}
-
-.section-subheader {
-    font-size: 20px;
-    font-weight: bold;
-    margin: 1rem 0;
-}
 </style>
