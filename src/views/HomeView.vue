@@ -46,7 +46,7 @@ const generalData = ref({
 
 // Define category configurations
 const categoryConfigs = {
-  'Category 1': {
+  'Active Speaker': {
     visibleFields: {
       symptomInfo: ['symptomArea', 'symptomFound', 'symptomOccurrence'],
       technicalInfo: ['mainsVoltageType', 'mainsVoltageRange'],
