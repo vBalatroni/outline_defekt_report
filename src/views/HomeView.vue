@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, provide } from 'vue';
 import TheWelcome from '../components/TheWelcome.vue';
 import TheProgressBar from '@/components/TheProgressBar.vue';
 import ConfirmationStep from '@/components/ConfirmationStep.vue';
@@ -17,21 +17,21 @@ const formData = ref({
 });
 const generalData = ref({
   companyData: { 
-    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: true, value: '' },
-    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: true, value: '' },
+    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: false, value: '' },
+    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: false, value: '' },
   },
   freightForwarderData: {
     freightForwarderName: { type: 'text', label: 'Freight Forwarder Name', id: 'freightForwarderName', isRequired: false, value: '' },
     accountNumber: { type: 'text', label: 'Account Number', id: 'accountNumber', isRequired: false, value: '' },
   },
   companyAddress: {
-    address: { type: 'text', label: 'Address', id: 'address', isRequired: true, value: '' },
-    city: { type: 'text', label: 'City', id: 'city', isRequired: true, value: '' },
-    country: { type: 'text', label: 'Country', id: 'country', isRequired: true, value: '' },
-    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: true, value: '' },
-    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: true, value: '' },
-    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: true, value: '' },
-    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: true, value: '' },
+    address: { type: 'text', label: 'Address', id: 'address', isRequired: false, value: '' },
+    city: { type: 'text', label: 'City', id: 'city', isRequired: false, value: '' },
+    country: { type: 'text', label: 'Country', id: 'country', isRequired: false, value: '' },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: false, value: '' },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: false, value: '' },
+    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: false, value: '' },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: false, value: '' },
   },
   otherReturnAddress: {
     address: { type: 'text', label: 'Address', id: 'otherAddress', isRequired: false, value: '' },
@@ -50,27 +50,20 @@ const categoryConfigs = {
     visibleFields: {
       symptomInfo: ['symptomArea', 'symptomFound', 'symptomOccurrence'],
       technicalInfo: ['mainsVoltageType', 'mainsVoltageRange'],
-      serialNumbers: ['dspSerialNumber'],
-      versions: ['fwVersion'],
       additionalInfo: ['media','note']
     }
   },
-  'Category 2': {
+  'Passive Speaker': {
     visibleFields: {
-      symptomInfo: ['symptomArea', 'symptomFound', 'extendedCondition'],
-      technicalInfo: ['outputLoad', 'loadConnectionMode'],
-      serialNumbers: ['ampliSerialNumber'],
-      versions: ['swVersion'],
-      additionalInfo: ['installationType', 'importantInformation']
+      symptomInfo: ['symptomArea', 'symptomFound', 'symptomOccurrence'],
+      additionalInfo: ['media', 'note']
     }
   },
-  'Category 3': {
+  'Processor': {
     visibleFields: {
-      symptomInfo: ['symptomFound', 'symptomOccurrence', 'extendedCondition'],
-      technicalInfo: ['mainsVoltageType', 'outputLoad'],
-      serialNumbers: ['dspSerialNumber', 'ampliSerialNumber'],
-      versions: ['fwVersion', 'swVersion'],
-      additionalInfo: ['note', 'importantInformation']
+      symptomInfo: ['symptomArea', 'symptomFound', 'symptomOccurrence'],
+      technicalInfo: ['mainsVoltageType', 'mainsVoltageRange'],
+      additionalInfo: ['media','note']
     }
   }
 };
@@ -78,18 +71,122 @@ const categoryConfigs = {
 // Verify categoryConfigs is correctly added to productData
 console.log('Category Configs:', categoryConfigs);
 
+const categoryModels = {
+  'Active Speaker': [
+    "DVS_10P_SP", "DVS_115_SW_iSP", "DVS_118_SW_iSP", "DVS_12P_iSP", 
+    "DVS_15P_iSP", "DVS_8P_SP", "FLYSUB_15_iSP", "HARD115_SP", "HARD212_SP", 
+    "HARD212NET_SP", "HARD45_SP", "iSM_112", "iSM_115", "iSM_212", 
+    "Ki_10SP", "Ki_12SP", "MICRA2_SP", "miniCOM.P.A.S.S._iSP", 
+    "Monaco_215_CX_SP", "SUB_110SP", "SUB_118SP", "V10_KIT", "V15_KIT", 
+    "V24_BGM_KIT", "V6.5_KIT", "V8CX_KIT"
+]
+,
+  'Passive Speaker': [
+    "AI_41", "AI_81", "ARENA_215_CX", "AS_6", "BUTTERFLY_CDH_483",
+    "Charlie_4", "DBS_18_2", "EIDOS_108S", "EIDOS_215S", "EIDOS_265LA",
+    "FLYSUB_15", "GTO", "GTO_C12", "GTO_DF", "GTO_LOW", "GTO_SUB",
+    "HARD212", "Ki_10", "Ki_12", "LAB_21_HS", "LIPF_082", "MANTAS",
+    "MANTAS_28", "MICRA_R", "MICRA2", "MONACO_215_CX", "MOVIE_B_215",
+    "MOVIE_FX_101", "MOVIE_H_102", "MOVIE_MV1CX", "MOVIE_MV2CX",
+    "MOVIE_S_118", "MOVIE_S_218", "OMNIA", "SCALA_100_30", "SCALA_90",
+    "STADIA_100_10_LA", "STADIA_100_20_LA", "STADIA_100_30_LA",
+    "STADIA_28", "STSUB_215", "SUB_110", "SUB_118", "SUB_218",
+    "SUPERFLY", "VEGAS_10", "VEGAS_12", "VEGAS_12CX", "VEGAS_15",
+    "VEGAS_15CX", "VEGAS_24", "VEGAS_4", "VEGAS_6.5", "VEGAS_8CX"
+]
+,
+  'Processor': [
+    "Genius_24", "Genius_26", "Genius_M_412",
+    "iP_24", "iP_24_v2",
+    "Newton_16", "Newton_16_4", "Newton_16_8"
+]
+
+};
+
+const modelSymptomAreas = {
+  'K10.2': ['Amplifier', 'DSP', 'Power Supply', 'Driver'],
+  'K12.2': ['Amplifier', 'DSP', 'Power Supply', 'Driver'],
+  'KS118': ['Amplifier', 'DSP', 'Power Supply', 'Driver'],
+  // Add other models and their areas
+};
+
+const symptomsByArea = {
+  'Amplifier': ['No Output', 'Distortion', 'Noise', 'Protection'],
+  'DSP': ['No Processing', 'Wrong Settings', 'Display Issues'],
+  'Power Supply': ['No Power', 'Intermittent', 'Fan Issues'],
+  'Driver': ['No Sound', 'Distortion', 'Physical Damage'],
+  // Add other areas and their symptoms
+};
+
 const productData = ref({
   basicInfo: {
-    category: { type: 'select', label: 'Category', id: 'category', isRequired: true, value: '', options: ['Category 1', 'Category 2', 'Category 3'] },
-    model: { type: 'select', label: 'Model', id: 'model', isRequired: true, value: '', options: ['Model 1', 'Model 2', 'Model 3'] },
-    serialNumber: { type: 'text', label: 'Serial Number', id: 'serialNumber', isRequired: true, value: '' },
+    category: { 
+      type: 'select', 
+      label: 'Category', 
+      id: 'category', 
+      isRequired: true, 
+      value: '', 
+      options: Object.keys(categoryModels)
+    },
+    model: { 
+      type: 'select', 
+      label: 'Model', 
+      id: 'model', 
+      isRequired: true, 
+      value: '', 
+      options: [] 
+    },
+    serialNumber: { 
+      type: 'text', 
+      label: 'Serial Number', 
+      id: 'serialNumber', 
+      isRequired: true, 
+      value: '' 
+    },
   },
   // Add categoryConfigs to productData
   categoryConfigs: categoryConfigs,
   symptomInfo: {
-    symptomArea: { type: 'select', label: 'Symptom Area', id: 'symptomArea', isRequired: true, value: '', options: ['Area 1', 'Area 2', 'Area 3'] },
-    symptomFound: { type: 'select', label: 'Symptom Found', id: 'symptomFound', isRequired: true, value: '', options: ['Symptom 1', 'Symptom 2', 'Symptom 3'] },
-    symptomOccurrence: { type: 'select', label: 'Symptom Occurrence', id: 'symptomOccurrence', isRequired: true, value: '', options: ['Always', 'Sometimes', 'Rarely'] },
+    symptomArea: { 
+      type: 'select', 
+      label: 'Symptom Area', 
+      id: 'symptomArea', 
+      isRequired: true, 
+      value: '', 
+      options: [] 
+    },
+    symptomFound: { 
+      type: 'select', 
+      label: 'Symptom Found', 
+      id: 'symptomFound', 
+      isRequired: true, 
+      value: '', 
+      options: [] 
+    },
+    symptomOccurrence: { 
+      type: 'select', 
+      label: 'Symptom Occurrence', 
+      id: 'symptomOccurrence', 
+      isRequired: true, 
+      value: '', 
+      options: [
+        "After a while",
+        "After long time switched off",
+        "After product upgrade",
+        "Constantly",
+        "Due to a physical damage",
+        "In a cold environment",
+        "In a hot environment",
+        "In a wet environment",
+        "Intermittently",
+        "Liquid contamination",
+        "One time event",
+        "Switched on the first time",
+        "Under stressed condition",
+        "Under vibration",
+        "When switching"
+    ] 
+    },
     extendedCondition: { type: 'text', label: 'Extended Condition', id: 'extendedCondition', isRequired: false, value: '' },
   },
   technicalInfo: {
@@ -291,6 +388,35 @@ const handlePrevStep = () => {
     productToEdit.value = null;
     step.value--;
 };
+
+// Helper function to update dependent dropdowns
+const updateDependentOptions = (product) => {
+  if (!product) return;
+
+  // Update model options when category changes
+  if (product.basicInfo.category.value) {
+    product.basicInfo.model.options = categoryModels[product.basicInfo.category.value] || [];
+    product.basicInfo.model.value = ''; // Reset model
+    product.symptomInfo.symptomArea.value = ''; // Reset area
+    product.symptomInfo.symptomFound.value = ''; // Reset symptom
+  }
+
+  // Update symptom area options when model changes
+  if (product.basicInfo.model.value) {
+    product.symptomInfo.symptomArea.options = modelSymptomAreas[product.basicInfo.model.value] || [];
+    product.symptomInfo.symptomArea.value = ''; // Reset area
+    product.symptomInfo.symptomFound.value = ''; // Reset symptom
+  }
+
+  // Update symptom found options when area changes
+  if (product.symptomInfo.symptomArea.value) {
+    product.symptomInfo.symptomFound.options = symptomsByArea[product.symptomInfo.symptomArea.value] || [];
+    product.symptomInfo.symptomFound.value = ''; // Reset symptom
+  }
+};
+
+// Watch for changes in currentProduct in ProductsStep
+provide('updateDependentOptions', updateDependentOptions);
 </script>
 
 <template>

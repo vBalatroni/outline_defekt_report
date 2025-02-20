@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref, computed, watch, onBeforeUnmount } from 'vue';
+import { defineProps, ref, computed, watch, onBeforeUnmount, inject } from 'vue';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
@@ -66,15 +66,20 @@ const clearDefektForm = () => {
 // Add debounce time constant
 const SERIAL_NUMBER_DEBOUNCE = 800; // milliseconds
 
+const updateDependentOptions = inject('updateDependentOptions');
+
 const handleInputChange = (event) => {
-    if (event.id === 'serialNumber') {
+    if (!currentProduct.value) return;
+
+    if (event.id === 'category') {
+        // Update model options when category changes
+        updateDependentOptions(currentProduct.value);
+    } else if (event.id === 'serialNumber') {
         clearTimeout(validationTimeout);
-        
         if (event.value) {
-            // Start debounce timer only after user stops typing
             validationTimeout = setTimeout(() => {
-                serialNumberLoading.value = true;  // Start loading state after debounce
-                checkSerialNumber(event.value);
+                serialNumberLoading.value = true;
+                validateSerialNumber(event.value);
             }, SERIAL_NUMBER_DEBOUNCE);
         }
     }
@@ -242,6 +247,9 @@ const isFieldVisible = (sectionKey, fieldKey) => {
 
 // Initialize currentDefekt when category changes
 watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
+    if (currentProduct.value && newCategory) {
+        updateDependentOptions(currentProduct.value);
+    }
     if (newCategory && isBasicInfoValidated.value) {
         currentDefekt.value = initializeNewDefekt();
     }
@@ -280,6 +288,15 @@ watch(() => props.productToEdit, (newVal) => {
         showModal.value = true;
     }
 }, { immediate: true });
+
+// Reset validation when category or model changes
+watch(() => [
+    currentProduct.value?.basicInfo.category.value,
+    currentProduct.value?.basicInfo.model.value
+], () => {
+    isBasicInfoValidated.value = false;
+    isSerialNumberVerified.value = false;
+}, { deep: true });
 
 </script>
 <template>
