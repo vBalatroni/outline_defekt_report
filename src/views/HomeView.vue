@@ -190,8 +190,25 @@ const productData = ref({
     extendedCondition: { type: 'text', label: 'Extended Condition', id: 'extendedCondition', isRequired: false, value: '' },
   },
   technicalInfo: {
-    mainsVoltageType: { type: 'select', label: 'Mains Voltage Type', id: 'mainsVoltageType', isRequired: true, value: '', options: ['AC', 'DC'] },
-    mainsVoltageRange: { type: 'text', label: 'Mains Voltage Range', id: 'mainsVoltageRange', isRequired: true, value: '' },
+    mainsVoltageType: { 
+      type: 'select', 
+      label: 'Mains Voltage Type', 
+      id: 'mainsVoltageType', 
+      isRequired: true, 
+      value: '', 
+      options: ['Single_phase',
+    'Bi_phase',
+    'Three_phase_with_neutral',
+    'Three_phase_without_neutral'] // Remove hardcoded options, will be set in ProductsStep
+    },
+    mainsVoltageRange: { 
+      type: 'select',  // Changed to select type
+      label: 'Mains Voltage Range', 
+      id: 'mainsVoltageRange', 
+      isRequired: true, 
+      value: '',
+      options: ['<100VAC', '200-240V', '>240VAC', '>240V'] // Will be populated based on voltage type
+    },
     outputLoad: { type: 'text', label: 'Output Load', id: 'outputLoad', isRequired: true, value: '' },
     loadConnectionMode: { type: 'select', label: 'Load Connection Mode', id: 'loadConnectionMode', isRequired: true, value: '', options: ['Mode 1', 'Mode 2', 'Mode 3'] },
   },
@@ -380,7 +397,10 @@ const submitForm = () => {
 };
 
 const handleEditProduct = (index) => {
-    productToEdit.value = savedProducts.value[index];
+    const productToBeEdited = savedProducts.value[index];
+    // Ensure we store the model information before editing
+    productToBeEdited.modelName = productToBeEdited.basicInfo.model.value;
+    productToEdit.value = productToBeEdited;
     step.value = 2; // Go back to Products step
 };
 

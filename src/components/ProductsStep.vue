@@ -367,9 +367,11 @@ const editProduct = (index) => {
     
     // Set the current product
     currentProduct.value = JSON.parse(JSON.stringify(originalProduct));
+    // Set the current model from the saved product
+    currentProductModel.value = originalProduct.modelName || originalProduct.basicInfo.model.value;
     
-    // Use the existing model value from the saved product
-    currentDefekt.value = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
+    // Initialize defekt with the correct model
+    currentDefekt.value = initializeNewDefekt(currentProductModel.value);
     showModal.value = true;
 };
 

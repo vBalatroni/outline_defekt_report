@@ -1,9 +1,9 @@
 export const categories = [
     'Active_Speaker',
-    'Measurement_System',
+    // 'Measurement_System',
     'Passive_Speaker',
     'Processor',
-    'Rack_Amplifier'
+    // 'Rack_Amplifier'
 ];
 
 export const categoryModels = {
@@ -120,3 +120,17 @@ export const installationTypes = [
     'Club / Disco', 'Pub', 'Concert', 'Touring Rental', 'Mall',
     'Conference', 'Church', 'Boat', 'Laboratory'
 ];
+
+export const voltageTypes = {
+    'Active_Speaker': ['Single_phase', 'Bi_phase'],
+    'Processor': ['Single_phase', 'Three_phase_with_neutral', 'Three_phase_without_neutral'],
+    'Rack_Amplifier': ['Single_phase', 'Bi_phase', 'Three_phase_with_neutral'],
+    // Add other categories as needed
+};
+
+export const voltageRangesByType = {
+    'Single_phase': ['<100VAC', '200-240V'],
+    'Bi_phase': ['200-240V', '>240V'],
+    'Three_phase_with_neutral': ['>240VAC'],
+    'Three_phase_without_neutral': ['>240VAC']
+};

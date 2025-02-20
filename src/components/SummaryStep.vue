@@ -24,6 +24,9 @@ const sectionTitles = {
 };
 
 const editProduct = (index) => {
+    const originalProduct = props.savedProducts[index];
+    // This will pass all the necessary information to the parent
+    // which will then pass it to ProductsStep for proper editing
     emit('edit-product', index);
 };
 
@@ -60,6 +63,10 @@ const emit = defineEmits(['prev-step', 'next-step', 'edit-product', 'delete-prod
             <div v-if="savedProducts.length > 0" class="saved-products mb-5">
                 <div class="product-list">
                     <div v-for="(product, index) in savedProducts" :key="index" class="product-card">
+                        <div class="product-actions me-3">
+                            <i @click="editProduct(index)" class="bi bi-pencil"></i>
+                            <i @click="deleteProduct(index)" class="bi bi-trash"></i>
+                        </div>
                         <div class="product-info">
                             <h4>{{ product.basicInfo.model.value }}</h4>
                             <p>Serial Number: {{ product.basicInfo.serialNumber.value }}</p>
@@ -76,10 +83,7 @@ const emit = defineEmits(['prev-step', 'next-step', 'edit-product', 'delete-prod
                                 </ul>
                             </div>
                         </div>
-                        <div class="product-actions">
-                            <i @click="editProduct(index)" class="bi bi-pencil"></i>
-                            <i @click="deleteProduct(index)" class="bi bi-trash"></i>
-                        </div>
+                        
                     </div>
                 </div>
             </div>
