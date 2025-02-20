@@ -87,7 +87,7 @@ const handleInputChange = () => {
                     </div>
                 </div>
             </div>
-            <div class="button-group mx-auto justify-content-between">
+            <div class="button-group mx-auto justify-content-between mb-5">
                 <Button :type="'secondary'" :text="'Back'" :isDisabled="false" @click="$emit('prev-step')"></Button>
                 <Button :type="'primary'" :text="'Next'" :isDisabled="!allRequiredFieldsFilled" @click="$emit('next-step')"></Button>
             </div>
