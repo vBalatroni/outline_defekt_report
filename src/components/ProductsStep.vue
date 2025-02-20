@@ -1,5 +1,5 @@
 <script setup>
-import { defineProps, ref, computed, watch, onBeforeUnmount, inject } from 'vue';
+import { defineProps, ref, computed, watch, onBeforeUnmount, inject, nextTick, reactive } from 'vue';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
@@ -19,6 +19,9 @@ const currentProduct = ref(null);
 const currentDefekt = ref(null);
 const editingDefektIndex = ref(-1);
 
+// Add new ref for current product model
+const currentProductModel = ref('');
+
 const props = defineProps({
     productData: {
         type: Object,
@@ -37,29 +40,26 @@ const props = defineProps({
 const initializeNewProduct = () => {
     const product = JSON.parse(JSON.stringify(props.productData));
     product.defekts = [];
+    
+    if (product.basicInfo?.category?.value) {
+        updateDependentOptions(product);
+    }
+    
     return product;
 };
 
-// Add a computed property to get symptom areas for current model
-const currentModelSymptomAreas = computed(() => {
-    const currentModel = currentProduct.value?.basicInfo?.model?.value;
-    console.log('Current model:', currentModel);
-    console.log('Available areas:', modelSymptomAreas[currentModel]);
-    return modelSymptomAreas[currentModel] || [];
-});
-
-const initializeNewDefekt = () => {
+// Modify initializeNewDefekt to use currentProductModel when available
+const initializeNewDefekt = (model = null) => {
     const defekt = {};
     Object.keys(props.productData).forEach(sectionKey => {
-        // Only exclude basicInfo and categoryConfigs
         if (sectionKey !== 'basicInfo' && sectionKey !== 'categoryConfigs') {
             defekt[sectionKey] = JSON.parse(JSON.stringify(props.productData[sectionKey]));
         }
     });
     
-    // Set symptom areas for current model
-    if (currentProduct.value?.basicInfo?.model?.value) {
-        defekt.symptomInfo.symptomArea.options = [...currentModelSymptomAreas.value];
+    const modelToUse = model || currentProductModel.value;
+    if (modelToUse) {
+        defekt.symptomInfo.symptomArea.options = [...(modelSymptomAreas[modelToUse] || [])];
     }
     
     return defekt;
@@ -87,8 +87,14 @@ const handleInputChange = (event) => {
     if (!currentProduct.value) return;
 
     if (event.id === 'category') {
-        // Update model options when category changes
         updateDependentOptions(currentProduct.value);
+    } else if (event.id === 'model') {
+        // Update symptom areas when model changes in basic info
+        if (currentDefekt.value && event.value) {
+            currentDefekt.value.symptomInfo.symptomArea.options = [...(modelSymptomAreas[event.value] || [])];
+            currentDefekt.value.symptomInfo.symptomArea.value = '';
+            currentDefekt.value.symptomInfo.symptomFound.value = '';
+        }
     } else if (event.id === 'serialNumber') {
         clearTimeout(validationTimeout);
         if (event.value) {
@@ -123,6 +129,11 @@ const validateSerialNumber = async (serialNumber) => {
         const isValid = true;
         isBasicInfoValidated.value = isValid;
         isSerialNumberVerified.value = isValid;
+        
+        // Set currentProductModel when validation succeeds
+        if (isValid) {
+            currentProductModel.value = currentProduct.value.basicInfo.model.value;
+        }
     } catch (error) {
         console.error('Validation error:', error);
         isBasicInfoValidated.value = false;
@@ -148,10 +159,15 @@ const canSave = computed(() => {
     return basicInfoFieldsFilled.value && isSerialNumberVerified.value;
 });
 
+// Modify saveData function to store model name
 const saveData = () => {
     const productToSave = JSON.parse(JSON.stringify(currentProduct.value));
-    const products = [...props.savedProducts];
     
+    // Ensure both modelName and basicInfo.model.value are set correctly
+    productToSave.modelName = currentProductModel.value;
+    productToSave.basicInfo.model.value = currentProductModel.value;
+    
+    const products = [...props.savedProducts];
     if (editingProductIndex.value >= 0) {
         products[editingProductIndex.value] = productToSave;
     } else {
@@ -173,27 +189,36 @@ const addDefekt = () => {
         }
         currentProduct.value.defekts.push(defektToSave);
     }
+
+    // Ensure the model value is preserved in basicInfo
+    if (currentProductModel.value) {
+        currentProduct.value.basicInfo.model.value = currentProductModel.value;
+    }
     
     clearDefektForm();
 };
 
 const editDefekt = (index) => {
     const defektToEdit = currentProduct.value.defekts[index];
-    currentDefekt.value = JSON.parse(JSON.stringify(defektToEdit));
+    const currentModel = currentProduct.value.basicInfo.model.value;
+    
+    // First initialize with current model to get correct symptom areas
+    currentDefekt.value = initializeNewDefekt(currentModel);
+    
+    // Then apply saved values
+    Object.keys(defektToEdit).forEach(sectionKey => {
+        Object.keys(defektToEdit[sectionKey]).forEach(fieldKey => {
+            if (fieldKey !== 'options') { // Preserve the new options we just set
+                currentDefekt.value[sectionKey][fieldKey] = defektToEdit[sectionKey][fieldKey];
+            }
+        });
+    });
+    
     editingDefektIndex.value = index;
 };
 
 const deleteDefekt = (index) => {
     currentProduct.value.defekts.splice(index, 1);
-};
-
-const editProduct = (index) => {
-    const productToEdit = props.savedProducts[index];
-    currentProduct.value = JSON.parse(JSON.stringify(productToEdit));
-    currentDefekt.value = initializeNewDefekt(); // Initialize defekt form
-    editingProductIndex.value = index;
-    isBasicInfoValidated.value = true;
-    showModal.value = true;
 };
 
 const deleteProduct = (index) => {
@@ -270,33 +295,12 @@ watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
     }
 }, { immediate: true });
 
-// Watch for model changes to update symptom areas
-watch(() => currentProduct.value?.basicInfo?.model?.value, (newModel) => {
-    if (currentDefekt.value && newModel) {
-        currentDefekt.value.symptomInfo.symptomArea.options = [...currentModelSymptomAreas.value];
-        currentDefekt.value.symptomInfo.symptomArea.value = ''; // Reset selection
-        currentDefekt.value.symptomInfo.symptomFound.value = ''; // Reset dependent field
-        
-        // Force reactivity update
-        currentDefekt.value = { ...currentDefekt.value };
-    }
-});
-
 // Add handler for symptom area changes
 const handleSymptomAreaChange = (field) => {
     if (field.id === 'symptomArea' && currentDefekt.value) {
-        const selectedArea = field.value;
-        console.log('Selected symptom area:', selectedArea);
-        
-        // Update symptom found options based on selected area
-        const symptoms = symptomsByArea[selectedArea] || [];
-        console.log('Available symptoms:', symptoms);
-        
+        const symptoms = symptomsByArea[field.value] || [];
         currentDefekt.value.symptomInfo.symptomFound.options = [...symptoms];
-        currentDefekt.value.symptomInfo.symptomFound.value = ''; // Reset selection
-        
-        // Force reactivity update
-        currentDefekt.value = { ...currentDefekt.value };
+        currentDefekt.value.symptomInfo.symptomFound.value = '';
     }
 };
 
@@ -328,20 +332,46 @@ watch(() => props.savedProducts.length, (newLength) => {
 // Watch for productToEdit changes to load product for editing
 watch(() => props.productToEdit, (newVal) => {
     if (newVal) {
-        currentProduct.value = JSON.parse(JSON.stringify(newVal));
+        const productCopy = JSON.parse(JSON.stringify(newVal));
+        if (productCopy.basicInfo?.category?.value) {
+            updateDependentOptions(productCopy);
+        }
+        currentProduct.value = productCopy;
         isBasicInfoValidated.value = true;
+        isSerialNumberVerified.value = true;
+        currentDefekt.value = initializeNewDefekt();
         showModal.value = true;
     }
 }, { immediate: true });
 
-// Reset validation when category or model changes
-watch(() => [
-    currentProduct.value?.basicInfo.category.value,
-    currentProduct.value?.basicInfo.model.value
-], () => {
-    isBasicInfoValidated.value = false;
-    isSerialNumberVerified.value = false;
-}, { deep: true });
+// Add a watch for the isBasicInfoValidated to log model value
+watch(() => isBasicInfoValidated.value, (isValidated) => {
+    if (isValidated && currentProduct.value) {
+        console.log('Showing defekt section with model:', {
+            modelValue: currentProduct.value.basicInfo.model.value,
+            category: currentProduct.value.basicInfo.category.value,
+            currentDefekt: currentDefekt.value
+        });
+    }
+});
+
+// Update editProduct function with more logging
+// Modify editProduct function to use stored model name
+const editProduct = (index) => {
+    const originalProduct = props.savedProducts[index];
+    
+    // Set validation flags
+    isBasicInfoValidated.value = true;
+    isSerialNumberVerified.value = true;
+    editingProductIndex.value = index;
+    
+    // Set the current product
+    currentProduct.value = JSON.parse(JSON.stringify(originalProduct));
+    
+    // Use the existing model value from the saved product
+    currentDefekt.value = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
+    showModal.value = true;
+};
 
 </script>
 <template>
@@ -394,7 +424,7 @@ watch(() => [
                     <SectionHeader title="Report" />
                 </div>
                 <div class="modal-body-custom">
-                    <template v-if="!isBasicInfoValidated && currentProduct">
+                    <template v-if="!isBasicInfoValidated && editingProductIndex === -1">
                         <h3 class="section-header">Product</h3>
                         <div class="input-list">
                             <div class="input-wrapper col-12 col-md-4" v-for="(field, fieldKey) in currentProduct.basicInfo" :key="fieldKey">
@@ -418,10 +448,11 @@ watch(() => [
                             <h3 class="section-header">Product</h3>
                             <div class="product-info-box">
                                 <div>
-                                    <p><strong>Model:</strong> {{ currentProduct.basicInfo.model.value }}</p>
+                                    <p><strong>Model:</strong> {{ currentProductModel }}</p>
                                     <p><strong>Serial Number:</strong> {{ currentProduct.basicInfo.serialNumber.value }}</p>
+                                    <p><strong>Category:</strong> {{ currentProduct.basicInfo.category.value }}</p>
                                 </div>
-                                <p class="change-product-link" @click="isBasicInfoValidated = false">Change Product</p>
+                                <!-- Remove the change product link -->
                             </div>
                             <Divider />
                         </div>
