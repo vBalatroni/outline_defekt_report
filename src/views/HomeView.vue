@@ -17,21 +17,21 @@ const formData = ref({
 });
 const generalData = ref({
   companyData: { 
-    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: false, value: '' },
-    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: false, value: '' },
+    companyName: { type: 'text', label: 'Company Name', id: 'companyName', isRequired: true, value: '' },
+    vatNumber: { type: 'text', label: 'VAT Number', id: 'vatNumber', isRequired: true, value: '' },
   },
   freightForwarderData: {
     freightForwarderName: { type: 'text', label: 'Freight Forwarder Name', id: 'freightForwarderName', isRequired: false, value: '' },
     accountNumber: { type: 'text', label: 'Account Number', id: 'accountNumber', isRequired: false, value: '' },
   },
   companyAddress: {
-    address: { type: 'text', label: 'Address', id: 'address', isRequired: false, value: '' },
-    city: { type: 'text', label: 'City', id: 'city', isRequired: false, value: '' },
-    country: { type: 'text', label: 'Country', id: 'country', isRequired: false, value: '' },
-    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: false, value: '' },
-    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: false, value: '' },
-    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: false, value: '' },
-    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: false, value: '' },
+    address: { type: 'text', label: 'Address', id: 'address', isRequired: true, value: '' },
+    city: { type: 'text', label: 'City', id: 'city', isRequired: true, value: '' },
+    country: { type: 'text', label: 'Country', id: 'country', isRequired: true, value: '' },
+    zipCode: { type: 'text', label: 'Zip Code', id: 'zipCode', isRequired: true, value: '' },
+    contactPersonName: { type: 'text', label: 'Contact Person Name', id: 'contactPersonName', isRequired: true, value: '' },
+    eMail: { type: 'email', label: 'Email', id: 'eMail', isRequired: true, value: '' },
+    phoneNumber: { type: 'tel', label: 'Phone Number', id: 'phoneNumber', isRequired: true, value: '' },
   },
   otherReturnAddress: {
     address: { type: 'text', label: 'Address', id: 'otherAddress', isRequired: false, value: '' },
@@ -73,33 +73,20 @@ console.log('Category Configs:', categoryConfigs);
 
 const categoryModels = {
   'Active Speaker': [
-    "DVS_10P_SP", "DVS_115_SW_iSP", "DVS_118_SW_iSP", "DVS_12P_iSP", 
-    "DVS_15P_iSP", "DVS_8P_SP", "FLYSUB_15_iSP", "HARD115_SP", "HARD212_SP", 
-    "HARD212NET_SP", "HARD45_SP", "iSM_112", "iSM_115", "iSM_212", 
-    "Ki_10SP", "Ki_12SP", "MICRA2_SP", "miniCOM.P.A.S.S._iSP", 
-    "Monaco_215_CX_SP", "SUB_110SP", "SUB_118SP", "V10_KIT", "V15_KIT", 
-    "V24_BGM_KIT", "V6.5_KIT", "V8CX_KIT"
-]
+        'DVS_10P_SP', 'DVS_115_SW_iSP', 'DVS_118_SW_iSP', 'DVS_12P_iSP',
+        'DVS_15P_iSP', 'DVS_8P_SP', 'FLYSUB_15_iSP', 'HARD115_SP'
+    ]
 ,
   'Passive Speaker': [
-    "AI_41", "AI_81", "ARENA_215_CX", "AS_6", "BUTTERFLY_CDH_483",
-    "Charlie_4", "DBS_18_2", "EIDOS_108S", "EIDOS_215S", "EIDOS_265LA",
-    "FLYSUB_15", "GTO", "GTO_C12", "GTO_DF", "GTO_LOW", "GTO_SUB",
-    "HARD212", "Ki_10", "Ki_12", "LAB_21_HS", "LIPF_082", "MANTAS",
-    "MANTAS_28", "MICRA_R", "MICRA2", "MONACO_215_CX", "MOVIE_B_215",
-    "MOVIE_FX_101", "MOVIE_H_102", "MOVIE_MV1CX", "MOVIE_MV2CX",
-    "MOVIE_S_118", "MOVIE_S_218", "OMNIA", "SCALA_100_30", "SCALA_90",
-    "STADIA_100_10_LA", "STADIA_100_20_LA", "STADIA_100_30_LA",
-    "STADIA_28", "STSUB_215", "SUB_110", "SUB_118", "SUB_218",
-    "SUPERFLY", "VEGAS_10", "VEGAS_12", "VEGAS_12CX", "VEGAS_15",
-    "VEGAS_15CX", "VEGAS_24", "VEGAS_4", "VEGAS_6.5", "VEGAS_8CX"
-]
+        'AI_41', 'AI_81', 'ARENA_215_CX', 'AS_6', 'BUTTERFLY_CDH_483',
+        'Charlie_4', 'DBS_18_2', 'EIDOS_108S',
+        // ... add all passive speaker models
+    ]
 ,
   'Processor': [
-    "Genius_24", "Genius_26", "Genius_M_412",
-    "iP_24", "iP_24_v2",
-    "Newton_16", "Newton_16_4", "Newton_16_8"
-]
+        'Genius_24', 'Genius_26', 'Genius_M_412', 'iP_24', 'iP_24_v2',
+        'Newton_16', 'Newton_16_4', 'Newton_16_8'
+    ]
 
 };
 
@@ -366,12 +353,66 @@ const generateRecapContent = () => {
             content.push('\nDefects:');
             product.defekts.forEach((defekt, dIndex) => {
                 content.push(`\nDefect ${dIndex + 1}:`);
-                content.push(`Symptom: ${defekt.symptomInfo.symptomFound.value}`);
-                content.push(`Area: ${defekt.symptomInfo.symptomArea.value}`);
-                content.push(`Occurrence: ${defekt.symptomInfo.symptomOccurrence.value}`);
+                
+                // Symptom Information
+                content.push('Symptom Information:');
+                content.push(`- Area: ${defekt.symptomInfo.symptomArea.value}`);
+                content.push(`- Symptom: ${defekt.symptomInfo.symptomFound.value}`);
+                content.push(`- Occurrence: ${defekt.symptomInfo.symptomOccurrence.value}`);
+                if (defekt.symptomInfo.extendedCondition.value) {
+                    content.push(`- Extended Condition: ${defekt.symptomInfo.extendedCondition.value}`);
+                }
+
+                // Technical Information
+                content.push('\nTechnical Information:');
+                if (defekt.technicalInfo.mainsVoltageType.value) {
+                    content.push(`- Mains Voltage Type: ${defekt.technicalInfo.mainsVoltageType.value}`);
+                    content.push(`- Mains Voltage Range: ${defekt.technicalInfo.mainsVoltageRange.value}`);
+                }
+                if (defekt.technicalInfo.outputLoad.value) {
+                    content.push(`- Output Load: ${defekt.technicalInfo.outputLoad.value}`);
+                }
+                if (defekt.technicalInfo.loadConnectionMode.value) {
+                    content.push(`- Load Connection Mode: ${defekt.technicalInfo.loadConnectionMode.value}`);
+                }
+
+                // Serial Numbers
+                if (defekt.serialNumbers) {
+                    content.push('\nSerial Numbers:');
+                    if (defekt.serialNumbers.dspSerialNumber.value) {
+                        content.push(`- DSP: ${defekt.serialNumbers.dspSerialNumber.value}`);
+                    }
+                    if (defekt.serialNumbers.ampliSerialNumber.value) {
+                        content.push(`- Amplifier: ${defekt.serialNumbers.ampliSerialNumber.value}`);
+                    }
+                }
+
+                // Versions
+                if (defekt.versions) {
+                    content.push('\nVersions:');
+                    if (defekt.versions.fwVersion.value) {
+                        content.push(`- Firmware: ${defekt.versions.fwVersion.value}`);
+                    }
+                    if (defekt.versions.swVersion.value) {
+                        content.push(`- Software: ${defekt.versions.swVersion.value}`);
+                    }
+                }
+
+                // Additional Information
+                content.push('\nAdditional Information:');
+                if (defekt.additionalInfo.installationType.value) {
+                    content.push(`- Installation Type: ${defekt.additionalInfo.installationType.value}`);
+                }
+                if (defekt.additionalInfo.note.value) {
+                    content.push(`- Note: ${defekt.additionalInfo.note.value}`);
+                }
+                if (defekt.additionalInfo.importantInformation.value) {
+                    content.push(`- Important Information: ${defekt.additionalInfo.importantInformation.value}`);
+                }
+                content.push(''); // Add blank line between defects
             });
         }
-        content.push('\n');
+        content.push('\n'); // Add blank line between products
     });
 
     return content.join('\n');

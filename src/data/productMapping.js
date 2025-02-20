@@ -61,8 +61,8 @@ export const defaultSymptomAreas = {
     'Active_Speaker': ['Amplifier', 'Audio_', 'Cabinet', 'Power', 'Speaker'],
     'Passive_Speaker': ['Audio_', 'Cabinet', 'Speaker'],
     'Processor': ['Audio', 'Connections', 'Control_Software', 'Firmware', 'Mechanics', 'Power'],
-    'Rack_Amplifier': ['Audio', 'Power', 'DSP', 'Hardware'],
-    'Measurement_System': ['Audio_', 'Hardware', 'Electronics']
+    // 'Rack_Amplifier': ['Audio', 'Power', 'DSP', 'Hardware'],
+    // 'Measurement_System': ['Audio_', 'Hardware', 'Electronics']
 };
 
 export const symptomsByArea = {
@@ -77,6 +77,76 @@ export const symptomsByArea = {
         "Can't power up", 'Keep restarting', 'Power up but doesn\'t work',
         'Start up too slow', 'Switches off by itself'
     ],
+    'Cabinet': [
+        "Accessories_broken_or_missing",
+        "Damaged plug/connectors",
+        "Grille broken",
+        "Loose parts inside",
+        "Moving parts",
+        "Painting defect",
+        "Vibration noise",
+        "Wrong color"
+    ]
+    ,
+    'Audio_': [
+        "Distorted audio",
+        "Hiss",
+        "Hum",
+        "Low Level",
+        "Missing high frequency",
+        "Missing low frequency",
+        "Missing mid frequency",
+        "No audio",
+        "Noisy audio",
+        "Pop or click noise",
+        "Scratching noise"
+    ],
+    'Connections': [
+        "Analog IN",
+        "Analog OUT",
+        "All Analog",
+        "AES/EBU IN",
+        "AES/EBU OUT",
+        "All AES/EBU",
+        "MADI IN",
+        "MADI OUT",
+        "All MADI",
+        "Ethernet Ports",
+        "Other"
+    ],
+    'Amplifier': [
+        "Damaged plug/connectors",
+        "Faulty button",
+        "Missing button",
+        "Missing knob"
+    ],
+    'Mechanics': [
+        "Damage plug/connectors",
+        "Excessive fan speed",
+        "Fan noise",
+        "Faulty button",
+        "Mechanical damage",
+        "Parts loose inside",
+        "Phisical Damage",
+        "Scratching noise",
+        "Vibration noise"
+    ],
+    'Speaker': ['Broken speaker'],
+    'Control_Software': [
+        "Can't discover unit on Software",
+        "Can't import unit on Workspace",
+        "Other Problem (please specify on note)",
+        "Remain busy on worksheet",
+        "Reset Problem"
+    ],
+    'Firmware': [
+        "Can't update firmware",
+        "Problem after firmware update"
+    ],
+        
+    
+
+    
     // ... add other areas
 };
 
