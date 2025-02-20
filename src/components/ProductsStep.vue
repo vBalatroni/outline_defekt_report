@@ -5,6 +5,7 @@ import Button from './Button.vue';
 import Divider from './Divider.vue';
 import InputField from './InputField.vue';
 import 'bootstrap-icons/font/bootstrap-icons.css';
+import { modelSymptomAreas, symptomsByArea } from '../data/productMapping';  // Add symptomsByArea import
 
 const emit = defineEmits(['prev-step', 'next-step', 'step-validation', 'update:savedProducts']);
 
@@ -39,6 +40,14 @@ const initializeNewProduct = () => {
     return product;
 };
 
+// Add a computed property to get symptom areas for current model
+const currentModelSymptomAreas = computed(() => {
+    const currentModel = currentProduct.value?.basicInfo?.model?.value;
+    console.log('Current model:', currentModel);
+    console.log('Available areas:', modelSymptomAreas[currentModel]);
+    return modelSymptomAreas[currentModel] || [];
+});
+
 const initializeNewDefekt = () => {
     const defekt = {};
     Object.keys(props.productData).forEach(sectionKey => {
@@ -47,6 +56,12 @@ const initializeNewDefekt = () => {
             defekt[sectionKey] = JSON.parse(JSON.stringify(props.productData[sectionKey]));
         }
     });
+    
+    // Set symptom areas for current model
+    if (currentProduct.value?.basicInfo?.model?.value) {
+        defekt.symptomInfo.symptomArea.options = [...currentModelSymptomAreas.value];
+    }
+    
     return defekt;
 };
 
@@ -255,6 +270,36 @@ watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
     }
 }, { immediate: true });
 
+// Watch for model changes to update symptom areas
+watch(() => currentProduct.value?.basicInfo?.model?.value, (newModel) => {
+    if (currentDefekt.value && newModel) {
+        currentDefekt.value.symptomInfo.symptomArea.options = [...currentModelSymptomAreas.value];
+        currentDefekt.value.symptomInfo.symptomArea.value = ''; // Reset selection
+        currentDefekt.value.symptomInfo.symptomFound.value = ''; // Reset dependent field
+        
+        // Force reactivity update
+        currentDefekt.value = { ...currentDefekt.value };
+    }
+});
+
+// Add handler for symptom area changes
+const handleSymptomAreaChange = (field) => {
+    if (field.id === 'symptomArea' && currentDefekt.value) {
+        const selectedArea = field.value;
+        console.log('Selected symptom area:', selectedArea);
+        
+        // Update symptom found options based on selected area
+        const symptoms = symptomsByArea[selectedArea] || [];
+        console.log('Available symptoms:', symptoms);
+        
+        currentDefekt.value.symptomInfo.symptomFound.options = [...symptoms];
+        currentDefekt.value.symptomInfo.symptomFound.value = ''; // Reset selection
+        
+        // Force reactivity update
+        currentDefekt.value = { ...currentDefekt.value };
+    }
+};
+
 // Add a debug watch to help troubleshoot
 watch(() => currentDefekt.value, (newVal) => {
     console.log('Current Defekt:', newVal);
@@ -399,6 +444,7 @@ watch(() => [
                                             :id="field.id" 
                                             :options="field.options"
                                             v-model="field.value"
+                                            @input-change="handleSymptomAreaChange"
                                         />
                                     </div>
 
