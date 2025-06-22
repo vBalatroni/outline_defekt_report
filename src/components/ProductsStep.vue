@@ -5,7 +5,9 @@ import Button from './Button.vue';
 import Divider from './Divider.vue';
 import InputField from './InputField.vue';
 import 'bootstrap-icons/font/bootstrap-icons.css';
-import { modelSymptomAreas, symptomsByArea } from '../data/productMapping';  // Add symptomsByArea import
+import { useProductStore } from '../stores/productStore';
+
+const productStore = useProductStore();
 
 const emit = defineEmits(['prev-step', 'next-step', 'step-validation', 'update:savedProducts']);
 
@@ -59,7 +61,7 @@ const initializeNewDefekt = (model = null) => {
     
     const modelToUse = model || currentProductModel.value;
     if (modelToUse) {
-        defekt.symptomInfo.symptomArea.options = [...(modelSymptomAreas[modelToUse] || [])];
+        defekt.symptomInfo.symptomArea.options = [...(productStore.getSymptomAreasForModel(modelToUse) || [])];
     }
     
     return defekt;
@@ -91,7 +93,7 @@ const handleInputChange = (event) => {
     } else if (event.id === 'model') {
         // Update symptom areas when model changes in basic info
         if (currentDefekt.value && event.value) {
-            currentDefekt.value.symptomInfo.symptomArea.options = [...(modelSymptomAreas[event.value] || [])];
+            currentDefekt.value.symptomInfo.symptomArea.options = [...(productStore.getSymptomAreasForModel(event.value) || [])];
             currentDefekt.value.symptomInfo.symptomArea.value = '';
             currentDefekt.value.symptomInfo.symptomFound.value = '';
         }
@@ -274,8 +276,14 @@ watch(() => currentDefekt.value, () => {
 }, { deep: true });
 
 const getVisibleFields = computed(() => {
-    if (!currentProduct.value?.basicInfo.category.value) return null;
-    return props.productData.categoryConfigs[currentProduct.value.basicInfo.category.value]?.visibleFields || null;
+    if (!currentProduct.value?.basicInfo.category.value) {
+        console.log('No category selected, returning null');
+        return null;
+    }
+    const category = currentProduct.value.basicInfo.category.value;
+    const visibleFields = productStore.getCategoryVisibleFields(category);
+    console.log(`Getting visible fields for category "${category}":`, visibleFields);
+    return visibleFields || null;
 });
 
 const isFieldVisible = (sectionKey, fieldKey) => {
@@ -298,7 +306,7 @@ watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
 // Add handler for symptom area changes
 const handleSymptomAreaChange = (field) => {
     if (field.id === 'symptomArea' && currentDefekt.value) {
-        const symptoms = symptomsByArea[field.value] || [];
+        const symptoms = productStore.getSymptomsForArea(field.value) || [];
         currentDefekt.value.symptomInfo.symptomFound.options = [...symptoms];
         currentDefekt.value.symptomInfo.symptomFound.value = '';
     }

@@ -1,0 +1,1051 @@
+{
+  "categories": [
+    "Active Speaker",
+    "Passive Speaker",
+    "Processor",
+    "Rack Amplifier",
+    "Measurement System"
+  ],
+  "categoryModels": {
+    "Active Speaker": [
+      "DVS_10P_SP",
+      "DVS_115_SW_iSP",
+      "DVS_118_SW_iSP",
+      "DVS_12P_iSP",
+      "DVS_15P_iSP",
+      "DVS_8P_SP",
+      "FLYSUB_15_iSP",
+      "HARD115_SP",
+      "HARD212_SP",
+      "HARD212NET_SP",
+      "HARD45_SP",
+      "iSM_112",
+      "iSM_115",
+      "iSM_212",
+      "Ki_10SP",
+      "Ki_12SP",
+      "MICRA2_SP",
+      "miniCOM.P.A.S.S._iSP",
+      "Monaco_215_CX_SP",
+      "SUB_110SP",
+      "SUB_118SP",
+      "V10_KIT",
+      "V15_KIT",
+      "V24_BGM_KIT",
+      "V6.5_KIT",
+      "V8CX_KIT"
+    ],
+    "Passive Speaker": [
+      "AI_41",
+      "AI_81",
+      "ARENA_215_CX",
+      "AS_6",
+      "BUTTERFLY_CDH_483",
+      "Charlie_4",
+      "DBS_18_2",
+      "EIDOS_108S",
+      "EIDOS_215S",
+      "EIDOS_265LA",
+      "FLYSUB_15",
+      "GTO",
+      "GTO_C12",
+      "GTO_DF",
+      "GTO_LOW",
+      "GTO_SUB",
+      "HARD212",
+      "Ki_10",
+      "Ki_12",
+      "LAB_21_HS",
+      "LIPF_082",
+      "MANTAS",
+      "MANTAS_28",
+      "MICRA_R",
+      "MICRA2",
+      "MONACO_215_CX",
+      "MOVIE_B_215",
+      "MOVIE_FX_101",
+      "MOVIE_H_102",
+      "MOVIE_MV1CX",
+      "MOVIE_MV2CX",
+      "MOVIE_S_118",
+      "MOVIE_S_218",
+      "OMNIA",
+      "SCALA_100_30",
+      "SCALA_90",
+      "STADIA_100_10_LA",
+      "STADIA_100_20_LA",
+      "STADIA_100_30_LA",
+      "STADIA_28",
+      "STSUB_215",
+      "SUB_110",
+      "SUB_118",
+      "SUB_218",
+      "SUPERFLY",
+      "VEGAS_10",
+      "VEGAS_12",
+      "VEGAS_12CX",
+      "VEGAS_15",
+      "VEGAS_15CX",
+      "VEGAS_24",
+      "VEGAS_4",
+      "VEGAS_6.5",
+      "VEGAS_8CX"
+    ],
+    "Processor": [
+      "Genius_24",
+      "Genius_26",
+      "Genius_M_412",
+      "iP_24",
+      "iP_24_v2",
+      "Newton_16",
+      "Newton_16_4",
+      "Newton_16_8"
+    ],
+    "Rack Amplifier": [
+      "D4_3K",
+      "DPA_1002",
+      "DPA_1004",
+      "GTA_Otto",
+      "GTA_Quattro",
+      "L3000_",
+      "L3000E",
+      "LF_300",
+      "LF_400",
+      "LF_500",
+      "LF_550",
+      "LF_600",
+      "LF_700",
+      "LF_800",
+      "M2800_4",
+      "M5000_4",
+      "T_Eleven",
+      "T_Eleven_DSP",
+      "T_Five",
+      "T_Five_DSP",
+      "T_Nine",
+      "T_Nine_DSP",
+      "T_Seven",
+      "T_Seven_DSP",
+      "T2.5",
+      "T4.5",
+      "T6.5",
+      "TTM12K4",
+      "TTM12K4_D",
+      "TTM8K4",
+      "TTM8K4_D"
+    ],
+    "Measurement System": [
+      "ET250_3D",
+      "ET250R2_3D",
+      "ET50_3D",
+      "FASTQC_LS",
+      "GSA",
+      "GSR",
+      "NG1_",
+      "SPL_Control_Plus"
+    ]
+  },
+  "modelSymptomAreas": {
+    "DVS_10P_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "DVS_115_SW_iSP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker_"
+    ],
+    "DVS_118_SW_iSP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker_"
+    ],
+    "DVS_12P_iSP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "DVS_15P_iSP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "DVS_8P_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "FLYSUB_15_iSP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Power",
+      "Speaker_"
+    ],
+    "HARD115_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "HARD212_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "HARD212NET_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "HARD45_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "iSM_112": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "iSM_115": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "iSM_212": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "Ki_10SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "Ki_12SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "MICRA2_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "miniCOM.P.A.S.S._iSP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Power",
+      "Speaker__"
+    ],
+    "Monaco_215_CX_SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker__"
+    ],
+    "SUB_110SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker_"
+    ],
+    "SUB_118SP": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker_"
+    ],
+    "V10_KIT": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker.."
+    ],
+    "V15_KIT": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker.."
+    ],
+    "V24_BGM_KIT": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker.."
+    ],
+    "V6.5_KIT": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker.."
+    ],
+    "V8CX_KIT": [
+      "Amplifier",
+      "Audio_",
+      "Cabinet",
+      "Power",
+      "Speaker.."
+    ],
+    "AI_41": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "AI_81": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "ARENA_215_CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker___"
+    ],
+    "AS_6": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "BUTTERFLY_CDH_483": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker___"
+    ],
+    "Charlie_4": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "DBS_18_2": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "EIDOS_108S": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "EIDOS_215S": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "EIDOS_265LA": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker__"
+    ],
+    "FLYSUB_15": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker_"
+    ],
+    "GTO": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker___"
+    ],
+    "GTO_C12": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker___"
+    ],
+    "GTO_DF": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker__"
+    ],
+    "GTO_LOW": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker."
+    ],
+    "GTO_SUB": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker_"
+    ],
+    "HARD212": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "Ki_10": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "Ki_12": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "LAB_21_HS": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "LIPF_082": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker__"
+    ],
+    "MANTAS": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker__"
+    ],
+    "MANTAS_28": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker__"
+    ],
+    "MICRA_R": [
+      "Audio_",
+      "Cabinet",
+      "Hardware"
+    ],
+    "MICRA2": [
+      "Audio_",
+      "Cabinet",
+      "Hardware"
+    ],
+    "MONACO_215_CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker___"
+    ],
+    "MOVIE_B_215": [
+      "Audio_",
+      "Cabinet",
+      "Speaker."
+    ],
+    "MOVIE_FX_101": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "MOVIE_H_102": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "MOVIE_MV1CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "MOVIE_MV2CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker___"
+    ],
+    "MOVIE_S_118": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "MOVIE_S_218": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "OMNIA": [
+      "Audio_",
+      "Cabinet",
+      "Hardware"
+    ],
+    "SCALA_100_30": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "SCALA_90": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "STADIA_100_10_LA": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "STADIA_100_20_LA": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "STADIA_100_30_LA": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "STADIA_28": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "STSUB_215": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "SUB_110": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "SUB_118": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "SUB_218": [
+      "Audio_",
+      "Cabinet",
+      "Speaker_"
+    ],
+    "SUPERFLY": [
+      "Audio_",
+      "Cabinet",
+      "Hardware",
+      "Speaker___"
+    ],
+    "VEGAS_10": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_12": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_12CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_15": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_15CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_24": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_4": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_6.5": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "VEGAS_8CX": [
+      "Audio_",
+      "Cabinet",
+      "Speaker__"
+    ],
+    "Genius_24": [
+      "Audio",
+      "Connections",
+      "Control_Software",
+      "Mechanics",
+      "Power"
+    ],
+    "Genius_26": [
+      "Audio",
+      "Connections",
+      "Mechanics",
+      "Power"
+    ],
+    "Genius_M_412": [
+      "Audio",
+      "Connections",
+      "Power"
+    ],
+    "iP_24": [
+      "Audio",
+      "Connections",
+      "Control_Software",
+      "Dante",
+      "Firmware",
+      "Mechanics",
+      "Power"
+    ],
+    "iP_24_v2": [
+      "Audio",
+      "Connections",
+      "Control_Software",
+      "Dante",
+      "Firmware",
+      "Mechanics",
+      "Power"
+    ],
+    "Newton_16": [
+      "Audio",
+      "Connections",
+      "Control_Software",
+      "Dante",
+      "Firmware",
+      "Mechanics",
+      "Power"
+    ],
+    "Newton_16_4": [
+      "Audio",
+      "Connections",
+      "Control_Software",
+      "Dante",
+      "Firmware",
+      "Mechanics",
+      "Power"
+    ],
+    "Newton_16_8": [
+      "Audio",
+      "Connections",
+      "Control_Software",
+      "Dante",
+      "Firmware",
+      "Mechanics",
+      "Power"
+    ],
+    "D4_3K": [
+      "Power"
+    ],
+    "DPA_1002": [
+      "Audio",
+      "In_Out"
+    ],
+    "DPA_1004": [
+      "Dante",
+      "Display",
+      "Firmware",
+      "DSP"
+    ],
+    "GTA_Otto": [
+      "DSP",
+      "Firmware",
+      "In_Out",
+      "Mechanics"
+    ],
+    "GTA_Quattro": [
+      "Firmware",
+      "In_Out",
+      "Mechanics"
+    ],
+    "L3000_": [
+      "In_Out",
+      "Mechanics",
+      "Power"
+    ],
+    "L3000E": [
+      "Mechanics",
+      "Power"
+    ],
+    "LF_300": [
+      "Power"
+    ],
+    "LF_400": [
+      "Power"
+    ],
+    "LF_500": [
+      "Power"
+    ],
+    "LF_550": [
+      "Power"
+    ],
+    "LF_600": [
+      "Power"
+    ],
+    "LF_700": [
+      "Power"
+    ],
+    "LF_800": [
+      "Power"
+    ],
+    "M2800_4": [
+      "Power"
+    ],
+    "M5000_4": [
+      "Power"
+    ],
+    "T_Eleven": [
+      "Power"
+    ],
+    "T_Eleven_DSP": [
+      "Power"
+    ],
+    "T_Five": [
+      "Power"
+    ],
+    "T_Five_DSP": [
+      "Power"
+    ],
+    "T_Nine": [
+      "Power"
+    ],
+    "T_Nine_DSP": [
+      "Power"
+    ],
+    "T_Seven": [
+      "Power"
+    ],
+    "T_Seven_DSP": [
+      "Power"
+    ],
+    "T2.5": [
+      "Power"
+    ],
+    "T4.5": [
+      "Power"
+    ],
+    "T6.5": [
+      "Power"
+    ],
+    "TTM12K4": [
+      "Power"
+    ],
+    "TTM12K4_D": [
+      "Power"
+    ],
+    "TTM8K4": [
+      "Power"
+    ],
+    "TTM8K4_D": [
+      "Power"
+    ],
+    "ET250_3D": [
+      "Display",
+      "Electronics",
+      "Mechanical_Issue",
+      "Power"
+    ],
+    "ET250R2_3D": [
+      "Display",
+      "Electronics",
+      "Mechanical_Issue",
+      "Power"
+    ],
+    "ET50_3D": [
+      "Display",
+      "Electronics",
+      "Mechanical_Issue",
+      "Power"
+    ],
+    "FASTQC_LS": [
+      "Display",
+      "Mechanics",
+      "Power"
+    ],
+    "GSA": [
+      "Audio",
+      "In_Out",
+      "Mechanics",
+      "Power"
+    ],
+    "GSR": [
+      "Audio",
+      "Cabinet",
+      "Speaker",
+      "Power"
+    ],
+    "NG1_": [
+      "Audio",
+      "Mechanics",
+      "Power"
+    ],
+    "SPL_Control_Plus": [
+      "Audio",
+      "Mechanics",
+      "Power"
+    ]
+  },
+  "symptomsByArea": {
+    "Audio": [
+      "Audio channel on protection",
+      "Audio level problem",
+      "Balance problem",
+      "Crosstalk",
+      "Distorted audio",
+      "Excessive audio level",
+      "Hiss",
+      "Hum",
+      "No audio",
+      "No muting",
+      "No or poor bass",
+      "No or poor treble",
+      "Noisy audio",
+      "Offset voltage too high",
+      "Poor frequency response",
+      "Pop or click noise",
+      "Scratching noise"
+    ],
+    "Power": [
+      "Can't power up",
+      "Keep restarting",
+      "Power up but doesn't work",
+      "Start up too slow",
+      "Switches off by itself"
+    ],
+    "Cabinet": [
+      "Accessories_broken_or_missing",
+      "Damaged plug/connectors",
+      "Grille broken",
+      "Loose parts inside",
+      "Moving parts",
+      "Painting defect",
+      "Vibration noise",
+      "Wrong color"
+    ],
+    "Connections": [
+      "Analog IN",
+      "Analog OUT",
+      "All Analog",
+      "AES/EBU IN",
+      "AES/EBU OUT",
+      "All AES/EBU",
+      "MADI IN",
+      "MADI OUT",
+      "All MADI",
+      "Ethernet Ports",
+      "Other"
+    ],
+    "Amplifier": [
+      "Damaged plug/connectors",
+      "Faulty button",
+      "Missing button",
+      "Missing knob"
+    ],
+    "Mechanics": [
+      "Damage plug/connectors",
+      "Excessive fan speed",
+      "Fan noise",
+      "Faulty button",
+      "Mechanical damage",
+      "Parts loose inside",
+      "Phisical Damage",
+      "Scratching noise",
+      "Vibration noise"
+    ],
+    "Speaker": [
+      "Broken speaker"
+    ],
+    "Control_Software": [
+      "Can't discover unit on Software",
+      "Can't import unit on Workspace",
+      "Other Problem (please specify on note)",
+      "Remain busy on worksheet",
+      "Reset Problem"
+    ],
+    "Firmware": [
+      "Can't update firmware",
+      "Problem after firmware update"
+    ],
+    "Dante": [
+      "Can't discover unit on Dante",
+      "Connection issues",
+      "Sync problems"
+    ],
+    "Display": [
+      "No display",
+      "Wrong display",
+      "Display flickering"
+    ],
+    "DSP": [
+      "No processing",
+      "Wrong settings",
+      "Processing errors"
+    ],
+    "In_Out": [
+      "Input not working",
+      "Output not working",
+      "Wrong routing"
+    ],
+    "Hardware": [
+      "Physical damage",
+      "Missing parts",
+      "Assembly issues"
+    ],
+    "Electronics": [
+      "Circuit problems",
+      "Component failure",
+      "Electrical issues"
+    ],
+    "Mechanical_Issue": [
+      "Moving parts stuck",
+      "Mechanical noise",
+      "Assembly problems"
+    ],
+    "Armonia": [
+      "Software issues",
+      "Configuration problems",
+      "Integration issues"
+    ]
+  },
+  "mainVoltageTypes": [
+    "Single_phase",
+    "Bi_phase",
+    "Three_phase_with_neutral",
+    "Three_phase_without_neutral"
+  ],
+  "mainVoltageRanges": {
+    "Single_phase": [
+      "<100VAC",
+      "200-240V"
+    ],
+    "Bi_phase": [
+      "200-240V",
+      ">240V"
+    ],
+    "Three_phase_with_neutral": [
+      ">240VAC"
+    ],
+    "Three_phase_without_neutral": [
+      ">240VAC"
+    ]
+  },
+  "outputLoadOptions": [
+    "2 Ohm",
+    "4 Ohm",
+    "8 Ohm",
+    "16 Ohm",
+    ">16 Ohm",
+    "Disconnected"
+  ],
+  "loadConnectionModes": [
+    "Single ended",
+    "Bridged",
+    "Parallel"
+  ],
+  "symptomOccurrences": [
+    "After a while",
+    "After long time switched off",
+    "After product upgrade",
+    "Constantly",
+    "Due to a physical damage",
+    "In a cold environment",
+    "In a hot environment",
+    "In a wet environment",
+    "Intermittently",
+    "Liquid contamination",
+    "One time event",
+    "Switched on the first time",
+    "Under stressed condition",
+    "Under vibration",
+    "When switching"
+  ],
+  "installationTypes": [
+    "Airport",
+    "Rail Station",
+    "Cinema",
+    "Theatre",
+    "Museum",
+    "Club / Disco",
+    "Pub",
+    "Concert",
+    "Touring Rental",
+    "Mall",
+    "Conference",
+    "Church",
+    "Boat",
+    "Laboratory"
+  ],
+  "voltageTypes": {
+    "Active Speaker": [
+      "Single_phase",
+      "Bi_phase"
+    ],
+    "Processor": [
+      "Single_phase",
+      "Three_phase_with_neutral",
+      "Three_phase_without_neutral"
+    ],
+    "Rack Amplifier": [
+      "Single_phase",
+      "Bi_phase",
+      "Three_phase_with_neutral"
+    ]
+  },
+  "voltageRangesByType": {
+    "Single_phase": [
+      "<100VAC",
+      "200-240V"
+    ],
+    "Bi_phase": [
+      "200-240V",
+      ">240V"
+    ],
+    "Three_phase_with_neutral": [
+      ">240VAC"
+    ],
+    "Three_phase_without_neutral": [
+      ">240VAC"
+    ]
+  }
+}

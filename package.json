@@ -9,7 +9,6 @@
     "preview": "vite preview",
     "style": "sass src/assets/custom.scss src/assets/custom.css",
     "watch-style": "sass --watch src/assets/custom.scss:src/assets/custom.css",
-    "build": "vite build",
     "deploy": "npm run build && gh-pages -d dist"
   },
   "dependencies": {

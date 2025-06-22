@@ -1,5 +1,5 @@
 <script setup>
-import { ref, computed, watch, provide } from 'vue';
+import { ref, computed, watch, provide, onMounted } from 'vue';
 import TheWelcome from '../components/TheWelcome.vue';
 import TheProgressBar from '@/components/TheProgressBar.vue';
 import ConfirmationStep from '@/components/ConfirmationStep.vue';
@@ -8,6 +8,9 @@ import GeneralDataStep from '@/components/GeneralDataStep.vue';
 import ProductsStep from '@/components/ProductsStep.vue';
 import SummaryStep from '@/components/SummaryStep.vue';
 import SuccessStep from '@/components/SuccessStep.vue';
+import { useProductStore } from '@/stores/productStore';
+
+const productStore = useProductStore();
 
 const step = ref(0);
 const confirmed = ref(false);
@@ -71,39 +74,8 @@ const categoryConfigs = {
 // Verify categoryConfigs is correctly added to productData
 console.log('Category Configs:', categoryConfigs);
 
-const categoryModels = {
-  'Active Speaker': [
-        'DVS_10P_SP', 'DVS_115_SW_iSP', 'DVS_118_SW_iSP', 'DVS_12P_iSP',
-        'DVS_15P_iSP', 'DVS_8P_SP', 'FLYSUB_15_iSP', 'HARD115_SP'
-    ]
-,
-  'Passive Speaker': [
-        'AI_41', 'AI_81', 'ARENA_215_CX', 'AS_6', 'BUTTERFLY_CDH_483',
-        'Charlie_4', 'DBS_18_2', 'EIDOS_108S',
-        // ... add all passive speaker models
-    ]
-,
-  'Processor': [
-        'Genius_24', 'Genius_26', 'Genius_M_412', 'iP_24', 'iP_24_v2',
-        'Newton_16', 'Newton_16_4', 'Newton_16_8'
-    ]
-
-};
-
-const modelSymptomAreas = {
-  'K10.2': ['Amplifier', 'DSP', 'Power Supply', 'Driver'],
-  'K12.2': ['Amplifier', 'DSP', 'Power Supply', 'Driver'],
-  'KS118': ['Amplifier', 'DSP', 'Power Supply', 'Driver'],
-  // Add other models and their areas
-};
-
-const symptomsByArea = {
-  'Amplifier': ['No Output', 'Distortion', 'Noise', 'Protection'],
-  'DSP': ['No Processing', 'Wrong Settings', 'Display Issues'],
-  'Power Supply': ['No Power', 'Intermittent', 'Fan Issues'],
-  'Driver': ['No Sound', 'Distortion', 'Physical Damage'],
-  // Add other areas and their symptoms
-};
+// Use computed properties from the store instead of local definitions
+const categoryModels = computed(() => productStore.categoryModels);
 
 const productData = ref({
   basicInfo: {
@@ -113,7 +85,7 @@ const productData = ref({
       id: 'category', 
       isRequired: true, 
       value: '', 
-      options: Object.keys(categoryModels)
+      options: []
     },
     model: { 
       type: 'select', 
@@ -456,7 +428,7 @@ const updateDependentOptions = (product) => {
 
   // Update model options when category changes
   if (product.basicInfo.category.value) {
-    product.basicInfo.model.options = categoryModels[product.basicInfo.category.value] || [];
+    product.basicInfo.model.options = productStore.getModelsForCategory(product.basicInfo.category.value) || [];
     product.basicInfo.model.value = ''; // Reset model
     product.symptomInfo.symptomArea.value = ''; // Reset area
     product.symptomInfo.symptomFound.value = ''; // Reset symptom
@@ -464,20 +436,48 @@ const updateDependentOptions = (product) => {
 
   // Update symptom area options when model changes
   if (product.basicInfo.model.value) {
-    product.symptomInfo.symptomArea.options = modelSymptomAreas[product.basicInfo.model.value] || [];
+    product.symptomInfo.symptomArea.options = productStore.getSymptomAreasForModel(product.basicInfo.model.value) || [];
     product.symptomInfo.symptomArea.value = ''; // Reset area
     product.symptomInfo.symptomFound.value = ''; // Reset symptom
   }
 
   // Update symptom found options when area changes
   if (product.symptomInfo.symptomArea.value) {
-    product.symptomInfo.symptomFound.options = symptomsByArea[product.symptomInfo.symptomArea.value] || [];
+    product.symptomInfo.symptomFound.options = productStore.getSymptomsForArea(product.symptomInfo.symptomArea.value) || [];
     product.symptomInfo.symptomFound.value = ''; // Reset symptom
   }
 };
 
 // Watch for changes in currentProduct in ProductsStep
 provide('updateDependentOptions', updateDependentOptions);
+
+// Initialize category options when store is loaded
+watch(() => categoryModels.value, (newCategories) => {
+  if (newCategories && Object.keys(newCategories).length > 0) {
+    productData.value.basicInfo.category.options = Object.keys(newCategories);
+  }
+}, { immediate: true });
+
+// Initialize the store when component is mounted
+onMounted(async () => {
+  await productStore.loadConfiguration();
+  console.log('Product store initialized:', {
+    categories: productStore.categories,
+    categoryModels: productStore.categoryModels,
+    modelSymptomAreas: productStore.modelSymptomAreas,
+    symptomsByArea: productStore.symptomsByArea,
+    categoryConfigs: productStore.categoryConfigs,
+    formConfig: productStore.formConfig,
+    productMapping: productStore.productMapping
+  });
+  
+  // Test the getCategoryVisibleFields method
+  if (productStore.categories && productStore.categories.length > 0) {
+    const testCategory = productStore.categories[0];
+    console.log(`Testing getCategoryVisibleFields for "${testCategory}":`, 
+      productStore.getCategoryVisibleFields(testCategory));
+  }
+});
 </script>
 
 <template>

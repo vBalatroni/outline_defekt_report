@@ -1,223 +1,223 @@
 <template>
   <div class="json-config-manager">
-    <div class="config-header">
+    <div class="header">
       <h3>JSON Configuration Manager</h3>
-      <div class="config-status">
-        <span class="status-indicator" :class="{ active: hasCustomConfiguration }">
-          {{ hasCustomConfiguration ? 'Custom Config' : 'Default Config' }}
-        </span>
-      </div>
+      <p>Manage product data through JSON files</p>
     </div>
 
-    <div class="config-actions">
+    <div class="actions">
       <div class="action-group">
-        <h4>Import Configuration</h4>
-        <div class="import-section">
-          <textarea
-            v-model="importJson"
-            placeholder="Paste JSON configuration here..."
-            class="json-textarea"
-            rows="10"
-          ></textarea>
-          <div class="import-buttons">
-            <button @click="importConfiguration" :disabled="!importJson.trim() || isLoading" class="btn btn-primary">
-              {{ isLoading ? 'Importing...' : 'Import Configuration' }}
-            </button>
-            <button @click="importJson = ''" class="btn btn-secondary">Clear</button>
-          </div>
+        <h4>Data Management</h4>
+        <div class="button-group">
+          <button 
+            @click="reloadFromJson" 
+            :disabled="productStore.isLoading"
+            class="btn btn-primary"
+          >
+            <i class="bi bi-arrow-clockwise"></i>
+            Reload from JSON
+          </button>
+          <button 
+            @click="exportToJson" 
+            :disabled="productStore.isLoading"
+            class="btn btn-success"
+          >
+            <i class="bi bi-download"></i>
+            Export to JSON
+          </button>
         </div>
-      </div>
-
-      <div class="action-group">
-        <h4>Export Configuration</h4>
-        <div class="export-section">
-          <div class="export-options">
-            <label>
-              <input type="checkbox" v-model="exportFormConfig" />
-              Include Form Configuration
-            </label>
-            <label>
-              <input type="checkbox" v-model="exportProductMapping" />
-              Include Product Mapping
-            </label>
-          </div>
-          <div class="export-buttons">
-            <button @click="exportConfiguration" :disabled="!exportFormConfig && !exportProductMapping" class="btn btn-primary">
-              Export Configuration
-            </button>
-            <button @click="copyToClipboard" :disabled="!exportedJson" class="btn btn-secondary">
-              Copy to Clipboard
-            </button>
-          </div>
-        </div>
+        <p class="help-text">
+          <strong>Reload from JSON:</strong> Loads the latest data from src/assets/productData.json<br>
+          <strong>Export to JSON:</strong> Downloads current data as a JSON file
+        </p>
       </div>
 
       <div class="action-group">
         <h4>Configuration Management</h4>
-        <div class="management-buttons">
-          <button @click="resetToDefaults" class="btn btn-warning">
+        <div class="button-group">
+          <button 
+            @click="exportConfiguration" 
+            :disabled="productStore.isLoading"
+            class="btn btn-info"
+          >
+            <i class="bi bi-file-earmark-arrow-down"></i>
+            Export Configuration
+          </button>
+          <button 
+            @click="importConfiguration" 
+            :disabled="productStore.isLoading"
+            class="btn btn-warning"
+          >
+            <i class="bi bi-file-earmark-arrow-up"></i>
+            Import Configuration
+          </button>
+          <input 
+            ref="fileInput" 
+            type="file" 
+            accept=".json" 
+            @change="handleFileImport" 
+            style="display: none"
+          />
+        </div>
+        <p class="help-text">
+          <strong>Export Configuration:</strong> Downloads complete configuration (form + product data)<br>
+          <strong>Import Configuration:</strong> Loads configuration from a JSON file
+        </p>
+      </div>
+
+      <div class="action-group">
+        <h4>Reset Options</h4>
+        <div class="button-group">
+          <button 
+            @click="resetToDefaults" 
+            :disabled="productStore.isLoading"
+            class="btn btn-danger"
+          >
+            <i class="bi bi-arrow-counterclockwise"></i>
             Reset to Defaults
           </button>
-          <button @click="exportDefaultConfiguration" class="btn btn-secondary">
-            Export Default Configuration
-          </button>
+        </div>
+        <p class="help-text">
+          <strong>Reset to Defaults:</strong> Clears all custom configurations and uses default JSON data
+        </p>
+      </div>
+    </div>
+
+    <div v-if="productStore.error" class="error-message">
+      <i class="bi bi-exclamation-triangle"></i>
+      {{ productStore.error }}
+    </div>
+
+    <div v-if="productStore.isLoading" class="loading">
+      <i class="bi bi-arrow-clockwise spin"></i>
+      Loading...
+    </div>
+
+    <div class="status">
+      <h4>Current Status</h4>
+      <div class="status-grid">
+        <div class="status-item">
+          <span class="label">Categories:</span>
+          <span class="value">{{ productStore.categories.length }}</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Total Models:</span>
+          <span class="value">{{ totalModels }}</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Symptom Areas:</span>
+          <span class="value">{{ Object.keys(productStore.symptomsByArea).length }}</span>
+        </div>
+        <div class="status-item">
+          <span class="label">Has Custom Config:</span>
+          <span class="value">{{ productStore.hasCustomConfiguration ? 'Yes' : 'No' }}</span>
         </div>
       </div>
     </div>
 
-    <div v-if="exportedJson" class="exported-json">
-      <h4>Exported Configuration</h4>
-      <pre class="json-display">{{ exportedJson }}</pre>
-    </div>
-
-    <div v-if="error" class="error-message">
-      {{ error }}
-    </div>
-
-    <div v-if="successMessage" class="success-message">
-      {{ successMessage }}
+    <div class="debug-info mt-4">
+      <h4>Debug Information</h4>
+      <div class="row">
+        <div class="col-md-6">
+          <h5>Store State</h5>
+          <p><strong>Categories:</strong> {{ productStore.categories?.length || 0 }}</p>
+          <p><strong>Models:</strong> {{ Object.keys(productStore.categoryModels || {}).length }}</p>
+          <p><strong>Symptom Areas:</strong> {{ Object.keys(productStore.symptomsByArea || {}).length }}</p>
+          <p><strong>Models with Symptom Areas:</strong> {{ Object.keys(productStore.modelSymptomAreas || {}).length }}</p>
+        </div>
+        <div class="col-md-6">
+          <h5>Sample Data</h5>
+          <p><strong>First Category:</strong> {{ productStore.categories?.[0] || 'None' }}</p>
+          <p><strong>First Model:</strong> {{ productStore.categoryModels?.[productStore.categories?.[0]]?.[0] || 'None' }}</p>
+          <p><strong>Sample Symptom Areas:</strong> {{ productStore.getSymptomAreasForModel(productStore.categoryModels?.[productStore.categories?.[0]]?.[0])?.join(', ') || 'None' }}</p>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useProductStore } from '@/stores/productStore';
 
 const productStore = useProductStore();
+const fileInput = ref(null);
 
-// Reactive data
-const importJson = ref('');
-const exportedJson = ref('');
-const exportFormConfig = ref(true);
-const exportProductMapping = ref(true);
-const error = ref('');
-const successMessage = ref('');
+const totalModels = computed(() => {
+  return Object.values(productStore.categoryModels).reduce((total, models) => total + models.length, 0);
+});
 
-// Computed properties
-const isLoading = computed(() => productStore.isLoading);
-const hasCustomConfiguration = computed(() => productStore.hasCustomConfiguration);
-
-// Methods
-const importConfiguration = async () => {
+const reloadFromJson = async () => {
   try {
-    error.value = '';
-    successMessage.value = '';
+    await productStore.reloadFromJson();
+    alert('Data successfully reloaded from JSON file!');
+  } catch (error) {
+    alert('Failed to reload data: ' + error.message);
+  }
+};
 
-    if (!importJson.value.trim()) {
-      error.value = 'Please provide JSON configuration to import';
-      return;
-    }
-
-    const configData = JSON.parse(importJson.value);
-    
-    // Validate configuration structure
-    if (!configData.formConfig && !configData.productMapping) {
-      error.value = 'Invalid configuration format. Must contain formConfig and/or productMapping';
-      return;
-    }
-
-    await productStore.importConfiguration(configData);
-    
-    successMessage.value = 'Configuration imported successfully!';
-    importJson.value = '';
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = '';
-    }, 3000);
-  } catch (err) {
-    error.value = `Import failed: ${err.message}`;
-    console.error('Import error:', err);
+const exportToJson = () => {
+  try {
+    productStore.exportToJson();
+    alert('Data successfully exported to JSON file!');
+  } catch (error) {
+    alert('Failed to export data: ' + error.message);
   }
 };
 
 const exportConfiguration = () => {
   try {
-    error.value = '';
+    const config = productStore.exportCurrentConfiguration();
+    const jsonString = JSON.stringify(config, null, 2);
     
-    const configData = {};
+    const blob = new Blob([jsonString], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'complete_configuration.json';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
     
-    if (exportFormConfig.value) {
-      configData.formConfig = productStore.formConfig || productStore.exportCurrentConfiguration().formConfig;
-    }
-    
-    if (exportProductMapping.value) {
-      configData.productMapping = productStore.productMapping || productStore.exportCurrentConfiguration().productMapping;
-    }
-    
-    exportedJson.value = JSON.stringify(configData, null, 2);
-    successMessage.value = 'Configuration exported successfully!';
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = '';
-    }, 3000);
-  } catch (err) {
-    error.value = `Export failed: ${err.message}`;
-    console.error('Export error:', err);
+    alert('Configuration successfully exported!');
+  } catch (error) {
+    alert('Failed to export configuration: ' + error.message);
   }
 };
 
-const exportDefaultConfiguration = () => {
-  try {
-    error.value = '';
-    
-    const defaultConfig = productStore.exportCurrentConfiguration();
-    exportedJson.value = JSON.stringify(defaultConfig, null, 2);
-    
-    successMessage.value = 'Default configuration exported successfully!';
-    
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = '';
-    }, 3000);
-  } catch (err) {
-    error.value = `Export failed: ${err.message}`;
-    console.error('Export error:', err);
-  }
+const importConfiguration = () => {
+  fileInput.value.click();
 };
 
-const copyToClipboard = async () => {
+const handleFileImport = async (event) => {
+  const file = event.target.files[0];
+  if (!file) return;
+
   try {
-    await navigator.clipboard.writeText(exportedJson.value);
-    successMessage.value = 'Configuration copied to clipboard!';
+    const text = await file.text();
+    const config = JSON.parse(text);
     
-    // Clear success message after 3 seconds
-    setTimeout(() => {
-      successMessage.value = '';
-    }, 3000);
-  } catch (err) {
-    error.value = 'Failed to copy to clipboard';
-    console.error('Clipboard error:', err);
+    await productStore.importConfiguration(config);
+    alert('Configuration successfully imported!');
+  } catch (error) {
+    alert('Failed to import configuration: ' + error.message);
   }
+  
+  // Reset file input
+  event.target.value = '';
 };
 
 const resetToDefaults = async () => {
-  try {
-    error.value = '';
-    successMessage.value = '';
-    
-    if (confirm('Are you sure you want to reset to default configuration? This will clear all custom settings.')) {
+  if (confirm('Are you sure you want to reset to defaults? This will clear all custom configurations.')) {
+    try {
       productStore.resetToDefaults();
-      exportedJson.value = '';
-      successMessage.value = 'Configuration reset to defaults successfully!';
-      
-      // Clear success message after 3 seconds
-      setTimeout(() => {
-        successMessage.value = '';
-      }, 3000);
+      alert('Successfully reset to defaults!');
+    } catch (error) {
+      alert('Failed to reset: ' + error.message);
     }
-  } catch (err) {
-    error.value = `Reset failed: ${err.message}`;
-    console.error('Reset error:', err);
   }
 };
-
-// Load configuration on mount
-onMounted(async () => {
-  await productStore.loadConfiguration();
-});
 </script>
 
 <style scoped>
@@ -227,110 +227,57 @@ onMounted(async () => {
   padding: 20px;
 }
 
-.config-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 2px solid #e0e0e0;
+.header {
+  text-align: center;
+  margin-bottom: 30px;
 }
 
-.config-header h3 {
-  margin: 0;
+.header h3 {
   color: #333;
+  margin-bottom: 10px;
 }
 
-.config-status {
-  display: flex;
-  align-items: center;
-}
-
-.status-indicator {
-  padding: 4px 12px;
-  border-radius: 12px;
-  font-size: 0.9em;
-  font-weight: 500;
-  background-color: #f0f0f0;
+.header p {
   color: #666;
+  margin: 0;
 }
 
-.status-indicator.active {
-  background-color: #4CAF50;
-  color: white;
-}
-
-.config-actions {
+.actions {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 30px;
 }
 
 .action-group {
-  background: #f9f9f9;
-  padding: 20px;
+  border: 1px solid #ddd;
   border-radius: 8px;
-  border: 1px solid #e0e0e0;
+  padding: 20px;
+  background: #f9f9f9;
 }
 
 .action-group h4 {
   margin: 0 0 15px 0;
   color: #333;
-  font-size: 1.1em;
+  font-size: 16px;
 }
 
-.import-section,
-.export-section {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.json-textarea {
-  width: 100%;
-  padding: 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.9em;
-  resize: vertical;
-  min-height: 120px;
-}
-
-.import-buttons,
-.export-buttons,
-.management-buttons {
+.button-group {
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.export-options {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.export-options label {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.9em;
-  cursor: pointer;
-}
-
-.export-options input[type="checkbox"] {
-  margin: 0;
+  margin-bottom: 15px;
 }
 
 .btn {
-  padding: 8px 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 15px;
   border: none;
-  border-radius: 4px;
+  border-radius: 5px;
   cursor: pointer;
-  font-size: 0.9em;
-  font-weight: 500;
-  transition: all 0.2s ease;
+  font-size: 14px;
+  transition: all 0.3s ease;
 }
 
 .btn:disabled {
@@ -339,95 +286,136 @@ onMounted(async () => {
 }
 
 .btn-primary {
-  background-color: #007bff;
+  background: #007bff;
   color: white;
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #0056b3;
+  background: #0056b3;
 }
 
-.btn-secondary {
-  background-color: #6c757d;
+.btn-success {
+  background: #28a745;
   color: white;
 }
 
-.btn-secondary:hover:not(:disabled) {
-  background-color: #545b62;
+.btn-success:hover:not(:disabled) {
+  background: #1e7e34;
+}
+
+.btn-info {
+  background: #17a2b8;
+  color: white;
+}
+
+.btn-info:hover:not(:disabled) {
+  background: #117a8b;
 }
 
 .btn-warning {
-  background-color: #ffc107;
+  background: #ffc107;
   color: #212529;
 }
 
 .btn-warning:hover:not(:disabled) {
-  background-color: #e0a800;
+  background: #e0a800;
 }
 
-.exported-json {
-  margin-top: 20px;
-  background: #f8f9fa;
-  border: 1px solid #e9ecef;
+.btn-danger {
+  background: #dc3545;
+  color: white;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #c82333;
+}
+
+.help-text {
+  font-size: 12px;
+  color: #666;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.error-message {
+  background: #f8d7da;
+  color: #721c24;
+  padding: 15px;
+  border-radius: 5px;
+  margin: 20px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.loading {
+  text-align: center;
+  padding: 20px;
+  color: #666;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.status {
+  margin-top: 30px;
+  border: 1px solid #ddd;
   border-radius: 8px;
   padding: 20px;
+  background: white;
 }
 
-.exported-json h4 {
+.status h4 {
   margin: 0 0 15px 0;
   color: #333;
 }
 
-.json-display {
+.status-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 15px;
+}
+
+.status-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
   background: #f8f9fa;
-  border: 1px solid #e9ecef;
-  border-radius: 4px;
-  padding: 15px;
-  font-family: 'Courier New', monospace;
-  font-size: 0.85em;
-  line-height: 1.4;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  max-height: 400px;
-  overflow-y: auto;
-  margin: 0;
+  border-radius: 5px;
 }
 
-.error-message {
-  margin-top: 15px;
-  padding: 12px;
-  background-color: #f8d7da;
-  color: #721c24;
-  border: 1px solid #f5c6cb;
-  border-radius: 4px;
-  font-size: 0.9em;
+.status-item .label {
+  font-weight: 500;
+  color: #333;
 }
 
-.success-message {
-  margin-top: 15px;
-  padding: 12px;
-  background-color: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-  border-radius: 4px;
-  font-size: 0.9em;
+.status-item .value {
+  font-weight: bold;
+  color: #007bff;
 }
 
-@media (max-width: 768px) {
-  .config-header {
-    flex-direction: column;
-    gap: 10px;
-    align-items: flex-start;
-  }
-  
-  .import-buttons,
-  .export-buttons,
-  .management-buttons {
+@media (max-width: 600px) {
+  .button-group {
     flex-direction: column;
   }
   
   .btn {
-    width: 100%;
+    justify-content: center;
+  }
+  
+  .status-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style> 
