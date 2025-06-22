@@ -1,0 +1,18 @@
+type,dropdownName,displayName,values,dependentOn,dependentValues,model,field,condition,dependsOn,dependsValue,category,section,fields
+dropdown,symptomOccurrence,Symptom Occurrence,"After a while|After long time switched off|After product upgrade|Constantly|Due to a physical damage|In a cold environment|In a hot environment|In a wet environment|Intermittently|Liquid contamination|One time event|Switched on the first time|Under stressed condition|Under vibration|When switching",,,,,,,,,,,,
+dropdown,mainsVoltageType,Mains Voltage Type,"Single phase|Bi phase|Three phase with neutral|Three phase without neutral",,,,,,,,,,,,
+dropdown,mainsVoltageRange,Mains Voltage Range,,mainsVoltageType,"{""Single phase"":[""<100VAC"",""200-240V""],""Bi phase"":[""200-240V"","">240V""],""Three phase with neutral"":["">240VAC""],""Three phase without neutral"":["">240VAC""]}",,,,,,,,,,
+dropdown,outputLoad,Output Load,"2 Ohm|4 Ohm|8 Ohm|16 Ohm|>16 Ohm|Disconnected",,,,,,,,,,,,
+dropdown,loadConnectionMode,Load Connection Mode,"Single ended|Bridged|Parallel",,,,,,,,,,,,
+dropdown,installationType,Installation Type,"Airport|Rail Station|Cinema|Theatre|Museum|Club / Disco|Pub|Concert|Touring Rental|Mall|Conference|Church|Boat|Laboratory",,,,,,,,,,,,
+fieldVisibility,,,,,,,,DVS_10P_SP,mainsVoltageType,show,,,,,,
+fieldVisibility,,,,,,,,DVS_10P_SP,mainsVoltageRange,show,mainsVoltageType,Single phase,,,,
+fieldVisibility,,,,,,,,AI_41,mainsVoltageType,hide,,,,,,
+categoryConfig,,,,,,,,,,,,Active_Speaker,symptomInfo,"symptomArea,symptomFound,symptomOccurrence"
+categoryConfig,,,,,,,,,,,,Active_Speaker,technicalInfo,"mainsVoltageType,mainsVoltageRange,outputLoad,loadConnectionMode"
+categoryConfig,,,,,,,,,,,,Active_Speaker,additionalInfo,"installationType,note"
+categoryConfig,,,,,,,,,,,,Passive_Speaker,symptomInfo,"symptomArea,symptomFound,symptomOccurrence"
+categoryConfig,,,,,,,,,,,,Passive_Speaker,additionalInfo,"installationType,note"
+categoryConfig,,,,,,,,,,,,Processor,symptomInfo,"symptomArea,symptomFound,symptomOccurrence"
+categoryConfig,,,,,,,,,,,,Processor,technicalInfo,"mainsVoltageType,mainsVoltageRange"
+categoryConfig,,,,,,,,,,,,Processor,additionalInfo,"installationType,note" 
