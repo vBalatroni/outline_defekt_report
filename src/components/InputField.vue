@@ -1,22 +1,19 @@
 <script setup>
-import { defineProps, defineEmits } from 'vue';
+import { defineProps, defineEmits, computed } from 'vue';
 
 const props = defineProps({
-    type: {
-        type: String,
-        required: true
-    },
+    id: String,
     label: {
         type: String,
         required: true
     },
     isRequired: {
         type: Boolean,
-        required: true
+        default: false
     },
-    id: {
+    type: {
         type: String,
-        required: true
+        default: 'text'
     },
     modelValue: {
         type: [String, Number],
@@ -26,19 +23,27 @@ const props = defineProps({
         type: Array,
         default: () => []
     },
-    isLoading: {
+    disabled: {
         type: Boolean,
         default: false
     }
 });
 
-const emit = defineEmits(['update:modelValue', 'input-change']);
+const emit = defineEmits(['update:modelValue']);
 
-const handleInput = (event) => {
-    const value = event.target.value;
-    emit('update:modelValue', value);
-    emit('input-change', { id: props.id, value: value });
-};
+const value = computed({
+    get() {
+        return props.modelValue;
+    },
+    set(value) {
+        emit('update:modelValue', value);
+    }
+});
+
+const safeOptions = computed(() => {
+    return Array.isArray(props.options) ? props.options : [];
+});
+
 </script>
 
 <template>
@@ -48,14 +53,16 @@ const handleInput = (event) => {
             <select 
                 :id="id" 
                 :required="isRequired" 
-                :value="modelValue" 
-                @input="handleInput"
+                v-model="value" 
+                :disabled="disabled"
                 class="form-control"
             >
-                <option value="" disabled selected>Select an option</option>
-                <option v-for="option in options" :key="option" :value="option">
-                    {{ option }}
-                </option>
+                <option value="" disabled>Select an option</option>
+                <template v-for="option in safeOptions" :key="option.value || option">
+                    <option :value="option.value || option">
+                        {{ option.label || option }}
+                    </option>
+                </template>
             </select>
         </template>
         <template v-else>
@@ -63,10 +70,8 @@ const handleInput = (event) => {
                 :type="type" 
                 :id="id" 
                 :required="isRequired" 
-                :value="modelValue" 
-                :disabled="isLoading"
-                :class="{ 'loading': isLoading }"
-                @input="handleInput"
+                v-model="value" 
+                :disabled="disabled"
                 class="form-control"
             />
         </template>
@@ -74,7 +79,7 @@ const handleInput = (event) => {
 </template>
 
 <style scoped>
-.input-field input.loading {
+.input-field input:disabled {
     background-color: #f5f5f5;
     cursor: not-allowed;
 }

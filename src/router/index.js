@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
 import JsonDemoView from '../views/JsonDemoView.vue'
-import JsonConfigManager from '../components/JsonConfigManager.vue'
+import FormTestView from '../views/FormTestView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -17,9 +17,9 @@ const router = createRouter({
       component: JsonDemoView,
     },
     {
-      path: '/json-config',
-      name: 'json-config',
-      component: JsonConfigManager,
+      path: '/form-test',
+      name: 'form-test',
+      component: FormTestView,
     }
   ],
 })
