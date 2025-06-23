@@ -1,5 +1,5 @@
 <template>
-  <div class="csv-demo-view">
+  <div class="json-demo-view">
     <div class="demo-header">
       <h2>Product Configuration Management</h2>
       <p class="demo-description">
@@ -150,7 +150,7 @@ onMounted(() => {
 </script>
 
 <style scoped>
-.csv-demo-view {
+.json-demo-view {
   max-width: 1400px;
   margin: 0 auto;
   padding: 20px;
@@ -378,7 +378,7 @@ onMounted(() => {
 }
 
 @media (max-width: 768px) {
-  .csv-demo-view {
+  .json-demo-view {
     padding: 15px;
   }
   

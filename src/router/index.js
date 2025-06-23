@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import CsvDemoView from '../views/CsvDemoView.vue'
+import JsonDemoView from '../views/JsonDemoView.vue'
 import JsonConfigManager from '../components/JsonConfigManager.vue'
 
 const router = createRouter({
@@ -12,9 +12,9 @@ const router = createRouter({
       component: HomeView,
     },
     {
-      path: '/csv-demo',
-      name: 'csv-demo',
-      component: CsvDemoView,
+      path: '/json-demo',
+      name: 'json-demo',
+      component: JsonDemoView,
     },
     {
       path: '/json-config',
