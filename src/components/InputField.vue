@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue';
+import FileUpload from './FileUpload.vue';
 
 const props = defineProps({
     id: String,
@@ -64,6 +65,9 @@ const safeOptions = computed(() => {
                     </option>
                 </template>
             </select>
+        </template>
+        <template v-else-if="type === 'file'">
+            <FileUpload v-model="value" />
         </template>
         <template v-else>
             <input 

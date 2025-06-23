@@ -77,6 +77,7 @@
                         <select v-model="activeField.type">
                             <option value="text">Text</option>
                             <option value="select">Select</option>
+                            <option value="file">File</option>
                         </select>
                     </div>
                     <div class="form-group">
