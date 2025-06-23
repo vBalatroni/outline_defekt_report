@@ -35,6 +35,11 @@ const modelFields = computed(() => {
     return [];
 });
 
+const sortedModelFields = computed(() => {
+    if (!modelFields.value) return [];
+    return [...modelFields.value].sort((a, b) => (a.order || 0) - (b.order || 0));
+});
+
 watch(() => formData.value.productCategory, () => {
     formData.value.productModel = '';
     formData.value.dynamicFields = {};
@@ -48,6 +53,19 @@ watch(() => formData.value.productModel, (newModel) => {
         });
     }
 }, { immediate: true });
+
+watch(() => formData.value.dynamicFields, (newFields, oldFields) => {
+    if (!oldFields || !modelFields.value) return;
+
+    modelFields.value.forEach(childField => {
+        if (childField.dependsOn) {
+            const parentId = childField.dependsOn;
+            if (newFields[parentId] !== oldFields[parentId]) {
+                formData.value.dynamicFields[childField.id] = '';
+            }
+        }
+    });
+}, { deep: true });
 
 const getFieldOptions = (field) => {
     if (field.isSymptomArea) {
@@ -77,6 +95,35 @@ const getFieldOptions = (field) => {
     }
 
     return field.options || [];
+};
+
+const isFieldVisible = (field) => {
+    if (!field.conditions || field.conditions.length === 0) {
+        return true;
+    }
+
+    return field.conditions.every(condition => {
+        const targetValue = condition.field in formData.value 
+            ? formData.value[condition.field]
+            : formData.value.dynamicFields[condition.field];
+
+        if (targetValue === undefined) {
+            return false;
+        }
+
+        switch (condition.operator) {
+            case 'equals':
+                return targetValue == condition.value;
+            case 'not_equals':
+                return targetValue != condition.value;
+            case 'contains':
+                return String(targetValue).includes(condition.value);
+            case 'exists':
+                return targetValue !== null && targetValue !== undefined && targetValue !== '';
+            default:
+                return false;
+        }
+    });
 };
 
 const isFieldDisabled = (field) => {
@@ -109,17 +156,18 @@ const isFieldDisabled = (field) => {
         </div>
 
         <div v-if="formData.productModel && modelFields.length > 0" class="dynamic-fields-grid">
-            <InputField
-                v-for="field in modelFields"
-                :key="field.id"
-                :id="field.id"
-                :label="field.label"
-                v-model="formData.dynamicFields[field.id]"
-                :type="field.type"
-                :options="getFieldOptions(field)"
-                :required="field.required"
-                :disabled="isFieldDisabled(field)"
-            />
+            <template v-for="field in sortedModelFields" :key="field.id">
+                <InputField
+                    v-if="isFieldVisible(field)"
+                    :id="field.id"
+                    :label="field.label"
+                    v-model="formData.dynamicFields[field.id]"
+                    :type="field.type"
+                    :options="getFieldOptions(field)"
+                    :isRequired="field.required"
+                    :disabled="isFieldDisabled(field)"
+                />
+            </template>
         </div>
     </div>
 </template>

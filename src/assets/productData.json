@@ -1008,50 +1008,16 @@
   "modelFieldConfigs": {
     "DVS_10P_SP": [
       {
-        "id": "main",
-        "label": "Main",
-        "type": "select",
-        "isSymptomArea": true,
-        "options": [
-          "singlePhase",
-          "biPhase",
-          "threePhaseWithNeutral",
-          "threePhaseWithoutNeutral"
-        ]
-      },
-      {
-        "id": "range",
-        "label": "Range",
-        "type": "select",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "main",
-        "valueMapping": {
-          "singlePhase": {
-            "type": "symptomSet",
-            "key": "singlePhase"
-          },
-          "biPhase": {
-            "type": "symptomSet",
-            "key": "biPhase"
-          },
-          "threePhaseWithNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithNeutral"
-          },
-          "threePhaseWithoutNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithoutNeutral"
-          }
-        }
-      },
-      {
         "id": "symptomArea",
         "label": "Symptom Area",
         "type": "select",
+        "required": true,
+        "order": 0,
+        "conditions": [],
         "isSymptomArea": true,
         "options": [
-          "amplifier",
+          "audio",
+          "power",
           "cabinet"
         ]
       },
@@ -1059,11 +1025,121 @@
         "id": "symptomFound",
         "label": "Symptom Found",
         "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
         "isSymptomArea": false,
         "options": [],
         "dependsOn": "symptomArea",
         "valueMapping": {
-          "amplifier": {
+          "audio": {
+            "type": "symptomSet",
+            "key": "audio"
+          },
+          "power": {
+            "type": "symptomSet",
+            "key": "power"
+          },
+          "cabinet": {
+            "type": "symptomSet",
+            "key": "cabinet"
+          }
+        }
+      },
+      {
+        "id": "main",
+        "label": "Main",
+        "type": "select",
+        "required": true,
+        "order": 2,
+        "conditions": [],
+        "isSymptomArea": true,
+        "options": [
+          "threePhaseWithoutNeutral",
+          "threePhaseWithNeutral",
+          "biPhase",
+          "singlePhase"
+        ]
+      },
+      {
+        "id": "range",
+        "label": "Range",
+        "type": "select",
+        "required": false,
+        "order": 3,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "main",
+        "valueMapping": {
+          "threePhaseWithoutNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithoutNeutral"
+          },
+          "threePhaseWithNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithNeutral"
+          },
+          "biPhase": {
+            "type": "symptomSet",
+            "key": "biPhase"
+          },
+          "singlePhase": {
+            "type": "symptomSet",
+            "key": "singlePhase"
+          }
+        }
+      }
+    ],
+    "DVS_115_SW_iSP": [
+      {
+        "id": "aaa",
+        "label": "aaa",
+        "type": "select",
+        "required": false,
+        "order": 0,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [
+          "1",
+          "2",
+          "3"
+        ]
+      },
+      {
+        "id": "symp",
+        "label": "symp",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "isSymptomArea": true,
+        "options": [
+          "power",
+          "audio",
+          "cabinet"
+        ]
+      },
+      {
+        "id": "symptomFound",
+        "label": "Symptom Found",
+        "type": "select",
+        "required": true,
+        "order": 2,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "symp",
+        "valueMapping": {
+          "power": {
+            "type": "static",
+            "options": [
+              "manuale",
+              "mannn",
+              "mauu"
+            ]
+          },
+          "audio": {
             "type": "symptomSet",
             "key": "amplifier"
           },
