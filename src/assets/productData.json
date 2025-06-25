@@ -66,7 +66,12 @@
       "V15_KIT",
       "V24_BGM_KIT",
       "V6.5_KIT",
-      "V8CX_KIT"
+      "V8CX_KIT",
+      "ABCD",
+      "ABCD_copy",
+      "DVS_10P_SP_copy",
+      "AAAAA",
+      "AAAAA_copy"
     ],
     "Passive Speaker": [
       "AI_41",
@@ -147,7 +152,7 @@
   },
   "symptomSets": {
     "audio_1": {
-      "displayName": "Audio",
+      "label": "Audio",
       "symptoms": [
         "Audio channel on protection",
         "Audio level problem",
@@ -169,7 +174,7 @@
       ]
     },
     "power_1": {
-      "displayName": "Power",
+      "label": "Power",
       "symptoms": [
         "Can't power up",
         "Keep restarting",
@@ -179,7 +184,7 @@
       ]
     },
     "cabinet_1": {
-      "displayName": "Cabinet",
+      "label": "Cabinet",
       "symptoms": [
         "Accessories_broken_or_missing",
         "Damaged plug/connectors",
@@ -192,7 +197,7 @@
       ]
     },
     "connections_1": {
-      "displayName": "Connections",
+      "label": "Connections",
       "symptoms": [
         "Analog IN",
         "Analog OUT",
@@ -208,7 +213,7 @@
       ]
     },
     "amplifier_1": {
-      "displayName": "Amplifier",
+      "label": "Amplifier",
       "symptoms": [
         "Damaged plug/connectors",
         "Faulty button",
@@ -217,7 +222,7 @@
       ]
     },
     "mechanics_1": {
-      "displayName": "Mechanics",
+      "label": "Mechanics",
       "symptoms": [
         "Damage plug/connectors",
         "Excessive fan speed",
@@ -231,13 +236,13 @@
       ]
     },
     "speaker_1": {
-      "displayName": "Speaker",
+      "label": "Speaker",
       "symptoms": [
         "Broken speaker"
       ]
     },
     "control_software_1": {
-      "displayName": "Control_Software",
+      "label": "Control_Software",
       "symptoms": [
         "Can't discover unit on Software",
         "Can't import unit on Workspace",
@@ -247,14 +252,14 @@
       ]
     },
     "firmware_1": {
-      "displayName": "Firmware",
+      "label": "Firmware",
       "symptoms": [
         "Can't update firmware",
         "Problem after firmware update"
       ]
     },
     "dante_1": {
-      "displayName": "Dante",
+      "label": "Dante",
       "symptoms": [
         "Can't discover unit on Dante",
         "Connection issues",
@@ -262,7 +267,7 @@
       ]
     },
     "display_1": {
-      "displayName": "Display",
+      "label": "Display",
       "symptoms": [
         "No display",
         "Wrong display",
@@ -270,7 +275,7 @@
       ]
     },
     "dsp_1": {
-      "displayName": "DSP",
+      "label": "DSP",
       "symptoms": [
         "No processing",
         "Wrong settings",
@@ -278,7 +283,7 @@
       ]
     },
     "in_out_1": {
-      "displayName": "In_Out",
+      "label": "In_Out",
       "symptoms": [
         "Input not working",
         "Output not working",
@@ -286,7 +291,7 @@
       ]
     },
     "hardware_1": {
-      "displayName": "Hardware",
+      "label": "Hardware",
       "symptoms": [
         "Physical damage",
         "Missing parts",
@@ -294,7 +299,7 @@
       ]
     },
     "electronics_1": {
-      "displayName": "Electronics",
+      "label": "Electronics",
       "symptoms": [
         "Circuit problems",
         "Component failure",
@@ -302,7 +307,7 @@
       ]
     },
     "mechanical_issue_1": {
-      "displayName": "Mechanical_Issue",
+      "label": "Mechanical_Issue",
       "symptoms": [
         "Moving parts stuck",
         "Mechanical noise",
@@ -310,7 +315,7 @@
       ]
     },
     "armonia_1": {
-      "displayName": "Armonia",
+      "label": "Armonia",
       "symptoms": [
         "Software issues",
         "Configuration problems",
@@ -320,7 +325,23 @@
     "audio": {
       "label": "Audio",
       "symptoms": [
-        "Audio channel on protection\nAudio level problem\nBalance problem\nCrosstalk\nDistorted audio\nExcessive audio level\nHiss\nHum\nNo audio\nNo muting\nNo or poor bass\nNo or poor treble\nNoisy audio\nOffset voltage too high\nPoor frequency response\nPop or click noise\nScratching noise"
+        "Audio channel on protection",
+        "Audio level problem",
+        "Balance problem",
+        "Crosstalk",
+        "Distorted audio",
+        "Excessive audio level",
+        "Hiss",
+        "Hum",
+        "No audio",
+        "No muting",
+        "No or poor bass",
+        "No or poor treble",
+        "Noisy audio",
+        "Offset voltage too high",
+        "Poor frequency response",
+        "Pop or click noise",
+        "Scratching noise"
       ]
     },
     "power": {
@@ -903,6 +924,16 @@
       "audio_1",
       "mechanics_1",
       "power_1"
+    ],
+    "ABCD": [
+      "amplifier_1",
+      "cabinet_1",
+      "power_1"
+    ],
+    "ABCD_copy": [
+      "amplifier_1",
+      "cabinet_1",
+      "power_1"
     ]
   },
   "mainVoltageTypes": [
@@ -1154,6 +1185,285 @@
           "cabinet": {
             "type": "symptomSet",
             "key": "cabinet"
+          }
+        }
+      }
+    ],
+    "ABCD": [
+      {
+        "id": "abcd",
+        "label": "ABCD",
+        "type": "select",
+        "order": 0,
+        "optionsText": "a\nc\nd",
+        "options": [
+          "a",
+          "c",
+          "d"
+        ]
+      }
+    ],
+    "ABCD_copy": [
+      {
+        "id": "abcd",
+        "label": "ABCD",
+        "type": "select",
+        "order": 0,
+        "optionsText": "a\nc\nd",
+        "options": [
+          "a",
+          "c",
+          "d",
+          "singlePhase",
+          "biPhase",
+          "threePhaseWithNeutral",
+          "threePhaseWithoutNeutral"
+        ],
+        "isSymptomArea": true
+      },
+      {
+        "id": "main",
+        "label": "MAIN",
+        "type": "select",
+        "order": 1,
+        "optionsText": "",
+        "dependsOn": "abcd",
+        "valueMapping": {
+          "a": {
+            "type": "static",
+            "options": [
+              "abcd"
+            ]
+          },
+          "c": {
+            "type": "static",
+            "options": [
+              "efgh"
+            ]
+          },
+          "d": {
+            "type": "symptomSet",
+            "options": "",
+            "key": "threePhaseWithNeutral"
+          }
+        },
+        "isSymptomArea": false,
+        "options": []
+      },
+      {
+        "id": "second",
+        "label": "SECOND",
+        "type": "select",
+        "order": 2,
+        "optionsText": "A\nB\nC\nD",
+        "dependsOn": null,
+        "valueMapping": {},
+        "isSymptomArea": false,
+        "options": [
+          "A",
+          "B",
+          "C",
+          "D"
+        ]
+      }
+    ],
+    "DVS_10P_SP_copy": [
+      {
+        "id": "symptomArea",
+        "label": "Symptom Area",
+        "type": "select",
+        "required": true,
+        "order": 0,
+        "conditions": [],
+        "isSymptomArea": true,
+        "options": [
+          "audio",
+          "power",
+          "cabinet"
+        ]
+      },
+      {
+        "id": "symptomFound",
+        "label": "Symptom Found",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "symptomArea",
+        "valueMapping": {
+          "audio": {
+            "type": "symptomSet",
+            "key": "audio"
+          },
+          "power": {
+            "type": "symptomSet",
+            "key": "power"
+          },
+          "cabinet": {
+            "type": "symptomSet",
+            "key": "cabinet"
+          }
+        }
+      },
+      {
+        "id": "main",
+        "label": "Main",
+        "type": "select",
+        "required": true,
+        "order": 2,
+        "conditions": [],
+        "isSymptomArea": true,
+        "options": [
+          "threePhaseWithoutNeutral",
+          "threePhaseWithNeutral",
+          "biPhase",
+          "singlePhase"
+        ]
+      },
+      {
+        "id": "range",
+        "label": "Range",
+        "type": "select",
+        "required": false,
+        "order": 3,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "main",
+        "valueMapping": {
+          "threePhaseWithoutNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithoutNeutral"
+          },
+          "threePhaseWithNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithNeutral"
+          },
+          "biPhase": {
+            "type": "symptomSet",
+            "key": "biPhase"
+          },
+          "singlePhase": {
+            "type": "symptomSet",
+            "key": "singlePhase"
+          }
+        }
+      },
+      {
+        "id": "image",
+        "label": "Image",
+        "type": "file",
+        "required": false,
+        "order": 4,
+        "conditions": []
+      }
+    ],
+    "AAAAA": [
+      {
+        "id": "aBCD",
+        "label": "ABCD",
+        "type": "select",
+        "required": false,
+        "order": 0,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ]
+      },
+      {
+        "id": "vcde",
+        "label": "vcde",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "aBCD",
+        "valueMapping": {
+          "a": {
+            "type": "static",
+            "options": [
+              "aa"
+            ]
+          },
+          "b": {
+            "type": "static",
+            "options": [
+              "bb"
+            ]
+          },
+          "c": {
+            "type": "static",
+            "options": [
+              "cc"
+            ]
+          },
+          "d": {
+            "type": "static",
+            "options": [
+              "dd"
+            ]
+          }
+        }
+      }
+    ],
+    "AAAAA_copy": [
+      {
+        "id": "aBCD",
+        "label": "ABCD",
+        "type": "select",
+        "required": false,
+        "order": 0,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [
+          "a",
+          "b",
+          "c",
+          "d"
+        ]
+      },
+      {
+        "id": "vcde",
+        "label": "vcde",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "aBCD",
+        "valueMapping": {
+          "a": {
+            "type": "static",
+            "options": [
+              "aa"
+            ]
+          },
+          "b": {
+            "type": "static",
+            "options": [
+              "bb"
+            ]
+          },
+          "c": {
+            "type": "static",
+            "options": [
+              "cc"
+            ]
+          },
+          "d": {
+            "type": "static",
+            "options": [
+              "dd"
+            ]
           }
         }
       }

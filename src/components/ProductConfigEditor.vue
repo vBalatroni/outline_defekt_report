@@ -17,174 +17,211 @@
         </select>
       </div>
 
-      <div class="control-group">
-        <label for="model-select">Model</label>
-        <select id="model-select" v-model="selectedModel" :disabled="!selectedCategory">
-          <option disabled value="">Please select a model</option>
-          <option v-for="model in availableModels" :key="model" :value="model">
-            {{ model }}
-          </option>
-        </select>
+      <div class="control-group" v-if="selectedCategory">
+        <label for="model-search">Search Model</label>
+        <input id="model-search" type="text" v-model="searchQuery" placeholder="Filter models by name..." class="form-control">
       </div>
     </div>
 
-    <div v-if="selectedModel" class="field-editor">
-      <div class="field-editor-header">
-        <h3>Editing Fields for: <strong>{{ selectedModel }}</strong></h3>
-        <button @click="openAddFieldModal" class="btn btn-primary">Add Field</button>
-      </div>
-      
-      <div v-if="modelFields.length > 0" class="field-list">
-        <div v-for="(field, index) in modelFields" :key="index" class="field-card">
-          <div class="field-details">
-            <span><strong>ID:</strong> {{ field.id }}</span>
-            <span><strong>Label:</strong> {{ field.label }}</span>
-            <span><strong>Type:</strong> {{ field.type }}</span>
-          </div>
-          <div v-if="field.type === 'select' && field.options" class="field-options">
-            <strong>Options:</strong> {{ field.options.join(', ') }}
-          </div>
-          <div class="field-actions">
-              <button @click="openEditFieldModal(index)" class="btn btn-sm btn-secondary">Edit</button>
-              <button @click="deleteField(index)" class="btn btn-sm btn-danger">Delete</button>
-          </div>
+    <div v-if="selectedCategory" class="model-list-container">
+        <div class="model-list-header">
+            <h3>Available Models</h3>
+            <button @click="addModel" class="btn btn-primary">Add New Model</button>
         </div>
-      </div>
-      <div v-else class="field-list-placeholder">
-        <p>No fields configured for this model. Click "Add Field" to begin.</p>
-      </div>
+        <div v-if="availableModels.length > 0" class="model-list">
+            <div v-for="model in filteredModels" :key="model" class="model-card" @click="openModelEditor(model)">
+                <div class="model-card-content">
+                    <h4>{{ model }}</h4>
+                </div>
+                <div class="model-card-actions">
+                    <button @click.stop="duplicateModel(model)" class="btn btn-sm btn-secondary">Duplicate</button>
+                    <button @click.stop="deleteModel(model)" class="btn btn-sm btn-danger">Delete</button>
+                </div>
+            </div>
+            <div v-if="filteredModels.length === 0" class="field-list-placeholder">
+                <p>No models match your search.</p>
+            </div>
+        </div>
+        <div v-else class="field-list-placeholder">
+            <p>No models available for this category. Click "Add New Model" to begin.</p>
+        </div>
     </div>
 
-    <!-- Add/Edit Field Modal -->
-    <div v-if="showFieldModal" class="modal-overlay">
+    <!-- Model Field Editor Modal -->
+    <div v-if="showModelEditorModal" class="modal-overlay model-editor-modal">
         <div class="modal-content">
-            <h3>{{ isEditing ? 'Edit Field' : 'Add New Field' }}</h3>
-            
-            <div class="field-editor-grid">
-                <!-- Column 1: General Settings -->
-                <div class="editor-column">
-                    <h4>General</h4>
-                    <div class="form-group">
-                        <label>Field ID</label>
-                        <input type="text" v-model="activeField.id" placeholder="e.g., serialNumber">
+            <div class="model-editor-layout">
+                <!-- Left Pane: Field List -->
+                <div class="field-list-pane">
+                    <div class="field-editor-header">
+                        <h3>Fields for: <strong>{{ selectedModel }}</strong></h3>
+                        <button @click="openAddFieldModal" class="btn btn-primary">Add Field</button>
                     </div>
-                    <div class="form-group">
-                        <label>Field Label</label>
-                        <input type="text" v-model="activeField.label" placeholder="e.g., Serial Number">
+                    <div v-if="modelFields.length > 0" class="field-list">
+                        <div v-for="(field, index) in modelFields" :key="index" class="field-card" :class="{ 'is-active': showFieldModal && editingFieldIndex === index }">
+                            <div class="field-details">
+                                <span><strong>ID:</strong> {{ field.id }}</span>
+                                <span><strong>Label:</strong> {{ field.label }}</span>
+                                <span><strong>Type:</strong> {{ field.type }}</span>
+                            </div>
+                            <div v-if="field.type === 'select' && field.options && field.options.length" class="field-options">
+                                <strong>Options:</strong> {{ Array.isArray(field.options) ? field.options.join(', ') : field.options }}
+                            </div>
+                            <div class="field-actions">
+                                <button @click="openEditFieldModal(index)" class="btn btn-sm btn-secondary">Edit</button>
+                                <button @click="deleteField(index)" class="btn btn-sm btn-danger">Delete</button>
+                            </div>
+                        </div>
                     </div>
-                    <div class="form-group">
-                        <label>Field Type</label>
-                        <select v-model="activeField.type">
-                            <option value="text">Text</option>
-                            <option value="select">Select</option>
-                            <option value="file">File</option>
-                        </select>
-                    </div>
-                    <div class="form-group">
-                        <label>Order</label>
-                        <input type="number" v-model.number="activeField.order">
-                    </div>
-                    <div class="form-group checkbox-group">
-                        <input type="checkbox" v-model="activeField.required" id="isRequired" />
-                        <label for="isRequired">Field is required</label>
+                    <div v-else class="field-list-placeholder">
+                        <p>No fields configured for this model. Click "Add Field" to begin.</p>
                     </div>
                 </div>
 
-                <!-- Column 2: Options & Dependencies -->
-                <div class="editor-column">
-                    <template v-if="activeField.type === 'select'">
-                        <h4>Options & Dependencies</h4>
-                        <div class="form-group checkbox-group">
-                            <input type="checkbox" v-model="activeField.isSymptomArea" id="isSymptomArea" />
-                            <label for="isSymptomArea">This is a Symptom Area selector</label>
-                        </div>
-                        <div v-if="activeField.isSymptomArea" class="form-group symptom-sets-selection">
-                            <label>Available Symptom Sets</label>
-                            <div v-for="set in availableSymptomSets" :key="set.value" class="checkbox-group">
-                                <input type="checkbox" :id="`set-${set.value}`" :value="set.value" v-model="activeField.options" />
-                                <label :for="`set-${set.value}`">{{ set.label }} ({{ set.value }})</label>
-                            </div>
-                        </div>
-                        <div v-if="!activeField.isSymptomArea" class="form-group">
-                            <label>Options (one per line)</label>
-                            <textarea v-model="activeField.options" placeholder="Option 1&#10;Option 2" rows="4"></textarea>
-                        </div>
-                        <div v-if="isEditing && !activeField.isSymptomArea" class="dependencies-section">
-                            <h5>Dependencies</h5>
-                            <div class="form-group">
-                                <label>Depends on which field?</label>
-                                <select v-model="activeField.dependsOn">
-                                    <option :value="null">None</option>
-                                    <option v-for="field in availableParentFields" :key="field.id" :value="field.id">
-                                        {{ field.label }} ({{ field.id }})
-                                    </option>
-                                </select>
-                            </div>
-                            <div v-if="activeField.dependsOn" class="value-mapping">
-                                <h6>Option Mapping</h6>
-                                <p>For each parent option, define the source of the child options.</p>
-                                <div v-for="parentOption in parentFieldOptions" :key="parentOption" class="mapping-row">
-                                    <span class="parent-option-label">{{ parentOption }}</span>
-                                    <div class="mapping-controls">
-                                        <select v-model="activeField.valueMapping[parentOption].type" class="mapping-type-select">
-                                            <option value="static">Manual Options</option>
-                                            <option value="symptomSet">From Symptom Set</option>
+                <!-- Right Pane: Add/Edit Form -->
+                <div class="field-editor-pane">
+                    <div v-if="showFieldModal" class="field-editor-form">
+                        <h3>{{ isEditing ? 'Edit Field' : 'Add New Field' }}</h3>
+                        <div class="field-editor-grid">
+                            <!-- Column 1: General Settings -->
+                            <div class="editor-column">
+                                <div class="form-section">
+                                    <h4>General</h4>
+                                    <div class="form-group">
+                                        <label>Field ID</label>
+                                        <input type="text" v-model="activeField.id" placeholder="e.g., serialNumber">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Field Label</label>
+                                        <input type="text" v-model="activeField.label" placeholder="e.g., Serial Number">
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Field Type</label>
+                                        <select v-model="activeField.type">
+                                            <option value="text">Text</option>
+                                            <option value="select">Select</option>
+                                            <option value="file">File</option>
                                         </select>
-                                        <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'static'">
-                                            <textarea 
-                                                v-model="activeField.valueMapping[parentOption].value"
-                                                placeholder="Child options (one per line)"
-                                                rows="3"
-                                            ></textarea>
-                                        </template>
-                                        <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'symptomSet'">
-                                            <select v-model="activeField.valueMapping[parentOption].value">
-                                                <option disabled value="">Select a symptom set</option>
-                                                <option v-for="set in availableSymptomSets" :key="set.value" :value="set.value">
-                                                    {{ set.label }} ({{ set.value }})
-                                                </option>
-                                            </select>
-                                        </template>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>Order</label>
+                                        <input type="number" v-model.number="activeField.order">
+                                    </div>
+                                     <div class="form-group checkbox-group compact-checkbox">
+                                        <input type="checkbox" v-model="activeField.required" id="isRequired" />
+                                        <label for="isRequired">Field is required</label>
                                     </div>
                                 </div>
                             </div>
+
+                            <!-- Column 2: Options & Dependencies -->
+                            <div class="editor-column">
+                                <template v-if="activeField.type === 'select'">
+                                    <div class="form-section">
+                                        <h4>Options & Dependencies</h4>
+                                        <div class="form-group checkbox-group">
+                                            <input type="checkbox" v-model="activeField.isSymptomArea" id="isSymptomArea" />
+                                            <label for="isSymptomArea">This is a Symptom Area selector</label>
+                                        </div>
+                                        <div v-if="activeField.isSymptomArea" class="form-group">
+                                            <label>Available Symptom Sets</label>
+                                            <div class="symptom-sets-selection">
+                                                <div v-for="set in availableSymptomSets" :key="set.value" class="checkbox-group">
+                                                    <input type="checkbox" :id="`set-${set.value}`" :value="set.value" v-model="activeField.options" />
+                                                    <label :for="`set-${set.value}`">{{ set.label }} ({{ set.value }})</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div v-if="!activeField.isSymptomArea" class="form-group">
+                                            <label>Options (one per line)</label>
+                                            <textarea v-model="activeField.options" placeholder="Option 1&#10;Option 2" rows="4"></textarea>
+                                        </div>
+                                        <div v-if="isEditing && !activeField.isSymptomArea" class="dependencies-section">
+                                            <h5>Dependencies</h5>
+                                            <div class="form-group">
+                                                <label>Depends on which field?</label>
+                                                <select v-model="activeField.dependsOn">
+                                                    <option :value="null">None</option>
+                                                    <option v-for="field in availableParentFields" :key="field.id" :value="field.id">
+                                                        {{ field.label }} ({{ field.id }})
+                                                    </option>
+                                                </select>
+                                            </div>
+                                            <div v-if="activeField.dependsOn" class="value-mapping">
+                                                <h6>Option Mapping</h6>
+                                                <p>For each parent option, define the source of the child options.</p>
+                                                <div v-for="parentOption in parentFieldOptions" :key="parentOption" class="mapping-row">
+                                                    <span class="parent-option-label">{{ parentOption }}</span>
+                                                    <div class="mapping-controls">
+                                                        <select v-model="activeField.valueMapping[parentOption].type" class="mapping-type-select">
+                                                            <option value="static">Manual Options</option>
+                                                            <option value="symptomSet">From Symptom Set</option>
+                                                        </select>
+                                                        <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'static'">
+                                                            <textarea 
+                                                                v-model="activeField.valueMapping[parentOption].value"
+                                                                placeholder="Child options (one per line)"
+                                                                rows="3"
+                                                            ></textarea>
+                                                        </template>
+                                                        <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'symptomSet'">
+                                                            <select v-model="activeField.valueMapping[parentOption].value">
+                                                                <option disabled value="">Select a symptom set</option>
+                                                                <option v-for="set in availableSymptomSets" :key="set.value" :value="set.value">
+                                                                    {{ set.label }} ({{ set.value }})
+                                                                </option>
+                                                            </select>
+                                                        </template>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </template>
+                            </div>
                         </div>
-                    </template>
+
+                        <!-- Conditions Section -->
+                        <div class="conditions-section">
+                            <h4>Display Conditions</h4>
+                            <p>Show this field only if the following conditions are met. Leave empty to always show.</p>
+                            <div v-for="(condition, index) in activeField.conditions" :key="index" class="condition-row">
+                                <select v-model="condition.field" class="condition-control">
+                                    <option disabled value="">Select Field</option>
+                                    <optgroup label="Primary">
+                                        <option value="productCategory">Product Category</option>
+                                        <option value="productModel">Product Model</option>
+                                    </optgroup>
+                                    <optgroup label="Dynamic Fields">
+                                        <option v-for="field in availableConditionFields" :key="field.id" :value="field.id">
+                                            {{ field.label }} ({{ field.id }})
+                                        </option>
+                                    </optgroup>
+                                </select>
+                                <select v-model="condition.operator" class="condition-control">
+                                    <option value="equals">equals</option>
+                                    <option value="not_equals">not equals</option>
+                                    <option value="contains">contains</option>
+                                    <option value="exists">exists</option>
+                                </select>
+                                <input type="text" v-model="condition.value" placeholder="Value" class="condition-control">
+                                <button @click="removeCondition(index)" class="btn btn-sm btn-danger">Remove</button>
+                            </div>
+                            <button @click="addCondition" class="btn btn-sm btn-secondary">Add Condition</button>
+                        </div>
+
+                        <div class="modal-actions">
+                            <button @click="showFieldModal = false" class="btn btn-secondary">Cancel</button>
+                            <button @click="saveField" class="btn btn-primary">{{ isEditing ? 'Save Changes' : 'Add Field' }}</button>
+                        </div>
+                    </div>
+                     <div v-else class="field-editor-placeholder">
+                        <p>Select a field to edit, or add a new one.</p>
+                    </div>
                 </div>
             </div>
-
-            <!-- Conditions Section -->
-            <div class="conditions-section">
-                <h4>Display Conditions</h4>
-                <p>Show this field only if the following conditions are met. Leave empty to always show.</p>
-                <div v-for="(condition, index) in activeField.conditions" :key="index" class="condition-row">
-                    <select v-model="condition.field" class="condition-control">
-                        <option disabled value="">Select Field</option>
-                        <optgroup label="Primary">
-                            <option value="productCategory">Product Category</option>
-                            <option value="productModel">Product Model</option>
-                        </optgroup>
-                        <optgroup label="Dynamic Fields">
-                            <option v-for="field in availableConditionFields" :key="field.id" :value="field.id">
-                                {{ field.label }} ({{ field.id }})
-                            </option>
-                        </optgroup>
-                    </select>
-                    <select v-model="condition.operator" class="condition-control">
-                        <option value="equals">equals</option>
-                        <option value="not_equals">not equals</option>
-                        <option value="contains">contains</option>
-                        <option value="exists">exists</option>
-                    </select>
-                    <input type="text" v-model="condition.value" placeholder="Value" class="condition-control">
-                    <button @click="removeCondition(index)" class="btn btn-sm btn-danger">Remove</button>
-                </div>
-                <button @click="addCondition" class="btn btn-sm btn-secondary">Add Condition</button>
-            </div>
-
-            <div class="modal-actions">
-                <button @click="showFieldModal = false" class="btn btn-secondary">Cancel</button>
-                <button @click="saveField" class="btn btn-primary">{{ isEditing ? 'Save Changes' : 'Add Field' }}</button>
+            <div class="modal-actions main-modal-actions">
+                <button @click="closeModelEditor" class="btn btn-secondary">Close Editor</button>
             </div>
         </div>
     </div>
@@ -201,6 +238,9 @@ const productStore = useProductStore();
 const selectedCategory = ref('');
 const selectedModel = ref('');
 const modelFieldConfigs = reactive({});
+
+const searchQuery = ref('');
+const showModelEditorModal = ref(false);
 
 // Modal state
 const showFieldModal = ref(false);
@@ -253,6 +293,15 @@ const availableModels = computed(() => {
   return [];
 });
 
+const filteredModels = computed(() => {
+    if (!searchQuery.value) {
+        return availableModels.value;
+    }
+    return availableModels.value.filter(model => 
+        model.toLowerCase().includes(searchQuery.value.toLowerCase())
+    );
+});
+
 const modelFields = computed(() => {
     return modelFieldConfigs[selectedModel.value] || [];
 });
@@ -284,6 +333,17 @@ watch(() => parentFieldOptions.value, (newOptions) => {
 
 const onCategoryChange = () => {
   selectedModel.value = '';
+  searchQuery.value = '';
+};
+
+const openModelEditor = (model) => {
+    selectedModel.value = model;
+    showModelEditorModal.value = true;
+};
+
+const closeModelEditor = () => {
+    showModelEditorModal.value = false;
+    showFieldModal.value = false;
 };
 
 const openAddFieldModal = () => {
@@ -305,34 +365,40 @@ const openAddFieldModal = () => {
 const openEditFieldModal = (index) => {
     isEditing.value = true;
     editingFieldIndex.value = index;
-    const fieldToEdit = modelFields.value[index];
-    
+    const fieldToEdit = JSON.parse(JSON.stringify(modelFields.value[index])); // Deep copy
+
     activeField.id = fieldToEdit.id;
     activeField.label = fieldToEdit.label;
     activeField.type = fieldToEdit.type;
     activeField.isSymptomArea = fieldToEdit.isSymptomArea || false;
     activeField.dependsOn = fieldToEdit.dependsOn || null;
-    activeField.valueMapping = fieldToEdit.valueMapping || {};
     activeField.required = fieldToEdit.required || false;
     activeField.order = fieldToEdit.order === undefined ? index : fieldToEdit.order;
-    activeField.conditions = JSON.parse(JSON.stringify(fieldToEdit.conditions || []));
+    activeField.conditions = fieldToEdit.conditions || [];
 
     if (activeField.isSymptomArea) {
-        activeField.options = Array.isArray(fieldToEdit.options) ? [...fieldToEdit.options] : [];
+        activeField.options = Array.isArray(fieldToEdit.options) ? fieldToEdit.options : [];
     } else {
         const valueMappingForEdit = {};
         if (fieldToEdit.valueMapping) {
-            Object.keys(fieldToEdit.valueMapping).forEach(key => {
+            const parentField = modelFields.value.find(f => f.id === fieldToEdit.dependsOn);
+            const parentOptions = parentField ? parentField.options || [] : Object.keys(fieldToEdit.valueMapping);
+            
+            parentOptions.forEach(key => {
                 const mapping = fieldToEdit.valueMapping[key];
-                if (mapping.type === 'static') {
-                    valueMappingForEdit[key] = { type: 'static', value: mapping.options.join('\n') };
+                if (mapping) {
+                    if (mapping.type === 'static') {
+                        valueMappingForEdit[key] = { type: 'static', value: mapping.options.join('\\n') };
+                    } else {
+                        valueMappingForEdit[key] = { type: 'symptomSet', value: mapping.key };
+                    }
                 } else {
-                    valueMappingForEdit[key] = { type: 'symptomSet', value: mapping.key };
+                     valueMappingForEdit[key] = { type: 'static', value: '' };
                 }
             });
         }
         activeField.valueMapping = valueMappingForEdit;
-        activeField.options = Array.isArray(fieldToEdit.options) ? fieldToEdit.options.join('\n') : '';
+        activeField.options = Array.isArray(fieldToEdit.options) ? fieldToEdit.options.join('\\n') : '';
     }
 
     showFieldModal.value = true;
@@ -457,6 +523,79 @@ const addCondition = () => {
 
 const removeCondition = (index) => {
     activeField.conditions.splice(index, 1);
+};
+
+const addModel = () => {
+    const newModelName = prompt('Enter the name for the new model:');
+    if (!newModelName) return;
+
+    if (newModelName.trim() === '' || availableModels.value.includes(newModelName)) {
+        alert('The model name cannot be empty or already exist in this category.');
+        return;
+    }
+
+    const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
+
+    if (currentMapping.categoryModels[selectedCategory.value]) {
+        currentMapping.categoryModels[selectedCategory.value].push(newModelName);
+    } else {
+        currentMapping.categoryModels[selectedCategory.value] = [newModelName];
+    }
+
+    currentMapping.modelFieldConfigs[newModelName] = [];
+
+    productStore.updateProductMapping(currentMapping);
+    Object.assign(modelFieldConfigs, currentMapping.modelFieldConfigs);
+};
+
+const deleteModel = (modelToDelete) => {
+    if (!confirm(`Are you sure you want to delete the model "${modelToDelete}"? This action cannot be undone.`)) {
+        return;
+    }
+
+    const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
+
+    const modelsInCategory = currentMapping.categoryModels[selectedCategory.value];
+    if (modelsInCategory) {
+        const index = modelsInCategory.indexOf(modelToDelete);
+        if (index > -1) {
+            modelsInCategory.splice(index, 1);
+        }
+    }
+
+    delete currentMapping.modelFieldConfigs[modelToDelete];
+
+    productStore.updateProductMapping(currentMapping);
+};
+
+const duplicateModel = (modelToDuplicate) => {
+    const newModelName = prompt(`Enter a new name for the duplicated model (copy of ${modelToDuplicate}):`, `${modelToDuplicate}_copy`);
+
+    if (!newModelName) {
+        return; // User cancelled
+    }
+    
+    if (newModelName.trim() === '' || availableModels.value.includes(newModelName)) {
+        alert('The new model name cannot be empty or already exist in this category.');
+        return;
+    }
+
+    const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
+    
+    // Duplicate model fields
+    const fieldsToCopy = JSON.parse(JSON.stringify(modelFieldConfigs[modelToDuplicate] || []));
+    currentMapping.modelFieldConfigs[newModelName] = fieldsToCopy;
+
+    // Add model to category
+    if (currentMapping.categoryModels[selectedCategory.value]) {
+        currentMapping.categoryModels[selectedCategory.value].push(newModelName);
+    } else {
+        currentMapping.categoryModels[selectedCategory.value] = [newModelName];
+    }
+    
+    // Update store and local state
+    productStore.updateProductMapping(currentMapping);
+    Object.assign(modelFieldConfigs, currentMapping.modelFieldConfigs);
 };
 
 onMounted(() => {
@@ -709,8 +848,32 @@ onMounted(() => {
     max-height: 200px;
     overflow-y: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-columns: 1fr;
     gap: 0.5rem;
+}
+
+.symptom-sets-selection .checkbox-group {
+    margin-bottom: 0.5rem;
+}
+
+.compact-checkbox {
+    padding-top: 0.5rem;
+    margin-bottom: 0;
+}
+
+.form-section {
+    background-color: #fdfdfd;
+    border: 1px solid #eee;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-section h4 {
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 0.75rem;
 }
 
 .field-editor-grid {
@@ -736,5 +899,148 @@ onMounted(() => {
 
 .condition-control {
     width: 100%;
+}
+
+.model-list-container {
+  margin-top: 2rem;
+  background-color: #fff;
+  padding: 1.5rem;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+.model-list-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #eee;
+}
+
+.model-list-header h3 {
+    margin: 0;
+}
+
+.model-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1.5rem;
+}
+
+.model-card {
+  padding: 1.5rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  text-align: center;
+  background-color: #f9f9f9;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.model-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  border-color: #007bff;
+}
+
+.model-card-content {
+    flex-grow: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.model-card-actions {
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    margin-top: 1rem;
+    opacity: 0;
+    transition: opacity 0.2s ease-in-out;
+    display: flex;
+    gap: 0.5rem;
+    justify-content: center;
+}
+
+.model-card:hover .model-card-actions {
+    opacity: 1;
+}
+
+.model-card h4 {
+    margin: 0;
+    color: #333;
+}
+
+.model-editor-modal .modal-content {
+    max-width: 1600px;
+    width: 95%;
+    max-height: 90vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.model-editor-layout {
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 2rem;
+    overflow: hidden;
+    flex-grow: 1;
+}
+
+.field-list-pane, .field-editor-pane {
+    overflow-y: auto;
+    padding: 0 1rem;
+    height: 100%;
+}
+
+.field-editor-pane {
+    border-left: 1px solid #eee;
+}
+
+.field-editor-form {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.field-editor-grid, .conditions-section {
+    flex-shrink: 0;
+}
+
+.field-editor-form .modal-actions {
+    margin-top: auto;
+    padding-top: 1rem;
+    position: sticky;
+    bottom: 0;
+    background: #fff;
+}
+
+.field-editor-placeholder {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    color: #777;
+    text-align: center;
+}
+
+.main-modal-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid #eee;
+    flex-shrink: 0;
+}
+
+.model-editor-modal .field-editor {
+    border: none;
+    padding: 0;
+}
+
+.field-card.is-active {
+    border-color: #007bff;
+    box-shadow: 0 0 0 2px rgba(0,123,255,.25);
 }
 </style>
