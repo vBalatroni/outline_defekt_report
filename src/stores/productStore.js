@@ -85,6 +85,12 @@ export const useProductStore = defineStore('product', () => {
     }
   };
 
+  const updateModelFieldConfigs = (newConfigs) => {
+    if (productMapping.value) {
+      productMapping.value.modelFieldConfigs = newConfigs;
+    }
+  };
+
   const getModelsForCategory = (category) => {
     return categoryModels.value[category] || [];
   };
@@ -199,6 +205,7 @@ export const useProductStore = defineStore('product', () => {
     // Actions
     loadConfiguration,
     updateProductMapping,
+    updateModelFieldConfigs,
     getModelsForCategory,
     getModelFields,
     resetToDefaults,

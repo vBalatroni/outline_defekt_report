@@ -2,7 +2,12 @@
   <div class="product-config-editor">
     <div class="editor-header">
       <h2>Product Model Field Editor</h2>
-      <button @click="exportConfiguration" class="btn btn-success">Export Configuration to JSON</button>
+      <div class="header-actions">
+        <button @click="saveConfigurationToServer" class="btn btn-primary" :disabled="isSaving">
+            {{ isSaving ? 'Saving...' : 'Save to Server' }}
+        </button>
+        <button @click="exportConfiguration" class="btn btn-success">Export Configuration to JSON</button>
+      </div>
     </div>
     <p>Select a category and a model to configure its specific form fields.</p>
 
@@ -237,10 +242,10 @@ const productStore = useProductStore();
 
 const selectedCategory = ref('');
 const selectedModel = ref('');
-const modelFieldConfigs = reactive({});
 
 const searchQuery = ref('');
 const showModelEditorModal = ref(false);
+const isSaving = ref(false);
 
 // Modal state
 const showFieldModal = ref(false);
@@ -303,7 +308,7 @@ const filteredModels = computed(() => {
 });
 
 const modelFields = computed(() => {
-    return modelFieldConfigs[selectedModel.value] || [];
+    return productStore.productMapping?.modelFieldConfigs?.[selectedModel.value] || [];
 });
 
 const availableParentFields = computed(() => {
@@ -410,8 +415,9 @@ const saveField = () => {
         return;
     }
 
-    if (!modelFieldConfigs[selectedModel.value]) {
-        modelFieldConfigs[selectedModel.value] = [];
+    const newFieldConfigs = JSON.parse(JSON.stringify(productStore.productMapping.modelFieldConfigs));
+    if (!newFieldConfigs[selectedModel.value]) {
+        newFieldConfigs[selectedModel.value] = [];
     }
     
     const fieldData = {
@@ -455,50 +461,52 @@ const saveField = () => {
     }
 
     if (isEditing.value) {
-        modelFieldConfigs[selectedModel.value][editingFieldIndex.value] = fieldData;
+        newFieldConfigs[selectedModel.value][editingFieldIndex.value] = fieldData;
     } else {
-        modelFieldConfigs[selectedModel.value].push(fieldData);
+        newFieldConfigs[selectedModel.value].push(fieldData);
     }
 
     if (fieldData.isSymptomArea) {
-        const foundFieldIndex = modelFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound');
+        const foundFieldIndex = newFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound');
         if (foundFieldIndex === -1) {
-            modelFieldConfigs[selectedModel.value].push({
+            newFieldConfigs[selectedModel.value].push({
                 id: 'symptomFound',
                 label: 'Symptom Found',
                 type: 'select',
                 dependsOn: fieldData.id,
             });
         } else {
-            modelFieldConfigs[selectedModel.value][foundFieldIndex].dependsOn = fieldData.id;
+            newFieldConfigs[selectedModel.value][foundFieldIndex].dependsOn = fieldData.id;
         }
     }
     
+    productStore.updateModelFieldConfigs(newFieldConfigs);
     showFieldModal.value = false;
 };
 
 const deleteField = (index) => {
     if (confirm('Are you sure you want to delete this field?')) {
-        const fieldToDelete = modelFieldConfigs[selectedModel.value][index];
+        const newFieldConfigs = JSON.parse(JSON.stringify(productStore.productMapping.modelFieldConfigs));
+        const fieldToDelete = newFieldConfigs[selectedModel.value][index];
         
-        modelFieldConfigs[selectedModel.value].splice(index, 1);
+        newFieldConfigs[selectedModel.value].splice(index, 1);
 
         if (fieldToDelete.isSymptomArea) {
-            const foundFieldIndex = modelFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound' && f.dependsOn === fieldToDelete.id);
+            const foundFieldIndex = newFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound' && f.dependsOn === fieldToDelete.id);
             if (foundFieldIndex !== -1) {
-                modelFieldConfigs[selectedModel.value].splice(foundFieldIndex, 1);
+                newFieldConfigs[selectedModel.value].splice(foundFieldIndex, 1);
             }
         }
+        productStore.updateModelFieldConfigs(newFieldConfigs);
     }
 };
 
 const exportConfiguration = () => {
     // Ensure we start with the most complete version of the mapping from the store
-    const currentMapping = productStore.productMapping || defaultProductMapping;
-    
+    const currentMapping = productStore.productMapping;
     const updatedProductMapping = {
         ...currentMapping,
-        modelFieldConfigs: modelFieldConfigs
+        modelFieldConfigs: productStore.productMapping.modelFieldConfigs
     };
 
     productStore.updateProductMapping(updatedProductMapping);
@@ -545,7 +553,6 @@ const addModel = () => {
     currentMapping.modelFieldConfigs[newModelName] = [];
 
     productStore.updateProductMapping(currentMapping);
-    Object.assign(modelFieldConfigs, currentMapping.modelFieldConfigs);
 };
 
 const deleteModel = (modelToDelete) => {
@@ -581,29 +588,90 @@ const duplicateModel = (modelToDuplicate) => {
     }
 
     const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
+    const modelFieldConfigs = currentMapping.modelFieldConfigs;
     
-    // Duplicate model fields
     const fieldsToCopy = JSON.parse(JSON.stringify(modelFieldConfigs[modelToDuplicate] || []));
+    
+    const idMapping = {};
+    fieldsToCopy.forEach(field => {
+        const oldId = field.id;
+        const newId = `${field.id}_copy_${Date.now()}`;
+        idMapping[oldId] = newId;
+        field.id = newId;
+    });
+
+    fieldsToCopy.forEach(field => {
+        if (field.dependsOn && idMapping[field.dependsOn]) {
+            field.dependsOn = idMapping[field.dependsOn];
+        }
+        if (field.conditions) {
+            field.conditions.forEach(condition => {
+                if(idMapping[condition.field]) {
+                    condition.field = idMapping[condition.field];
+                }
+            });
+        }
+    });
+
     currentMapping.modelFieldConfigs[newModelName] = fieldsToCopy;
 
-    // Add model to category
     if (currentMapping.categoryModels[selectedCategory.value]) {
         currentMapping.categoryModels[selectedCategory.value].push(newModelName);
     } else {
         currentMapping.categoryModels[selectedCategory.value] = [newModelName];
     }
     
-    // Update store and local state
     productStore.updateProductMapping(currentMapping);
-    Object.assign(modelFieldConfigs, currentMapping.modelFieldConfigs);
+};
+
+const saveConfigurationToServer = async () => {
+    if (isSaving.value) return;
+
+    if (!confirm('This will overwrite productData.json on the server. This action cannot be undone.')) {
+        return;
+    }
+
+    isSaving.value = true;
+    
+    const mappingToSave = JSON.parse(JSON.stringify(productStore.productMapping));
+
+    try {
+        const response = await fetch('/api/saveConfig.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(mappingToSave, null, 2),
+        });
+
+        const resultText = await response.text();
+        if (!response.ok) {
+            throw new Error(`Server responded with status ${response.status}: ${resultText}`);
+        }
+        
+        let result;
+        try {
+            result = JSON.parse(resultText);
+        } catch (e) {
+            throw new Error(`Failed to parse server response: ${resultText}`);
+        }
+
+        if (result.success) {
+            alert('Configuration saved successfully on the server!');
+        } else {
+            throw new Error(result.message || 'An unknown error occurred.');
+        }
+
+    } catch (error) {
+        console.error('Failed to save configuration to server:', error);
+        alert(`Failed to save configuration: ${error.message}`);
+    } finally {
+        isSaving.value = false;
+    }
 };
 
 onMounted(() => {
-  productStore.loadConfiguration().then(() => {
-    if (productStore.productMapping?.modelFieldConfigs) {
-      Object.assign(modelFieldConfigs, productStore.productMapping.modelFieldConfigs);
-    }
-  });
+  productStore.loadConfiguration();
 });
 </script>
 
@@ -620,6 +688,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.header-actions {
+    display: flex;
+    gap: 1rem;
 }
 
 .selection-controls {
