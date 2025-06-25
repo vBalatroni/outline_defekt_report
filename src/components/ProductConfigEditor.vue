@@ -658,6 +658,7 @@ const saveConfigurationToServer = async () => {
 
         if (result.success) {
             alert('Configuration saved successfully on the server!');
+            productStore.updateProductMapping(mappingToSave);
         } else {
             throw new Error(result.message || 'An unknown error occurred.');
         }
