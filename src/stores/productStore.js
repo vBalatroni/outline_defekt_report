@@ -122,6 +122,32 @@ export const useProductStore = defineStore('product', () => {
     return productMapping.value.modelFieldConfigs[modelName] || [];
   };
 
+  const getCategoryVisibleFields = (category) => {
+    if (!productMapping.value || !productMapping.value.modelFieldConfigs) {
+      return {};
+    }
+  
+    const allFields = Object.values(productMapping.value.modelFieldConfigs).flat();
+    const visibleFields = {};
+  
+    allFields.forEach(field => {
+      if (!field.conditions || field.conditions.length === 0) {
+        if (!visibleFields[field.section]) visibleFields[field.section] = [];
+        visibleFields[field.section].push(field.id);
+      } else {
+        const isVisible = field.conditions.some(condition => 
+          condition.field === 'productCategory' && condition.value === category
+        );
+        if (isVisible) {
+          if (!visibleFields[field.section]) visibleFields[field.section] = [];
+          visibleFields[field.section].push(field.id);
+        }
+      }
+    });
+  
+    return visibleFields;
+  };
+
   const addSymptomSet = (key, setData) => {
     if (productMapping.value.symptomSets[key]) {
       return false; // Key already exists
@@ -222,6 +248,7 @@ export const useProductStore = defineStore('product', () => {
     updateModelFieldConfigs,
     getModelsForCategory,
     getModelFields,
+    getCategoryVisibleFields,
     resetToDefaults,
     exportToJson,
     importConfiguration,

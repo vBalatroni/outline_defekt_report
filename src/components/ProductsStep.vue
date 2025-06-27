@@ -13,8 +13,6 @@ const emit = defineEmits(['prev-step', 'next-step', 'step-validation', 'update:s
 const productStore = useProductStore();
 const showModal = ref(false);
 const isBasicInfoValidated = ref(false);
-const isSerialNumberVerified = ref(false);
-const serialNumberLoading = ref(false);
 
 const editingProductIndex = ref(-1);
 const currentProduct = ref(null);
@@ -43,6 +41,10 @@ const props = defineProps({
 const initializeNewProduct = () => {
     const product = JSON.parse(JSON.stringify(props.productData));
     product.defekts = [];
+    
+    if (product.basicInfo && product.basicInfo.serialNumber) {
+        delete product.basicInfo.serialNumber;
+    }
     
     if (product.basicInfo?.category?.value) {
         updateDependentOptions(product);
@@ -80,16 +82,12 @@ const clearForm = () => {
     isBasicInfoValidated.value = false;
     showModal.value = false;
     editingProductIndex.value = -1;
-    isSerialNumberVerified.value = false;
 };
 
 const clearDefektForm = () => {
     currentDefekt.value = initializeNewDefekt();
     editingDefektIndex.value = -1;
 };
-
-// Add debounce time constant
-const SERIAL_NUMBER_DEBOUNCE = 800; // milliseconds
 
 const updateDependentOptions = inject('updateDependentOptions');
 
@@ -98,78 +96,61 @@ const handleInputChange = (event) => {
 
     if (event.id === 'category') {
         updateDependentOptions(currentProduct.value);
+        currentProduct.value.basicInfo.model.value = '';
+        isBasicInfoValidated.value = false;
+
     } else if (event.id === 'model') {
+        if (event.value) {
+            isBasicInfoValidated.value = true;
+            currentProductModel.value = event.value;
+        } else {
+            isBasicInfoValidated.value = false;
+        }
+        
         // Update symptom areas when model changes in basic info
         if (currentDefekt.value && event.value) {
-            currentDefekt.value.symptomInfo.symptomArea.options = [...(modelSymptomAreas[event.value] || [])];
+            const modelFields = productStore.getModelFields(event.value);
+            const symptomAreaField = modelFields.find(f => f.isSymptomArea);
+            if (symptomAreaField && symptomAreaField.options) {
+                const symptomSets = productStore.symptomSets || {};
+                currentDefekt.value.symptomInfo.symptomArea.options = symptomAreaField.options
+                    .map(setKey => symptomSets[setKey]?.label)
+                    .filter(Boolean);
+            }
             currentDefekt.value.symptomInfo.symptomArea.value = '';
             currentDefekt.value.symptomInfo.symptomFound.value = '';
         }
-    } else if (event.id === 'serialNumber') {
-        clearTimeout(validationTimeout);
-        if (event.value) {
-            validationTimeout = setTimeout(() => {
-                serialNumberLoading.value = true;
-                validateSerialNumber(event.value);
-            }, SERIAL_NUMBER_DEBOUNCE);
+    }
+};
+
+const handleSymptomAreaChange = (event) => {
+    if (event.id === 'symptomArea' && event.value) {
+        // event.value is the LABEL of the symptom set
+        const symptomSets = productStore.symptomSets || {};
+        const selectedSetKey = Object.keys(symptomSets).find(key => symptomSets[key].label === event.value);
+
+        if (selectedSetKey) {
+            currentDefekt.value.symptomInfo.symptomFound.options = productStore.getSymptomSetSymptoms(selectedSetKey);
+        } else {
+            currentDefekt.value.symptomInfo.symptomFound.options = [];
         }
+        
+        currentDefekt.value.symptomInfo.symptomFound.value = '';
     }
 };
 
 const basicInfoFieldsFilled = computed(() => {
     if (!currentProduct.value) return false;
-    const { category, model, serialNumber } = currentProduct.value.basicInfo;
-    return category.value && model.value && serialNumber.value;
-});
-
-let validationTimeout;
-const checkSerialNumber = (serialNumber) => {
-    if (currentProduct.value.basicInfo.category.value && 
-        currentProduct.value.basicInfo.model.value) {
-        validateSerialNumber(serialNumber);
-    }
-};
-
-const validateSerialNumber = async (serialNumber) => {
-    try {
-        // Simulate API call with 1.5 second delay
-        await new Promise(resolve => setTimeout(resolve, 1500));
-        
-        console.log('Validating serial number:', serialNumber);
-        const isValid = true;
-        isBasicInfoValidated.value = isValid;
-        isSerialNumberVerified.value = isValid;
-        
-        // Set currentProductModel when validation succeeds
-        if (isValid) {
-            currentProductModel.value = currentProduct.value.basicInfo.model.value;
-        }
-    } catch (error) {
-        console.error('Validation error:', error);
-        isBasicInfoValidated.value = false;
-        isSerialNumberVerified.value = false;
-    } finally {
-        serialNumberLoading.value = false;
-    }
-};
-
-// Clean up timeout when component is destroyed
-onBeforeUnmount(() => {
-    if (validationTimeout) {
-        clearTimeout(validationTimeout);
-    }
+    const { category, model } = currentProduct.value.basicInfo;
+    return category.value && model.value;
 });
 
 const canSave = computed(() => {
     if (!currentProduct.value) return false;
-    if (!isSerialNumberVerified.value) return false;
-    
     if (editingProductIndex.value >= 0) return true;
-    
-    return basicInfoFieldsFilled.value && isSerialNumberVerified.value;
+    return basicInfoFieldsFilled.value && isBasicInfoValidated.value;
 });
 
-// Modify saveData function to store model name
 const saveData = () => {
     const productToSave = JSON.parse(JSON.stringify(currentProduct.value));
     
@@ -318,33 +299,6 @@ watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
     }
 }, { immediate: true });
 
-// Add handler for symptom area changes
-const handleSymptomAreaChange = (event) => {
-    if (event.id === 'symptomArea' && event.value) {
-        // event.value is the LABEL of the symptom set
-        const symptomSets = productStore.symptomSets || {};
-        const selectedSetKey = Object.keys(symptomSets).find(key => symptomSets[key].label === event.value);
-
-        if (selectedSetKey) {
-            currentDefekt.value.symptomInfo.symptomFound.options = productStore.getSymptomSetSymptoms(selectedSetKey);
-        } else {
-            currentDefekt.value.symptomInfo.symptomFound.options = [];
-        }
-        
-        currentDefekt.value.symptomInfo.symptomFound.value = '';
-    }
-};
-
-// Add a debug watch to help troubleshoot
-watch(() => currentDefekt.value, (newVal) => {
-    console.log('Current Defekt:', newVal);
-}, { deep: true });
-
-watch(() => currentProduct.value?.basicInfo.category.value, (newVal) => {
-    console.log('Selected Category:', newVal);
-    console.log('Visible Fields:', getVisibleFields.value);
-}, { immediate: true });
-
 // Add a debug watch for currentProduct
 watch(() => currentProduct.value?.basicInfo, (newVal) => {
     console.log('Current Product Basic Info:', newVal);
@@ -369,22 +323,10 @@ watch(() => props.productToEdit, (newVal) => {
         }
         currentProduct.value = productCopy;
         isBasicInfoValidated.value = true;
-        isSerialNumberVerified.value = true;
         currentDefekt.value = initializeNewDefekt();
         showModal.value = true;
     }
 }, { immediate: true });
-
-// Add a watch for the isBasicInfoValidated to log model value
-watch(() => isBasicInfoValidated.value, (isValidated) => {
-    if (isValidated && currentProduct.value) {
-        console.log('Showing defekt section with model:', {
-            modelValue: currentProduct.value.basicInfo.model.value,
-            category: currentProduct.value.basicInfo.category.value,
-            currentDefekt: currentDefekt.value
-        });
-    }
-});
 
 // Update editProduct function with more logging
 // Modify editProduct function to use stored model name
@@ -393,7 +335,6 @@ const editProduct = (index) => {
     
     // Set validation flags
     isBasicInfoValidated.value = true;
-    isSerialNumberVerified.value = true;
     editingProductIndex.value = index;
     
     // Set the current product
@@ -465,7 +406,6 @@ const editProduct = (index) => {
                                     :isRequired="field.isRequired" 
                                     :id="field.id" 
                                     :options="field.options"
-                                    :isLoading="field.id === 'serialNumber' && serialNumberLoading"
                                     v-model="field.value"
                                     @input-change="handleInputChange"
                                 />
