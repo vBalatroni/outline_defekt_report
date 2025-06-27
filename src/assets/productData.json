@@ -1040,11 +1040,13 @@
                 "required": true,
                 "order": 0,
                 "conditions": [],
+                "section": "",
                 "isSymptomArea": true,
                 "options": [
                     "audio",
                     "power",
-                    "cabinet"
+                    "cabinet",
+                    "amplifier"
                 ]
             },
             {
@@ -1058,19 +1060,20 @@
                 "options": [],
                 "dependsOn": "symptomArea",
                 "valueMapping": {
-                    "audio": {
+                    "Audio": {
                         "type": "symptomSet",
                         "key": "audio"
                     },
-                    "power": {
+                    "Power": {
                         "type": "symptomSet",
                         "key": "power"
                     },
-                    "cabinet": {
+                    "Cabinet": {
                         "type": "symptomSet",
                         "key": "cabinet"
                     }
-                }
+                },
+                "section": "symptomInfo"
             },
             {
                 "id": "main",
