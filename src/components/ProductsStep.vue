@@ -42,8 +42,15 @@ const initializeNewProduct = () => {
     const product = JSON.parse(JSON.stringify(props.productData));
     product.defekts = [];
     
-    if (product.basicInfo && product.basicInfo.serialNumber) {
-        delete product.basicInfo.serialNumber;
+    // Ensure serialNumber is always an object with a value property
+    if (product.basicInfo) {
+        if (!product.basicInfo.serialNumber) {
+            product.basicInfo.serialNumber = { value: '' };
+        } else if (typeof product.basicInfo.serialNumber.value === 'undefined') {
+            // If the object exists but value is missing
+            delete product.basicInfo.serialNumber;
+            product.basicInfo.serialNumber = { value: '' };
+        }
     }
     
     if (product.basicInfo?.category?.value) {

@@ -30,14 +30,15 @@ const props = defineProps({
     }
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'input-change']);
 
 const value = computed({
     get() {
         return props.modelValue;
     },
-    set(value) {
-        emit('update:modelValue', value);
+    set(val) {
+        emit('update:modelValue', val);
+        emit('input-change', { id: props.id, value: val });
     }
 });
 
