@@ -101,6 +101,15 @@
                                         <input type="text" v-model="activeField.label" placeholder="e.g., Serial Number">
                                     </div>
                                     <div class="form-group">
+                                        <label>Field Section</label>
+                                        <select v-model="activeField.section" required>
+                                            <option disabled value="">Assign to a section</option>
+                                            <option v-for="sectionName in defectSections" :key="sectionName" :value="sectionName">
+                                                {{ sectionName }}
+                                            </option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
                                         <label>Field Type</label>
                                         <select v-model="activeField.type">
                                             <option value="text">Text</option>
@@ -261,7 +270,8 @@ const activeField = reactive({
   isSymptomArea: false,
   required: false,
   order: 0,
-  conditions: []
+  conditions: [],
+  section: ''
 });
 
 const generateId = (str) => {
@@ -364,6 +374,7 @@ const openAddFieldModal = () => {
     activeField.required = false;
     activeField.order = modelFields.value.length;
     activeField.conditions = [];
+    activeField.section = '';
     showFieldModal.value = true;
 };
 
@@ -380,6 +391,7 @@ const openEditFieldModal = (index) => {
     activeField.required = fieldToEdit.required || false;
     activeField.order = fieldToEdit.order === undefined ? index : fieldToEdit.order;
     activeField.conditions = fieldToEdit.conditions || [];
+    activeField.section = fieldToEdit.section || '';
 
     if (activeField.isSymptomArea) {
         activeField.options = Array.isArray(fieldToEdit.options) ? fieldToEdit.options : [];
@@ -426,7 +438,8 @@ const saveField = () => {
         type: activeField.type,
         required: activeField.required,
         order: typeof activeField.order === 'string' ? parseInt(activeField.order, 10) : activeField.order,
-        conditions: activeField.conditions.filter(c => c.field && c.operator)
+        conditions: activeField.conditions.filter(c => c.field && c.operator),
+        section: activeField.section
     };
 
     if (activeField.type === 'select') {
@@ -524,6 +537,7 @@ const exportConfiguration = () => {
 };
 
 const availableSymptomSets = computed(() => productStore.symptomSetOptions);
+const defectSections = computed(() => productStore.defectSections);
 
 const addCondition = () => {
     activeField.conditions.push({ field: '', operator: 'equals', value: '' });

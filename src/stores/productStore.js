@@ -24,6 +24,19 @@ export const useProductStore = defineStore('product', () => {
     return productMapping.value?.symptomSets || {};
   });
 
+  const defectSections = computed(() => {
+    if (!productMapping.value) return [];
+    const reservedKeys = [
+      'categories', 
+      'categoryModels', 
+      'modelFieldConfigs', 
+      'symptomSets', 
+      'basicInfo', 
+      'categoryConfigs'
+    ];
+    return Object.keys(productMapping.value).filter(key => !reservedKeys.includes(key));
+  });
+
   const symptomSetOptions = computed(() => {
     if (!productMapping.value || !productMapping.value.symptomSets) {
       return [];
@@ -201,6 +214,7 @@ export const useProductStore = defineStore('product', () => {
     isConfigured,
     symptomSets,
     symptomSetOptions,
+    defectSections,
 
     // Actions
     loadConfiguration,
