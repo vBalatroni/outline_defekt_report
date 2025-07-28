@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue'; // Import watch
 import { loadProductMapping, saveProductMapping } from '@/utils/storageUtils';
 import productDataJson from '@/assets/productData.json';
 
@@ -47,6 +47,21 @@ export const useProductStore = defineStore('product', () => {
     generalData: getGeneralDataTemplate(),
     savedProducts: [],
   });
+  
+  // Watch for changes in formState and persist them to localStorage
+  watch(formState, (state) => {
+      if (state.sessionId) {
+          // Persist only the data, not session info or confirmation status
+          const dataToPersist = {
+              generalData: state.generalData,
+              savedProducts: state.savedProducts
+          };
+          localStorage.setItem('defekt_report_form_data', JSON.stringify(dataToPersist));
+      } else {
+          // If there's no session, ensure the persisted data is removed.
+          localStorage.removeItem('defekt_report_form_data');
+      }
+  }, { deep: true });
 
 
   // GETTERS
@@ -295,7 +310,9 @@ export const useProductStore = defineStore('product', () => {
     formState.value.sessionId = null; // Reset sessionId
     formState.value.generalData = getGeneralDataTemplate();
     formState.value.savedProducts = [];
-    console.log('Form state has been reset.');
+    // Also clear the persisted data from localStorage
+    localStorage.removeItem('defekt_report_form_data');
+    console.log('Form state and persisted data have been reset.');
   };
 
   const startSession = () => {
@@ -310,6 +327,19 @@ export const useProductStore = defineStore('product', () => {
       if (storedSessionId) {
           formState.value.sessionId = storedSessionId;
           console.log('Form session loaded from sessionStorage:', storedSessionId);
+
+          // Now, try to load the persisted form data
+          const persistedData = localStorage.getItem('defekt_report_form_data');
+          if (persistedData) {
+              try {
+                  const parsedData = JSON.parse(persistedData);
+                  formState.value.generalData = parsedData.generalData;
+                  formState.value.savedProducts = parsedData.savedProducts;
+                  console.log('Successfully hydrated form state from localStorage.');
+              } catch (error) {
+                  console.error('Failed to parse persisted form data:', error);
+              }
+          }
       }
   };
 

@@ -69,8 +69,11 @@ router.beforeEach((to, from, next) => {
 
   // Check if the route requires an active session
   if (requiredSessionRoutes.includes(to.name)) {
-    // Check for a session ID in the store (which should have been loaded from sessionStorage)
-    if (!store.formState.sessionId) {
+    // Check for a session ID in the store OR directly in sessionStorage
+    // This prevents a race condition on page reload where the guard runs before the store is hydrated.
+    const sessionExists = store.formState.sessionId || sessionStorage.getItem('defekt_report_session_id');
+    
+    if (!sessionExists) {
       console.warn('Access denied. No active session. Redirecting to confirmation.');
       // If no session, redirect to the first step
       next({ name: 'step-confirmation' });
