@@ -94,7 +94,11 @@ export const useProductStore = defineStore('product', () => {
       isLoading.value = true;
       error.value = null;
 
+      // STEP 1: Always load the fresh default configuration from the file.
+      // We are commenting out the localStorage logic to avoid stale data during development.
       let currentMapping = JSON.parse(JSON.stringify(defaultProductMapping));
+      
+      /*
       const storedProductMapping = loadProductMapping();
 
       if (storedProductMapping) {
@@ -106,10 +110,11 @@ export const useProductStore = defineStore('product', () => {
           }
         });
       }
+      */
       
       productMapping.value = currentMapping;
       
-      console.log('Configuration loaded:', { 
+      console.log('Configuration loaded directly from file:', { 
         productMapping: productMapping.value
       });
     } catch (err) {

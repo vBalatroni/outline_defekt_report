@@ -2,25 +2,53 @@
 import { onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
+import { generateSupplierHtml, generateCustomerHtml } from '@/utils/htmlGenerator';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 
 const router = useRouter();
 const store = useProductStore();
 
+const downloadFile = (filename, content) => {
+    const blob = new Blob([content], { type: 'text/html' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+};
+
 onMounted(() => {
-    // Reset the form state as we have successfully completed the flow.
+    // 1. Get data
+    const generalData = store.formState.generalData;
+    const savedProducts = JSON.parse(localStorage.getItem('defekt_report_data') || '[]');
+
+    if (savedProducts.length > 0) {
+        // 2. Generate HTML content
+        const supplierHtml = generateSupplierHtml(generalData, savedProducts);
+        const customerHtml = generateCustomerHtml(generalData, savedProducts);
+
+        // 3. Trigger downloads
+        downloadFile('defekt_report_supplier.html', supplierHtml);
+        downloadFile('defekt_report_customer.html', customerHtml);
+    } else {
+        console.warn('No products found to generate report.');
+    }
+
+    // 4. Reset the form state
     store.resetForm();
+    // Optional: clear the localStorage as well
+    localStorage.removeItem('defekt_report_data');
 });
 
 const handleClose = () => {
-    // Potremmo decidere di fare altro, tipo tornare alla home o resettare lo stato.
-    // Per ora, l'azione di chiusura rimane.
     window.close();
 };
 
 const startAgain = () => {
-    // This action now only needs to navigate. The state is already reset.
     router.push({ name: 'step-confirmation' });
 }
 </script>
@@ -30,7 +58,7 @@ const startAgain = () => {
         <div class="success-wrapper">
             <SectionHeader title="Defekt Report Submitted" />
             <p class="success-message mt-4">
-                Thank you for submitting your Defekt Report. You can now close this page.
+                Your report files are being downloaded. You can now close this page.
             </p>
             <div class="button-wrapper mt-5">
                 <Button 
@@ -38,15 +66,12 @@ const startAgain = () => {
                     :text="'Close Page'" 
                     @click="handleClose"
                 />
-                <!-- Esempio di un pulsante per ricominciare -->
-                <!-- 
                 <Button 
                     :type="'secondary'" 
                     :text="'Start Again'" 
                     @click="startAgain"
                     class="ms-3"
                 />
-                -->
             </div>
         </div>
     </div>

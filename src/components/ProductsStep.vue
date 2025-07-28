@@ -8,6 +8,7 @@ import InputField from './InputField.vue';
 import DynamicProductForm from './DynamicProductForm.vue'; // Make sure this is imported
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useProductStore } from '@/stores/productStore';
+import { fileToBase64 } from '@/utils/fileUtils'; // Import the new utility
 
 const emit = defineEmits(['step-validation']);
 
@@ -77,23 +78,21 @@ const initializeNewProduct = () => {
 };
 
 const initializeNewDefekt = (model = null) => {
-    // This function doesn't need to build the form structure anymore.
-    // It just needs to prepare a template object to hold the data that will be
-    // collected by DynamicProductForm. We can use the modelFields for this.
     const modelToUse = model || currentProductModel.value;
     const defektTemplate = {};
 
     if (modelToUse) {
         const fieldsForModel = productStore.getModelFields(modelToUse);
-        fieldsForModel.forEach(field => {
-            // This is just to have a structure, DynamicProductForm will create the real form
-            if (!defektTemplate[field.section]) {
-                defektTemplate[field.section] = {};
+        fieldsForModel.forEach(fieldConfig => {
+            if (!defektTemplate[fieldConfig.section]) {
+                defektTemplate[fieldConfig.section] = {};
             }
-            defektTemplate[field.section][field.id] = {
-                value: '',
-                // include other properties if needed for summary, e.g., label
-                label: field.label
+            // By copying the entire field configuration and just adding a 'value' property,
+            // we ensure that the final saved defect object contains all necessary data
+            // for rendering summaries, including 'id' for keys and 'label' for display.
+            defektTemplate[fieldConfig.section][fieldConfig.id] = {
+                ...fieldConfig, // Copy all original properties (id, label, type, etc.)
+                value: ''       // And add an empty value to be filled by the user
             };
         });
     }
@@ -180,7 +179,7 @@ const saveData = () => {
     clearForm();
 };
 
-const addDefekt = () => {
+const addDefekt = async () => { // Make the function async
     // This function is now much simpler.
     // It takes the flat data from dynamicDefektData and structures it.
     const newDefekt = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
@@ -189,7 +188,19 @@ const addDefekt = () => {
     for (const sectionKey in newDefekt) {
         for (const fieldKey in newDefekt[sectionKey]) {
             if (dynamicDefektData.value.hasOwnProperty(fieldKey)) {
-                newDefekt[sectionKey][fieldKey].value = dynamicDefektData.value[fieldKey];
+                const fieldValue = dynamicDefektData.value[fieldKey];
+                
+                // If the field is a File object, convert it to base64
+                if (fieldValue instanceof File) {
+                    try {
+                        newDefekt[sectionKey][fieldKey].value = await fileToBase64(fieldValue);
+                    } catch (error) {
+                        console.error('Error converting file to base64:', error);
+                        newDefekt[sectionKey][fieldKey].value = 'Error converting file';
+                    }
+                } else {
+                    newDefekt[sectionKey][fieldKey].value = fieldValue;
+                }
             }
         }
     }
@@ -338,6 +349,16 @@ const editProduct = (index) => {
 };
 
 const goToNext = () => {
+    // Per the user's request, save the current state of products to localStorage
+    // before navigating to the summary page.
+    try {
+        const dataToSave = JSON.stringify(savedProducts.value);
+        localStorage.setItem('defekt_report_data', dataToSave);
+        console.log('Saved products to localStorage:', dataToSave);
+    } catch (error) {
+        console.error('Failed to save products to localStorage:', error);
+        // Optionally, inform the user that data could not be saved
+    }
     router.push({ name: 'step-summary' });
 };
 
@@ -459,9 +480,13 @@ const goToBack = () => {
                                         <i @click="deleteDefekt(index)" class="bi bi-trash"></i>
                                     </div>
                                     <div class="defekt-info">
-                                        <p><strong>Symptom:</strong> {{ defekt.symptomInfo.symptomFound.value }}</p>
-                                        <p><strong>Area:</strong> {{ defekt.symptomInfo.symptomArea.value }}</p>
-                                        <p><strong>Occurrence:</strong> {{ defekt.symptomInfo.symptomOccurrence.value }}</p>
+                                        <div v-for="(section, sectionName) in defekt" :key="sectionName">
+                                            <div v-for="field in section" :key="field.id">
+                                                <p v-if="field.value">
+                                                    <strong>{{ field.label }}:</strong> {{ field.value }}
+                                                </p>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             </div>

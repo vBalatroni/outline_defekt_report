@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
 import SectionHeader from './StepHeader.vue';
@@ -10,8 +10,26 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 const store = useProductStore();
 const router = useRouter();
 
-const generalData = computed(() => store.formState.generalData);
-const savedProducts = computed(() => store.formState.savedProducts);
+// Instead of a computed property from the store, we use a local ref
+// that will be populated from localStorage.
+const generalData = computed(() => store.formState.generalData); // General data can still come from the store for now
+const savedProducts = ref([]);
+
+onMounted(() => {
+    // Per the user's request, load the product data from localStorage
+    try {
+        const storedData = localStorage.getItem('defekt_report_data');
+        if (storedData) {
+            savedProducts.value = JSON.parse(storedData);
+            console.log('Loaded products from localStorage:', savedProducts.value);
+        } else {
+            console.warn('No product data found in localStorage.');
+        }
+    } catch (error) {
+        console.error('Failed to load products from localStorage:', error);
+    }
+});
+
 
 const sectionTitles = {
     companyData: 'Company Information',
@@ -28,7 +46,10 @@ const editProduct = (index) => {
 };
 
 const deleteProduct = (index) => {
-    store.deleteProduct(index);
+    // This function must now operate on the local data from localStorage
+    savedProducts.value.splice(index, 1);
+    // And update localStorage to persist the change
+    localStorage.setItem('defekt_report_data', JSON.stringify(savedProducts.value));
 };
 
 const goToNext = () => {
@@ -49,7 +70,8 @@ const goToBack = () => {
             <!-- General Information Section -->
             <div class="recap-general-info" >
                 <div  v-for="(section, sectionKey) in generalData" :key="sectionKey" class="mb-4 col-12 col-md-6">
-                    <template v-if="sectionKey !== 'otherReturnAddress' || section.address.value">
+                    <!-- FIX: Check for section.street.value instead of section.address.value -->
+                    <template v-if="sectionKey !== 'otherReturnAddress' || (section.street && section.street.value)">
                         <h3 class="section-header">{{ sectionTitles[sectionKey] }}</h3>
                         <div class="info-card">
                             <div v-for="(field, fieldKey) in section" :key="fieldKey" class="info-item">
@@ -72,19 +94,32 @@ const goToBack = () => {
                             <i @click="deleteProduct(index)" class="bi bi-trash"></i>
                         </div>
                         <div class="product-info">
-                            <h4>{{ product.basicInfo.model.value }}</h4>
-                            <p>Serial Number: {{ product.basicInfo.serialNumber.value }}</p>
-                            <p>Category: {{ product.basicInfo.category.value }}</p>
+                            <!-- Read the model name from the top-level property we saved -->
+                            <h4>{{ product.modelName || 'N/A' }}</h4>
+                            
+                            <!-- Basic Info - rendered dynamically for safety -->
+                            <div v-if="product.basicInfo">
+                                <p v-if="product.basicInfo.serialNumber && product.basicInfo.serialNumber.value">
+                                    Serial Number: {{ product.basicInfo.serialNumber.value }}
+                                </p>
+                                <p v-if="product.basicInfo.category && product.basicInfo.category.value">
+                                    Category: {{ product.basicInfo.category.value }}
+                                </p>
+                            </div>
                             
                             <!-- Defects Summary -->
                             <div v-if="product.defekts?.length" class="defects-summary">
                                 <p><strong>Defects:</strong></p>
-                                <ul>
-                                    <li v-for="(defekt, dIndex) in product.defekts" :key="dIndex">
-                                        {{ defekt.symptomInfo.symptomFound.value }}
-                                        ({{ defekt.symptomInfo.symptomArea.value }})
-                                    </li>
-                                </ul>
+                                <div class="defekt-details" v-for="(defekt, dIndex) in product.defekts" :key="dIndex">
+                                    <h5 class="defekt-summary-header">Defect {{ dIndex + 1 }}</h5>
+                                    <div v-for="(section, sectionName) in defekt" :key="sectionName">
+                                        <div v-for="field in section" :key="field.id">
+                                            <p class="defekt-summary-item" v-if="field.value">
+                                                <strong>{{ field.label }}:</strong> {{ field.value }}
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                         
@@ -121,6 +156,23 @@ const goToBack = () => {
     margin-top: 1rem;
     padding-top: 0.5rem;
     border-top: 1px solid #ddd;
+}
+
+.defekt-details {
+    margin-top: 0.5rem;
+    padding-left: 1rem;
+    border-left: 2px solid #eee;
+}
+
+.defekt-summary-header {
+    font-size: 1rem;
+    font-weight: bold;
+    margin-bottom: 0.25rem;
+}
+
+.defekt-summary-item {
+    margin-bottom: 0.25rem;
+    font-size: 0.9em;
 }
 
 .defects-summary ul {
