@@ -11,6 +11,9 @@ import { useProductStore } from '@/stores/productStore';
 const store = useProductStore();
 
 onMounted(() => {
+  // Attempt to load a session from sessionStorage when the layout is first created.
+  store.loadSession();
+  
   // Load the main product configuration once when the form layout is created.
   // This ensures all steps have access to the necessary data (categories, models, etc.).
   if (!store.isConfigured) {

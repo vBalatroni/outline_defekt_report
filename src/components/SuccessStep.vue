@@ -40,8 +40,9 @@ onMounted(() => {
 
     // 4. Reset the form state
     store.resetForm();
-    // Optional: clear the localStorage as well
+    // Clear both localStorage and sessionStorage
     localStorage.removeItem('defekt_report_data');
+    sessionStorage.removeItem('defekt_report_session_id');
 });
 
 const handleClose = () => {

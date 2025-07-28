@@ -43,6 +43,7 @@ export const useProductStore = defineStore('product', () => {
   // State for the multi-step form
   const formState = ref({
     isConfirmed: false,
+    sessionId: null, // Add sessionId to the form state
     generalData: getGeneralDataTemplate(),
     savedProducts: [],
   });
@@ -291,9 +292,25 @@ export const useProductStore = defineStore('product', () => {
 
   const resetForm = () => {
     formState.value.isConfirmed = false;
+    formState.value.sessionId = null; // Reset sessionId
     formState.value.generalData = getGeneralDataTemplate();
     formState.value.savedProducts = [];
     console.log('Form state has been reset.');
+  };
+
+  const startSession = () => {
+      const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      formState.value.sessionId = newSessionId;
+      sessionStorage.setItem('defekt_report_session_id', newSessionId);
+      console.log('Form session started:', newSessionId);
+  };
+
+  const loadSession = () => {
+      const storedSessionId = sessionStorage.getItem('defekt_report_session_id');
+      if (storedSessionId) {
+          formState.value.sessionId = storedSessionId;
+          console.log('Form session loaded from sessionStorage:', storedSessionId);
+      }
   };
 
   return {
@@ -332,5 +349,7 @@ export const useProductStore = defineStore('product', () => {
     updateProduct,
     deleteProduct,
     resetForm,
+    startSession,
+    loadSession
   };
 }); 

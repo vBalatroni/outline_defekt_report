@@ -17,6 +17,8 @@ const isConfirmed = computed({
 });
 
 const nextStep = () => {
+    // Start the session before navigating away
+    store.startSession();
     router.push({ name: 'step-general-data' });
 };
 </script>

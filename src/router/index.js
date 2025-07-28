@@ -1,4 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useProductStore } from '@/stores/productStore'; // Import the store
 import HomeView from '../views/HomeView.vue'
 import FormLayout from '../views/FormLayout.vue'
 import ConfirmationStep from '../components/ConfirmationStep.vue'
@@ -55,5 +56,32 @@ const router = createRouter({
     }
   ]
 })
+
+// Navigation Guard
+router.beforeEach((to, from, next) => {
+  const store = useProductStore();
+  const requiredSessionRoutes = [
+    'step-general-data', 
+    'step-products', 
+    'step-summary', 
+    'step-success'
+  ];
+
+  // Check if the route requires an active session
+  if (requiredSessionRoutes.includes(to.name)) {
+    // Check for a session ID in the store (which should have been loaded from sessionStorage)
+    if (!store.formState.sessionId) {
+      console.warn('Access denied. No active session. Redirecting to confirmation.');
+      // If no session, redirect to the first step
+      next({ name: 'step-confirmation' });
+    } else {
+      // If session exists, proceed
+      next();
+    }
+  } else {
+    // If the route doesn't require a session, proceed
+    next();
+  }
+});
 
 export default router
