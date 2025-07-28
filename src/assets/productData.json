@@ -1098,13 +1098,18 @@
         "required": false,
         "order": 3,
         "conditions": [],
+        "section": "",
         "isSymptomArea": false,
         "options": [],
         "dependsOn": "main",
         "valueMapping": {
           "threePhaseWithoutNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithoutNeutral"
+            "type": "static",
+            "options": [
+              "A",
+              "B",
+              "C"
+            ]
           },
           "threePhaseWithNeutral": {
             "type": "symptomSet",

@@ -6,6 +6,7 @@ import GeneralDataStep from '../components/GeneralDataStep.vue'
 import ProductsStep from '../components/ProductsStep.vue'
 import SummaryStep from '../components/SummaryStep.vue'
 import SuccessStep from '../components/SuccessStep.vue'
+import ConfigEditorView from '../views/ConfigEditorView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -47,7 +48,12 @@ const router = createRouter({
         }
       ]
     },
-  ],
+    {
+      path: '/admin/config-editor',
+      name: 'config-editor',
+      component: ConfigEditorView
+    }
+  ]
 })
 
 export default router

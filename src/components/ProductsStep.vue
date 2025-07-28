@@ -5,7 +5,7 @@ import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
 import InputField from './InputField.vue';
-import DynamicProductForm from './DynamicProductForm.vue';
+import DynamicProductForm from './DynamicProductForm.vue'; // Make sure this is imported
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useProductStore } from '@/stores/productStore';
 
@@ -76,42 +76,28 @@ const initializeNewProduct = () => {
     return product;
 };
 
-// Modify initializeNewDefekt to use currentProductModel when available
 const initializeNewDefekt = (model = null) => {
-    // This function must build the defect object dynamically based on the model's configuration.
+    // This function doesn't need to build the form structure anymore.
+    // It just needs to prepare a template object to hold the data that will be
+    // collected by DynamicProductForm. We can use the modelFields for this.
     const modelToUse = model || currentProductModel.value;
-    
-    const defekt = {
-        symptomInfo: {},
-        technicalInfo: {},
-        serialNumbers: {},
-        versions: {},
-        additionalInfo: {}
-    };
+    const defektTemplate = {};
 
     if (modelToUse) {
         const fieldsForModel = productStore.getModelFields(modelToUse);
-        const symptomSets = productStore.symptomSets || {};
-
-        fieldsForModel.forEach(fieldConfig => {
-            if (defekt[fieldConfig.section]) {
-                const newField = JSON.parse(JSON.stringify(fieldConfig));
-                newField.value = ''; // Initialize value
-
-                // If this is the main symptom area selector, its options are not static strings
-                // but keys to the symptomSets. We need to map them to labels for the UI.
-                if (newField.isSymptomArea && Array.isArray(newField.options)) {
-                    newField.options = newField.options
-                        .map(setKey => symptomSets[setKey]?.label)
-                        .filter(Boolean);
-                }
-
-                defekt[fieldConfig.section][newField.id] = newField;
+        fieldsForModel.forEach(field => {
+            // This is just to have a structure, DynamicProductForm will create the real form
+            if (!defektTemplate[field.section]) {
+                defektTemplate[field.section] = {};
             }
+            defektTemplate[field.section][field.id] = {
+                value: '',
+                // include other properties if needed for summary, e.g., label
+                label: field.label
+            };
         });
     }
-    
-    return defekt;
+    return defektTemplate;
 };
 
 const clearForm = () => {
@@ -140,10 +126,15 @@ const handleInputChange = (event) => {
         if (event.value) {
             isBasicInfoValidated.value = true;
             currentProductModel.value = event.value;
+            // Now that we have a model and are about to display the defect form,
+            // we must initialize it with the correct fields for that model.
+            currentDefekt.value = initializeNewDefekt(event.value);
         } else {
             isBasicInfoValidated.value = false;
         }
         
+        // This logic is now handled by initializeNewDefekt and is redundant/error-prone.
+        /*
         // Update symptom areas when model changes in basic info
         if (currentDefekt.value && event.value) {
             const modelFields = productStore.getModelFields(event.value);
@@ -157,22 +148,7 @@ const handleInputChange = (event) => {
             currentDefekt.value.symptomInfo.symptomArea.value = '';
             currentDefekt.value.symptomInfo.symptomFound.value = '';
         }
-    }
-};
-
-const handleSymptomAreaChange = (event) => {
-    if (event.id === 'symptomArea' && event.value) {
-        // event.value is the LABEL of the symptom set
-        const symptomSets = productStore.symptomSets || {};
-        const selectedSetKey = Object.keys(symptomSets).find(key => symptomSets[key].label === event.value);
-
-        if (selectedSetKey) {
-            currentDefekt.value.symptomInfo.symptomFound.options = productStore.getSymptomSetSymptoms(selectedSetKey);
-        } else {
-            currentDefekt.value.symptomInfo.symptomFound.options = [];
-        }
-        
-        currentDefekt.value.symptomInfo.symptomFound.value = '';
+        */
     }
 };
 
@@ -205,16 +181,15 @@ const saveData = () => {
 };
 
 const addDefekt = () => {
+    // This function is now much simpler.
+    // It takes the flat data from dynamicDefektData and structures it.
     const newDefekt = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
-    const modelFields = productStore.getModelFields(currentProduct.value.basicInfo.model.value);
-
-    for (const field of modelFields) {
-        if (dynamicDefektData.value.hasOwnProperty(field.id)) {
-            if (newDefekt[field.section]) {
-                 newDefekt[field.section][field.id] = {
-                    ...newDefekt[field.section][field.id],
-                    value: dynamicDefektData.value[field.id]
-                };
+    
+    // Populate the structured defekt object with the collected data
+    for (const sectionKey in newDefekt) {
+        for (const fieldKey in newDefekt[sectionKey]) {
+            if (dynamicDefektData.value.hasOwnProperty(fieldKey)) {
+                newDefekt[sectionKey][fieldKey].value = dynamicDefektData.value[fieldKey];
             }
         }
     }
@@ -229,8 +204,9 @@ const addDefekt = () => {
     }
     
     editingDefektIndex.value = -1;
-    dynamicDefektData.value = {};
+    dynamicDefektData.value = {}; // Clear the form data
 };
+
 
 const editDefekt = (index) => {
     const defektToEdit = currentProduct.value.defekts[index];
@@ -238,9 +214,7 @@ const editDefekt = (index) => {
     
     Object.keys(defektToEdit).forEach(sectionKey => {
         Object.keys(defektToEdit[sectionKey]).forEach(fieldKey => {
-            if(defektToEdit[sectionKey][fieldKey]?.value !== undefined) {
-                newDynamicData[fieldKey] = defektToEdit[sectionKey][fieldKey].value;
-            }
+            newDynamicData[fieldKey] = defektToEdit[sectionKey][fieldKey].value;
         });
     });
 
@@ -249,7 +223,7 @@ const editDefekt = (index) => {
     
     // Scroll to the form
     nextTick(() => {
-        const formElement = document.querySelector('.defekt-form');
+        const formElement = document.querySelector('.defect-form');
         if (formElement) {
             formElement.scrollIntoView({ behavior: 'smooth' });
         }
@@ -277,13 +251,10 @@ const openNewProductModal = () => {
 const canAddDefekt = computed(() => {
     if (!currentDefekt.value || !currentProduct.value?.basicInfo.category.value) return false;
 
-    const visibleFields = getVisibleFields.value;
-    if (!visibleFields) return false;
-
     // Check each section in the visible fields
-    for (const sectionKey in visibleFields) {
-        const fields = visibleFields[sectionKey];
-        for (const fieldKey of fields) {
+    for (const sectionKey in currentDefekt.value) {
+        const fields = currentDefekt.value[sectionKey];
+        for (const fieldKey of Object.keys(fields)) {
             const field = currentDefekt.value[sectionKey][fieldKey];
             if (field.isRequired && !field.value) {
                 console.log(`Required field not filled: ${sectionKey}.${fieldKey}`);
@@ -296,11 +267,11 @@ const canAddDefekt = computed(() => {
 
 // Add debug watch for required fields
 watch(() => currentDefekt.value, () => {
-    if (currentDefekt.value && getVisibleFields.value) {
+    if (currentDefekt.value) {
         console.log('Checking required fields:');
-        for (const sectionKey in getVisibleFields.value) {
-            const fields = getVisibleFields.value[sectionKey];
-            fields.forEach(fieldKey => {
+        for (const sectionKey in currentDefekt.value) {
+            const fields = currentDefekt.value[sectionKey];
+            Object.keys(fields).forEach(fieldKey => {
                 const field = currentDefekt.value[sectionKey][fieldKey];
                 if (field.isRequired) {
                     console.log(`${sectionKey}.${fieldKey}: ${field.value ? 'filled' : 'empty'}`);
@@ -309,18 +280,6 @@ watch(() => currentDefekt.value, () => {
         }
     }
 }, { deep: true });
-
-const getVisibleFields = computed(() => {
-    if (!currentProduct.value?.basicInfo.category.value) return null;
-    return props.productData.categoryConfigs[currentProduct.value.basicInfo.category.value]?.visibleFields || null;
-});
-
-const isFieldVisible = (sectionKey, fieldKey) => {
-    const visibleFields = getVisibleFields.value;
-    console.log('Visible Fields:', visibleFields);
-    if (!visibleFields) return false;
-    return visibleFields[sectionKey]?.includes(fieldKey);
-};
 
 // Initialize currentDefekt when category changes
 watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
@@ -472,95 +431,18 @@ const goToBack = () => {
                         <!-- Defect Form Section -->
                         <div class="defect-form mb-4">
                             <h3 class="section-header">Defect</h3>
-                            <div class="input-list">
-                                <template v-if="currentDefekt && currentProduct?.basicInfo.category.value">
-                                    <div 
-                                        v-for="(field, fieldKey) in currentDefekt.symptomInfo" 
-                                        :key="'symptom-' + fieldKey"
-                                        v-show="isFieldVisible('symptomInfo', fieldKey)"
-                                        class="input-wrapper col-12 col-md-4"
-                                    >
-            <InputField
-                                            :type="field.type" 
-                                            :label="field.label" 
-                                            :isRequired="field.isRequired" 
-                                            :id="field.id" 
-                                            :options="field.options"
-                                            v-model="field.value"
-                                            @input-change="handleSymptomAreaChange"
-                                        />
-                                    </div>
+                            
+                            <DynamicProductForm 
+                                v-if="currentProduct?.basicInfo.model.value"
+                                :productCategory="currentProduct.basicInfo.category.value"
+                                :productModel="currentProduct.basicInfo.model.value"
+                                v-model:modelValue="dynamicDefektData"
+                            />
 
-                                    <div 
-                                        v-for="(field, fieldKey) in currentDefekt.technicalInfo" 
-                                        :key="'technical-' + fieldKey"
-                                        v-show="isFieldVisible('technicalInfo', fieldKey)"
-                                        class="input-wrapper col-12 col-md-4"
-                                    >
-            <InputField
-                                            :type="field.type" 
-                                            :label="field.label" 
-                                            :isRequired="field.isRequired" 
-                                            :id="field.id" 
-                                            :options="field.options"
-                                            v-model="field.value"
-            />
-        </div>
-
-                                    <div 
-                                        v-for="(field, fieldKey) in currentDefekt.serialNumbers" 
-                                        :key="'serial-' + fieldKey"
-                                        v-show="isFieldVisible('serialNumbers', fieldKey)"
-                                        class="input-wrapper col-12 col-md-4"
-                                    >
-                <InputField
-                                            :type="field.type" 
-                                            :label="field.label" 
-                                            :isRequired="field.isRequired" 
-                    :id="field.id"
-                                            :options="field.options"
-                                            v-model="field.value"
-                                        />
-                                    </div>
-
-                                    <div 
-                                        v-for="(field, fieldKey) in currentDefekt.versions" 
-                                        :key="'version-' + fieldKey"
-                                        v-show="isFieldVisible('versions', fieldKey)"
-                                        class="input-wrapper col-12 col-md-4"
-                                    >
-                                        <InputField 
-                                            :type="field.type" 
-                    :label="field.label"
-                                            :isRequired="field.isRequired" 
-                                            :id="field.id" 
-                                            :options="field.options"
-                                            v-model="field.value"
-                                        />
-                                    </div>
-
-                                    <div 
-                                        v-for="(field, fieldKey) in currentDefekt.additionalInfo" 
-                                        :key="'additional-' + fieldKey"
-                                        v-show="isFieldVisible('additionalInfo', fieldKey)"
-                                        class="input-wrapper col-12 col-md-4"
-                                    >
-                                        <InputField 
-                    :type="field.type"
-                                            :label="field.label" 
-                                            :isRequired="field.isRequired" 
-                                            :id="field.id" 
-                                            :options="field.options"
-                                            v-model="field.value"
-                                        />
-                                    </div>
-                                </template>
-                            </div>
                             <div class=" add-edit-button text-center mt-4">
                                 <Button 
                                     :type="'primary'" 
                                     :text="editingDefektIndex >= 0 ? 'Update Defect' : 'Add Defect'" 
-                                    :isDisabled="!canAddDefekt"
                                     @click="addDefekt"
                                 />
                             </div>
