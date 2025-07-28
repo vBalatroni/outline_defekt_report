@@ -39,6 +39,10 @@ const props = defineProps({
 });
 
 const initializeNewProduct = () => {
+    if (!props.productData || typeof props.productData !== 'object') {
+        console.error('productData non definito o non valido:', props.productData);
+        return {};
+    }
     const product = JSON.parse(JSON.stringify(props.productData));
     product.defekts = [];
     
