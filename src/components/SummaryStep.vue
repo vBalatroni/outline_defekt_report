@@ -114,9 +114,15 @@ const goToBack = () => {
                                     <h5 class="defekt-summary-header">Defect {{ dIndex + 1 }}</h5>
                                     <div v-for="(section, sectionName) in defekt" :key="sectionName">
                                         <div v-for="field in section" :key="field.id">
-                                            <p class="defekt-summary-item" v-if="field.value">
-                                                <strong>{{ field.label }}:</strong> {{ field.value }}
-                                            </p>
+                                            <div class="defekt-summary-item" v-if="field.value">
+                                                <strong class="summary-field-label">{{ field.label }}:</strong>
+                                                <template v-if="typeof field.value === 'string' && field.value.startsWith('data:image')">
+                                                    <img :src="field.value" :alt="field.label" class="summary-image-preview" />
+                                                </template>
+                                                <template v-else>
+                                                    <span class="summary-field-value">{{ field.value }}</span>
+                                                </template>
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
@@ -171,8 +177,7 @@ const goToBack = () => {
 }
 
 .defekt-summary-item {
-    margin-bottom: 0.25rem;
-    font-size: 0.9em;
+    margin-bottom: 0.75rem;
 }
 
 .defects-summary ul {
@@ -182,5 +187,22 @@ const goToBack = () => {
 
 .bi {
     font-size: 1.2rem;
+}
+.summary-field-label {
+    display: block;
+    font-size: 0.9em;
+    color: #555;
+    font-weight: bold;
+}
+.summary-image-preview {
+    max-width: 150px;
+    max-height: 150px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-top: 5px;
+    object-fit: cover;
+}
+.summary-field-value {
+    font-size: 1em;
 }
 </style>

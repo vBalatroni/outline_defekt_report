@@ -482,9 +482,15 @@ const goToBack = () => {
                                     <div class="defekt-info">
                                         <div v-for="(section, sectionName) in defekt" :key="sectionName">
                                             <div v-for="field in section" :key="field.id">
-                                                <p v-if="field.value">
-                                                    <strong>{{ field.label }}:</strong> {{ field.value }}
-                                                </p>
+                                                <div v-if="field.value" class="summary-field">
+                                                    <strong class="summary-field-label">{{ field.label }}:</strong>
+                                                    <template v-if="typeof field.value === 'string' && field.value.startsWith('data:image')">
+                                                        <img :src="field.value" :alt="field.label" class="summary-image-preview" />
+                                                    </template>
+                                                    <template v-else>
+                                                        <span class="summary-field-value">{{ field.value }}</span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
@@ -653,5 +659,23 @@ const goToBack = () => {
     border-radius: 8px;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
-
+.summary-field {
+    margin-bottom: 0.75rem;
+}
+.summary-field-label {
+    display: block;
+    font-size: 0.9em;
+    color: #555;
+}
+.summary-image-preview {
+    max-width: 100px;
+    max-height: 100px;
+    border-radius: 4px;
+    border: 1px solid #ddd;
+    margin-top: 5px;
+    object-fit: cover;
+}
+.summary-field-value {
+    font-size: 1em;
+}
 </style>
