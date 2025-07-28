@@ -1,5 +1,6 @@
 <script setup>
 import { defineProps, ref, computed, watch, onBeforeUnmount, inject, nextTick, reactive } from 'vue';
+import { useRouter } from 'vue-router';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
@@ -8,8 +9,9 @@ import DynamicProductForm from './DynamicProductForm.vue';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useProductStore } from '@/stores/productStore';
 
-const emit = defineEmits(['prev-step', 'next-step', 'step-validation', 'update:savedProducts']);
+const emit = defineEmits(['step-validation']);
 
+const router = useRouter();
 const productStore = useProductStore();
 const showModal = ref(false);
 const isBasicInfoValidated = ref(false);
@@ -24,39 +26,49 @@ const dynamicDefektData = ref({});
 const currentProductModel = ref('');
 
 const props = defineProps({
-    productData: {
-        type: Object,
-        required: true
-    },
-    savedProducts: {
-        type: Array,
-        default: () => []
-    },
+    // productData prop is no longer needed, we get it from the store.
     productToEdit: {
         type: Object,
         default: null
     }
 });
 
+// Use the store's state for saved products
+const savedProducts = computed(() => productStore.formState.savedProducts);
+
 const initializeNewProduct = () => {
-    if (!props.productData || typeof props.productData !== 'object') {
-        console.error('productData non definito o non valido:', props.productData);
-        return {};
-    }
-    const product = JSON.parse(JSON.stringify(props.productData));
-    product.defekts = [];
+    // The previous approach was incorrect because productMapping is a config file,
+    // not a product template. We need to build the product object structure manually.
     
-    // Ensure serialNumber is always an object with a value property
-    if (product.basicInfo) {
-        if (!product.basicInfo.serialNumber) {
-            product.basicInfo.serialNumber = { value: '' };
-        } else if (typeof product.basicInfo.serialNumber.value === 'undefined') {
-            // If the object exists but value is missing
-            delete product.basicInfo.serialNumber;
-            product.basicInfo.serialNumber = { value: '' };
-        }
-    }
-    
+    const product = {
+        basicInfo: {
+            category: {
+                id: 'category',
+                label: 'Category',
+                type: 'select',
+                value: '',
+                isRequired: true,
+                options: productStore.categories || []
+            },
+            model: {
+                id: 'model',
+                label: 'Model',
+                type: 'select',
+                value: '',
+                isRequired: true,
+                options: [] // This will be populated based on category selection
+            },
+            serialNumber: {
+                id: 'serialNumber',
+                label: 'Serial Number',
+                type: 'text',
+                value: '',
+                isRequired: false
+            }
+        },
+        defekts: []
+    };
+
     if (product.basicInfo?.category?.value) {
         updateDependentOptions(product);
     }
@@ -66,23 +78,37 @@ const initializeNewProduct = () => {
 
 // Modify initializeNewDefekt to use currentProductModel when available
 const initializeNewDefekt = (model = null) => {
-    const defekt = {};
-    Object.keys(props.productData).forEach(sectionKey => {
-        if (sectionKey !== 'basicInfo' && sectionKey !== 'categoryConfigs') {
-            defekt[sectionKey] = JSON.parse(JSON.stringify(props.productData[sectionKey]));
-        }
-    });
-    
+    // This function must build the defect object dynamically based on the model's configuration.
     const modelToUse = model || currentProductModel.value;
+    
+    const defekt = {
+        symptomInfo: {},
+        technicalInfo: {},
+        serialNumbers: {},
+        versions: {},
+        additionalInfo: {}
+    };
+
     if (modelToUse) {
-        const modelFields = productStore.getModelFields(modelToUse);
-        const symptomAreaField = modelFields.find(f => f.isSymptomArea);
-        if (symptomAreaField && symptomAreaField.options) {
-             const symptomSets = productStore.symptomSets || {};
-             defekt.symptomInfo.symptomArea.options = symptomAreaField.options
-                .map(setKey => symptomSets[setKey]?.label)
-                .filter(Boolean);
-        }
+        const fieldsForModel = productStore.getModelFields(modelToUse);
+        const symptomSets = productStore.symptomSets || {};
+
+        fieldsForModel.forEach(fieldConfig => {
+            if (defekt[fieldConfig.section]) {
+                const newField = JSON.parse(JSON.stringify(fieldConfig));
+                newField.value = ''; // Initialize value
+
+                // If this is the main symptom area selector, its options are not static strings
+                // but keys to the symptomSets. We need to map them to labels for the UI.
+                if (newField.isSymptomArea && Array.isArray(newField.options)) {
+                    newField.options = newField.options
+                        .map(setKey => symptomSets[setKey]?.label)
+                        .filter(Boolean);
+                }
+
+                defekt[fieldConfig.section][newField.id] = newField;
+            }
+        });
     }
     
     return defekt;
@@ -169,14 +195,12 @@ const saveData = () => {
     productToSave.modelName = currentProductModel.value;
     productToSave.basicInfo.model.value = currentProductModel.value;
     
-    const products = [...props.savedProducts];
     if (editingProductIndex.value >= 0) {
-        products[editingProductIndex.value] = productToSave;
+        productStore.updateProduct(editingProductIndex.value, productToSave);
     } else {
-        products.push(productToSave);
+        productStore.addProduct(productToSave);
     }
     
-    emit('update:savedProducts', products);
     clearForm();
 };
 
@@ -237,9 +261,7 @@ const deleteDefekt = (index) => {
 };
 
 const deleteProduct = (index) => {
-    const products = [...props.savedProducts];
-    products.splice(index, 1);
-    emit('update:savedProducts', products);
+    productStore.deleteProduct(index);
 };
 
 const openNewProductModal = () => {
@@ -317,11 +339,11 @@ watch(() => currentProduct.value?.basicInfo, (newVal) => {
 
 // Add computed property for next button validation
 const canProceedToNextStep = computed(() => {
-    return props.savedProducts.length > 0;
+    return savedProducts.value.length > 0;
 });
 
 // Watch savedProducts to emit step validation
-watch(() => props.savedProducts.length, (newLength) => {
+watch(() => savedProducts.value.length, (newLength) => {
     emit('step-validation', newLength > 0);
 }, { immediate: true });
 
@@ -342,7 +364,7 @@ watch(() => props.productToEdit, (newVal) => {
 // Update editProduct function with more logging
 // Modify editProduct function to use stored model name
 const editProduct = (index) => {
-    const originalProduct = props.savedProducts[index];
+    const originalProduct = savedProducts.value[index];
     
     // Set validation flags
     isBasicInfoValidated.value = true;
@@ -354,6 +376,14 @@ const editProduct = (index) => {
     // Use the existing model value from the saved product
     currentDefekt.value = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
     showModal.value = true;
+};
+
+const goToNext = () => {
+    router.push({ name: 'step-summary' });
+};
+
+const goToBack = () => {
+    router.push({ name: 'step-general-data' });
 };
 
 </script>
@@ -386,8 +416,8 @@ const editProduct = (index) => {
                 </div>
             </div>
             <div class="button-group mx-auto justify-content-between">
-                <Button :type="'secondary'" :text="'Back'" :isDisabled="false" @click="$emit('prev-step')"></Button>
-                <Button :type="'primary'" :text="'Next'" :isDisabled="!canProceedToNextStep" @click="$emit('next-step')"></Button>
+                <Button :type="'secondary'" :text="'Back'" :isDisabled="false" @click="goToBack"></Button>
+                <Button :type="'primary'" :text="'Next'" :isDisabled="!canProceedToNextStep" @click="goToNext"></Button>
             </div>
         </div>
     </div>

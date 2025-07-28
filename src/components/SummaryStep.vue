@@ -1,20 +1,17 @@
 <script setup>
-import { defineProps } from 'vue';
+import { computed } from 'vue';
+import { useRouter } from 'vue-router';
+import { useProductStore } from '@/stores/productStore';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
-const props = defineProps({
-    generalData: {
-        type: Object,
-        required: true
-    },
-    savedProducts: {
-        type: Array,
-        required: true
-    }
-});
+const store = useProductStore();
+const router = useRouter();
+
+const generalData = computed(() => store.formState.generalData);
+const savedProducts = computed(() => store.formState.savedProducts);
 
 const sectionTitles = {
     companyData: 'Company Information',
@@ -24,17 +21,24 @@ const sectionTitles = {
 };
 
 const editProduct = (index) => {
-    const originalProduct = props.savedProducts[index];
-    // This will pass all the necessary information to the parent
-    // which will then pass it to ProductsStep for proper editing
-    emit('edit-product', index);
+    // For now, just navigate back to the products step.
+    // A more advanced implementation might pass the product index as a param.
+    router.push({ name: 'step-products' });
+    // We could also set an 'editingProductIndex' in the store here.
 };
 
 const deleteProduct = (index) => {
-    emit('delete-product', index);
+    store.deleteProduct(index);
 };
 
-const emit = defineEmits(['prev-step', 'next-step', 'edit-product', 'delete-product']);
+const goToNext = () => {
+    // This will be the final submission logic later. For now, just navigate.
+    router.push({ name: 'step-success' });
+};
+
+const goToBack = () => {
+    router.push({ name: 'step-products' });
+};
 </script>
 
 <template>
@@ -90,8 +94,8 @@ const emit = defineEmits(['prev-step', 'next-step', 'edit-product', 'delete-prod
 
             <!-- Navigation Buttons -->
             <div class="button-group mx-auto justify-content-between">
-                <Button :type="'secondary'" :text="'Back'" @click="$emit('prev-step')" />
-                <Button :type="'primary'" :text="'Submit'" @click="$emit('next-step')" />
+                <Button :type="'secondary'" :text="'Back'" @click="goToBack" />
+                <Button :type="'primary'" :text="'Submit'" @click="goToNext" />
             </div>
         </div>
     </div>

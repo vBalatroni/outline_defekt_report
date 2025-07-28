@@ -5,13 +5,50 @@ import productDataJson from '@/assets/productData.json';
 
 const defaultProductMapping = productDataJson;
 
+// Template per i dati generali del form, per poterli resettare facilmente
+const getGeneralDataTemplate = () => ({
+  companyData: {
+    customerNumber: { id: "customerNumber", label: "Customer Number", value: "", type: "text", isRequired: true },
+    companyName: { id: "companyName", label: "Company Name", value: "", type: "text", isRequired: true },
+    contactPerson: { id: "contactPerson", label: "Contact Person", value: "", type: "text", isRequired: true },
+    email: { id: "email", label: "Email", value: "", type: "email", isRequired: true },
+    phone: { id: "phone", label: "Phone", value: "", type: "tel", isRequired: true }
+  },
+  freightForwarderData: {
+    name: { id: "name", label: "Name", value: "", type: "text", isRequired: false },
+    contactPerson: { id: "contactPerson", label: "Contact Person", value: "", type: "text", isRequired: false },
+    phone: { id: "phone", label: "Phone", value: "", type: "tel", isRequired: false },
+    email: { id: "email", label: "Email", value: "", type: "email", isRequired: false }
+  },
+  companyAddress: {
+    street: { id: "street", label: "Street", value: "", type: "text", isRequired: true },
+    city: { id: "city", label: "City", value: "", type: "text", isRequired: true },
+    zip: { id: "zip", label: "ZIP Code", value: "", type: "text", isRequired: true },
+    country: { id: "country", label: "Country", value: "", type: "text", isRequired: true }
+  },
+  otherReturnAddress: {
+    street: { id: "street", label: "Street", value: "", type: "text", isRequired: true },
+    city: { id: "city", label: "City", value: "", type: "text", isRequired: true },
+    zip: { id: "zip", label: "ZIP Code", value: "", type: "text", isRequired: true },
+    country: { id: "country", label: "Country", value: "", type: "text", isRequired: true }
+  }
+});
+
 export const useProductStore = defineStore('product', () => {
-  // State
+  // STATE
   const productMapping = ref(null);
   const isLoading = ref(false);
   const error = ref(null);
+  
+  // State for the multi-step form
+  const formState = ref({
+    isConfirmed: false,
+    generalData: getGeneralDataTemplate(),
+    savedProducts: [],
+  });
 
-  // Getters
+
+  // GETTERS
   const categories = computed(() => {
     return productMapping.value?.categories || [];
   });
@@ -228,11 +265,38 @@ export const useProductStore = defineStore('product', () => {
     }
   };
 
+  // ACTIONS FOR THE FORM
+  const setConfirmation = (value) => {
+    formState.value.isConfirmed = value;
+  };
+
+  const addProduct = (product) => {
+    formState.value.savedProducts.push(product);
+  };
+  
+  const updateProduct = (index, product) => {
+    if (formState.value.savedProducts[index]) {
+      formState.value.savedProducts[index] = product;
+    }
+  };
+
+  const deleteProduct = (index) => {
+    formState.value.savedProducts.splice(index, 1);
+  };
+
+  const resetForm = () => {
+    formState.value.isConfirmed = false;
+    formState.value.generalData = getGeneralDataTemplate();
+    formState.value.savedProducts = [];
+    console.log('Form state has been reset.');
+  };
+
   return {
     // State
     productMapping,
     isLoading,
     error,
+    formState,
 
     // Getters
     categories,
@@ -256,5 +320,12 @@ export const useProductStore = defineStore('product', () => {
     addSymptomSet,
     updateSymptomSet,
     deleteSymptomSet,
+    
+    // Form Actions
+    setConfirmation,
+    addProduct,
+    updateProduct,
+    deleteProduct,
+    resetForm,
   };
 }); 

@@ -1,7 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import HomeView from '../views/HomeView.vue'
-import JsonDemoView from '../views/JsonDemoView.vue'
-import FormTestView from '../views/FormTestView.vue'
+import FormLayout from '../views/FormLayout.vue'
+import ConfirmationStep from '../components/ConfirmationStep.vue'
+import GeneralDataStep from '../components/GeneralDataStep.vue'
+import ProductsStep from '../components/ProductsStep.vue'
+import SummaryStep from '../components/SummaryStep.vue'
+import SuccessStep from '../components/SuccessStep.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -9,18 +13,40 @@ const router = createRouter({
     {
       path: '/',
       name: 'home',
-      component: HomeView,
+      component: HomeView
     },
     {
-      path: '/json-demo',
-      name: 'json-demo',
-      component: JsonDemoView,
+      path: '/report',
+      component: FormLayout,
+      redirect: '/report/confirmation',
+      children: [
+        {
+          path: 'confirmation',
+          name: 'step-confirmation',
+          component: ConfirmationStep
+        },
+        {
+          path: 'general-data',
+          name: 'step-general-data',
+          component: GeneralDataStep
+        },
+        {
+          path: 'products',
+          name: 'step-products',
+          component: ProductsStep
+        },
+        {
+          path: 'summary',
+          name: 'step-summary',
+          component: SummaryStep
+        },
+        {
+          path: 'success',
+          name: 'step-success',
+          component: SuccessStep
+        }
+      ]
     },
-    {
-      path: '/form-test',
-      name: 'form-test',
-      component: FormTestView,
-    }
   ],
 })
 
