@@ -24,8 +24,8 @@
             @change="handleFieldChange(field.id)"
           >
             <option disabled value="">Please select an option</option>
-            <option v-for="option in getOptionsForField(field)" :key="option" :value="option">
-              {{ option }}
+            <option v-for="option in getOptionsForField(field)" :key="option.value || option" :value="option.value || option">
+              {{ option.label || option }}
             </option>
           </select>
         </template>
@@ -107,15 +107,18 @@ const visibleFields = computed(() => {
 });
 
 const getOptionsForField = (field) => {
+    // For symptom areas, we now return the full object { value, label }
     if (field.isSymptomArea) {
         const symptomSets = productStore.symptomSets || {};
         const areaOptions = [];
-        field.options.forEach(setKey => {
-            if (symptomSets[setKey]) {
-                areaOptions.push({ value: setKey, label: symptomSets[setKey].label });
-            }
-        });
-        return areaOptions.map(opt => opt.label);
+        if (Array.isArray(field.options)) {
+            field.options.forEach(setKey => {
+                if (symptomSets[setKey]) {
+                    areaOptions.push({ value: setKey, label: symptomSets[setKey].label });
+                }
+            });
+        }
+        return areaOptions;
     }
     
     if (field.dependsOn) {
@@ -126,19 +129,28 @@ const getOptionsForField = (field) => {
         if (mapping.type === 'static') {
             return mapping.options || [];
         } else if (mapping.type === 'symptomSet') {
-            return productStore.getSymptomSetSymptoms(mapping.key) || [];
+            const symptoms = productStore.getSymptomSetSymptoms(mapping.key) || [];
+            // Also return objects for consistency if needed, but for now string array is fine
+            return symptoms;
         }
     }
 
     return field.options || [];
 };
 
-const handleFieldChange = (fieldId) => {
-    modelFields.value.forEach(field => {
-        if (field.dependsOn === fieldId) {
-            formData.value[field.id] = '';
+const handleFieldChange = (changedFieldId) => {
+    // This new logic is more robust.
+    // It iterates through all fields to find any that depend on the one that just changed.
+    for (const field of modelFields.value) {
+        if (field.dependsOn === changedFieldId) {
+            // Found a dependent field. Reset its value.
+            // The template will automatically re-render and call getOptionsForField,
+            // which will then provide the correct new options.
+            if (formData.value[field.id] !== undefined) {
+                formData.value[field.id] = '';
+            }
         }
-    });
+    }
 };
 
 const handleFileUpload = (event, fieldId) => {

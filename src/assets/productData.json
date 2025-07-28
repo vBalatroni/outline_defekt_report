@@ -1040,14 +1040,72 @@
         "required": true,
         "order": 0,
         "conditions": [],
+        "section": "modelSymptomSets",
+        "isSymptomArea": true,
+        "options": []
+      },
+      {
+        "id": "symptomFound",
+        "label": "Symptom Found",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "section": "modelSymptomSets",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "main",
+        "valueMapping": {}
+      },
+      {
+        "id": "main",
+        "label": "Main",
+        "type": "select",
+        "required": true,
+        "order": 2,
+        "conditions": [],
+        "section": "modelSymptomSets",
+        "isSymptomArea": true,
+        "options": []
+      },
+      {
+        "id": "range",
+        "label": "Range",
+        "type": "select",
+        "required": false,
+        "order": 3,
+        "conditions": [],
+        "section": "modelSymptomSets",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "main",
+        "valueMapping": {}
+      },
+      {
+        "id": "image",
+        "label": "Image",
+        "type": "file",
+        "required": false,
+        "order": 4,
+        "conditions": [],
+        "section": "modelSymptomSets"
+      }
+    ],
+    "DVS_115_SW_iSP": [
+      {
+        "id": "symptomArea",
+        "label": "Symptom Area",
+        "type": "select",
+        "required": false,
+        "order": 0,
+        "conditions": [],
         "section": "",
         "isSymptomArea": true,
         "options": [
-          "audio",
-          "power",
-          "cabinet",
-          "amplifier",
-          "armonia_1"
+          "armonia_1",
+          "mechanical_issue_1",
+          "electronics_1",
+          "hardware_1"
         ]
       },
       {
@@ -1057,38 +1115,43 @@
         "required": false,
         "order": 1,
         "conditions": [],
+        "section": "",
         "isSymptomArea": false,
         "options": [],
         "dependsOn": "symptomArea",
         "valueMapping": {
-          "Audio": {
+          "armonia_1": {
             "type": "symptomSet",
-            "key": "audio"
+            "key": "armonia_1"
           },
-          "Power": {
+          "mechanical_issue_1": {
             "type": "symptomSet",
-            "key": "power"
+            "key": "mechanical_issue_1"
           },
-          "Cabinet": {
+          "electronics_1": {
             "type": "symptomSet",
-            "key": "cabinet"
+            "key": "electronics_1"
+          },
+          "hardware_1": {
+            "type": "symptomSet",
+            "key": "hardware_1"
           }
-        },
-        "section": "symptomInfo"
+        }
       },
       {
         "id": "main",
         "label": "Main",
         "type": "select",
-        "required": true,
+        "required": false,
         "order": 2,
         "conditions": [],
+        "section": "",
         "isSymptomArea": true,
         "options": [
-          "threePhaseWithoutNeutral",
-          "threePhaseWithNeutral",
+          "singlePhase",
           "biPhase",
-          "singlePhase"
+          "threePhaseWithNeutral",
+          "threePhaseWithoutNeutral"
         ]
       },
       {
@@ -1103,94 +1166,32 @@
         "options": [],
         "dependsOn": "main",
         "valueMapping": {
-          "threePhaseWithoutNeutral": {
-            "type": "static",
-            "options": [
-              "A",
-              "B",
-              "C"
-            ]
-          },
-          "threePhaseWithNeutral": {
+          "singlePhase": {
             "type": "symptomSet",
-            "key": "threePhaseWithNeutral"
+            "key": "singlePhase"
           },
           "biPhase": {
             "type": "symptomSet",
             "key": "biPhase"
           },
-          "singlePhase": {
+          "threePhaseWithNeutral": {
             "type": "symptomSet",
-            "key": "singlePhase"
+            "key": "threePhaseWithNeutral"
+          },
+          "threePhaseWithoutNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithoutNeutral"
           }
         }
       },
       {
-        "id": "image",
-        "label": "Image",
+        "id": "media",
+        "label": "Media",
         "type": "file",
         "required": false,
         "order": 4,
-        "conditions": []
-      }
-    ],
-    "DVS_115_SW_iSP": [
-      {
-        "id": "aaa",
-        "label": "aaa",
-        "type": "select",
-        "required": false,
-        "order": 0,
         "conditions": [],
-        "isSymptomArea": false,
-        "options": [
-          "1",
-          "2",
-          "3"
-        ]
-      },
-      {
-        "id": "symp",
-        "label": "symp",
-        "type": "select",
-        "required": false,
-        "order": 1,
-        "conditions": [],
-        "isSymptomArea": true,
-        "options": [
-          "power",
-          "audio",
-          "cabinet"
-        ]
-      },
-      {
-        "id": "symptomFound",
-        "label": "Symptom Found",
-        "type": "select",
-        "required": true,
-        "order": 2,
-        "conditions": [],
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "symp",
-        "valueMapping": {
-          "power": {
-            "type": "static",
-            "options": [
-              "manuale",
-              "mannn",
-              "mauu"
-            ]
-          },
-          "audio": {
-            "type": "symptomSet",
-            "key": "amplifier"
-          },
-          "cabinet": {
-            "type": "symptomSet",
-            "key": "cabinet"
-          }
-        }
+        "section": ""
       }
     ]
   }
