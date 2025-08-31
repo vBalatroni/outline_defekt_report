@@ -44,7 +44,7 @@ onMounted(async () => {
         
         // 4. Send emails via API
         try {
-            const response = await fetch('/api/sendEmail.php', {
+            const response = await fetch('http://localhost:4000/mail/send', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

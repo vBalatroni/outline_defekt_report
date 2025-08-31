@@ -650,7 +650,7 @@ const saveConfigurationToServer = async () => {
     const mappingToSave = JSON.parse(JSON.stringify(productStore.productMapping));
 
     try {
-        const response = await fetch('/api/saveConfig.php', {
+        const response = await fetch('http://localhost:4000/config', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -663,19 +663,8 @@ const saveConfigurationToServer = async () => {
             throw new Error(`Server responded with status ${response.status}: ${resultText}`);
         }
         
-        let result;
-        try {
-            result = JSON.parse(resultText);
-        } catch (e) {
-            throw new Error(`Failed to parse server response: ${resultText}`);
-        }
-
-        if (result.success) {
-            alert('Configuration saved successfully on the server!');
-            productStore.updateProductMapping(mappingToSave);
-        } else {
-            throw new Error(result.message || 'An unknown error occurred.');
-        }
+        alert('Configuration saved successfully on the server!');
+        productStore.updateProductMapping(mappingToSave);
 
     } catch (error) {
         console.error('Failed to save configuration to server:', error);

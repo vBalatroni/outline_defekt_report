@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia';
-import { ref, computed, watch } from 'vue'; // Import watch
+import { ref, computed, watch } from 'vue';
 import { loadProductMapping, saveProductMapping } from '@/utils/storageUtils';
 import productDataJson from '@/assets/productData.json';
 
@@ -43,26 +43,23 @@ export const useProductStore = defineStore('product', () => {
   // State for the multi-step form
   const formState = ref({
     isConfirmed: false,
-    sessionId: null, // Add sessionId to the form state
+    sessionId: null,
     generalData: getGeneralDataTemplate(),
     savedProducts: [],
   });
   
-  // Watch for changes in formState and persist them to localStorage
+  // Persist form state while a session is active
   watch(formState, (state) => {
-      if (state.sessionId) {
-          // Persist only the data, not session info or confirmation status
-          const dataToPersist = {
-              generalData: state.generalData,
-              savedProducts: state.savedProducts
-          };
-          localStorage.setItem('defekt_report_form_data', JSON.stringify(dataToPersist));
-      } else {
-          // If there's no session, ensure the persisted data is removed.
-          localStorage.removeItem('defekt_report_form_data');
-      }
+    if (state.sessionId) {
+      const dataToPersist = {
+        generalData: state.generalData,
+        savedProducts: state.savedProducts
+      };
+      localStorage.setItem('defekt_report_form_data', JSON.stringify(dataToPersist));
+    } else {
+      localStorage.removeItem('defekt_report_form_data');
+    }
   }, { deep: true });
-
 
   // GETTERS
   const categories = computed(() => {
@@ -77,216 +74,49 @@ export const useProductStore = defineStore('product', () => {
     return productMapping.value?.symptomSets || {};
   });
 
-  const defectSections = computed(() => {
-    if (!productMapping.value) return [];
-    const reservedKeys = [
-      'categories', 
-      'categoryModels', 
-      'modelFieldConfigs', 
-      'symptomSets', 
-      'basicInfo', 
-      'categoryConfigs'
-    ];
-    return Object.keys(productMapping.value).filter(key => !reservedKeys.includes(key));
-  });
-
   const symptomSetOptions = computed(() => {
-    if (!productMapping.value || !productMapping.value.symptomSets) {
-      return [];
-    }
-    return Object.entries(productMapping.value.symptomSets).map(([key, value]) => ({
-      value: key,
-      label: value.label
-    }));
+    const sets = productMapping.value?.symptomSets || {};
+    return Object.entries(sets).map(([key, val]) => ({ value: key, label: val.label || key }));
   });
 
-  const isConfigured = computed(() => {
-    return productMapping.value !== null;
+  const defectSections = computed(() => {
+    return productMapping.value?.defectSections || ['symptomInfo', 'technicalInfo', 'serialNumbers', 'versions', 'additionalInfo'];
   });
 
-  // Actions
+  // ACTIONS
   const loadConfiguration = async () => {
     try {
       isLoading.value = true;
       error.value = null;
 
-      // STEP 1: Always load the fresh default configuration from the file.
-      // We are commenting out the localStorage logic to avoid stale data during development.
-      let currentMapping = JSON.parse(JSON.stringify(defaultProductMapping));
-      
-      /*
-      const storedProductMapping = loadProductMapping();
-
-      if (storedProductMapping) {
-        Object.keys(storedProductMapping).forEach(key => {
-          if (storedProductMapping[key] && typeof storedProductMapping[key] === 'object' && !Array.isArray(storedProductMapping[key])) {
-            currentMapping[key] = { ...currentMapping[key], ...storedProductMapping[key] };
-          } else if (storedProductMapping[key] !== undefined) {
-            currentMapping[key] = storedProductMapping[key];
+      // 1) Prova a caricare dal backend Nest
+      try {
+        const resp = await fetch('http://localhost:4000/config/latest', { credentials: 'include' });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.content) {
+            productMapping.value = data.content;
+            console.log('Configuration loaded from backend.');
+            return;
           }
-        });
-      }
-      */
-      
-      productMapping.value = currentMapping;
-      
-      console.log('Configuration loaded directly from file:', { 
-        productMapping: productMapping.value
-      });
-    } catch (err) {
-      error.value = 'Failed to load configuration: ' + err.message;
-      console.error('Error loading configuration:', err);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  const updateProductMapping = async (newMapping) => {
-    try {
-      isLoading.value = true;
-      error.value = null;
-      productMapping.value = newMapping;
-      saveProductMapping(newMapping);
-      console.log('Product mapping updated:', newMapping);
-    } catch (err) {
-      error.value = 'Failed to update product mapping: ' + err.message;
-      console.error('Error updating product mapping:', err);
-    } finally {
-      isLoading.value = false;
-    }
-  };
-
-  const updateModelFieldConfigs = (newConfigs) => {
-    if (productMapping.value) {
-      productMapping.value.modelFieldConfigs = newConfigs;
-    }
-  };
-
-  const getModelsForCategory = (category) => {
-    return categoryModels.value[category] || [];
-  };
-
-  const getSymptomSetSymptoms = (setKey) => {
-    if (!productMapping.value || !productMapping.value.symptomSets || !productMapping.value.symptomSets[setKey]) {
-      return [];
-    }
-    return productMapping.value.symptomSets[setKey].symptoms || [];
-  };
-
-  const getModelFields = (modelName) => {
-    if (!productMapping.value || !productMapping.value.modelFieldConfigs) {
-      return [];
-    }
-    return productMapping.value.modelFieldConfigs[modelName] || [];
-  };
-
-  const getCategoryVisibleFields = (category) => {
-    if (!productMapping.value || !productMapping.value.modelFieldConfigs) {
-      return {};
-    }
-  
-    const allFields = Object.values(productMapping.value.modelFieldConfigs).flat();
-    const visibleFields = {};
-  
-    allFields.forEach(field => {
-      if (!field.conditions || field.conditions.length === 0) {
-        if (!visibleFields[field.section]) visibleFields[field.section] = [];
-        visibleFields[field.section].push(field.id);
-      } else {
-        const isVisible = field.conditions.some(condition => 
-          condition.field === 'productCategory' && condition.value === category
-        );
-        if (isVisible) {
-          if (!visibleFields[field.section]) visibleFields[field.section] = [];
-          visibleFields[field.section].push(field.id);
         }
-      }
-    });
-  
-    return visibleFields;
-  };
-
-  const addSymptomSet = (key, setData) => {
-    if (productMapping.value.symptomSets[key]) {
-      return false; // Key already exists
-    }
-    const newMapping = JSON.parse(JSON.stringify(productMapping.value));
-    newMapping.symptomSets[key] = setData;
-    productMapping.value = newMapping;
-    saveProductMapping(newMapping);
-    return true;
-  };
-
-  const updateSymptomSet = (originalKey, newKey, setData) => {
-    const newMapping = JSON.parse(JSON.stringify(productMapping.value));
-    if (originalKey !== newKey && newMapping.symptomSets[newKey]) {
-      return false; // New key already exists
-    }
-    delete newMapping.symptomSets[originalKey];
-    newMapping.symptomSets[newKey] = setData;
-    productMapping.value = newMapping;
-    saveProductMapping(newMapping);
-    return true;
-  };
-
-  const deleteSymptomSet = (key) => {
-    const newMapping = JSON.parse(JSON.stringify(productMapping.value));
-    delete newMapping.symptomSets[key];
-    productMapping.value = newMapping;
-    saveProductMapping(newMapping);
-  };
-
-  const resetToDefaults = () => {
-    productMapping.value = null;
-    error.value = null;
-    saveProductMapping(null);
-    console.log('Reset to default configuration');
-  };
-
-  const exportToJson = () => {
-    try {
-      const currentData = productMapping.value || defaultProductMapping;
-      const jsonString = JSON.stringify(currentData, null, 2);
-      
-      const blob = new Blob([jsonString], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'productData.json';
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-      
-      console.log('Data exported to JSON file');
-      return jsonString;
-    } catch (err) {
-      error.value = 'Failed to export to JSON: ' + err.message;
-      console.error('Error exporting to JSON:', err);
-      throw err;
-    }
-  };
-  
-  const importConfiguration = async (configData) => {
-    try {
-      isLoading.value = true;
-      error.value = null;
-
-      if (configData) {
-        await updateProductMapping(configData);
+      } catch (e) {
+        console.warn('Backend config not available, falling back to bundled productData.json');
       }
 
-      console.log('Configuration imported successfully:', configData);
-    } catch (err) {
-      error.value = 'Failed to import configuration: ' + err.message;
-      console.error('Error importing configuration:', err);
-      throw err;
+      // 2) Fallback: usa il file bundle
+      let currentMapping = JSON.parse(JSON.stringify(defaultProductMapping));
+      productMapping.value = currentMapping;
+      console.log('Configuration loaded from file.');
+
+    } catch (e) {
+      console.error(e);
+      error.value = 'Failed to load configuration';
     } finally {
       isLoading.value = false;
     }
   };
 
-  // ACTIONS FOR THE FORM
   const setConfirmation = (value) => {
     formState.value.isConfirmed = value;
   };
@@ -307,79 +137,99 @@ export const useProductStore = defineStore('product', () => {
 
   const resetForm = () => {
     formState.value.isConfirmed = false;
-    formState.value.sessionId = null; // Reset sessionId
+    formState.value.sessionId = null;
     formState.value.generalData = getGeneralDataTemplate();
     formState.value.savedProducts = [];
-    // Also clear the persisted data from localStorage
     localStorage.removeItem('defekt_report_form_data');
     console.log('Form state and persisted data have been reset.');
   };
 
   const startSession = () => {
-      const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-      formState.value.sessionId = newSessionId;
-      sessionStorage.setItem('defekt_report_session_id', newSessionId);
-      console.log('Form session started:', newSessionId);
+    const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    formState.value.sessionId = newSessionId;
+    sessionStorage.setItem('defekt_report_session_id', newSessionId);
+    console.log('Form session started:', newSessionId);
   };
 
   const loadSession = () => {
-      const storedSessionId = sessionStorage.getItem('defekt_report_session_id');
-      if (storedSessionId) {
-          formState.value.sessionId = storedSessionId;
-          console.log('Form session loaded from sessionStorage:', storedSessionId);
+    const storedSessionId = sessionStorage.getItem('defekt_report_session_id');
+    if (storedSessionId) {
+      formState.value.sessionId = storedSessionId;
+      console.log('Form session loaded from sessionStorage:', storedSessionId);
 
-          // Now, try to load the persisted form data
-          const persistedData = localStorage.getItem('defekt_report_form_data');
-          if (persistedData) {
-              try {
-                  const parsedData = JSON.parse(persistedData);
-                  formState.value.generalData = parsedData.generalData;
-                  formState.value.savedProducts = parsedData.savedProducts;
-                  console.log('Successfully hydrated form state from localStorage.');
-              } catch (error) {
-                  console.error('Failed to parse persisted form data:', error);
-              }
-          }
+      const persistedData = localStorage.getItem('defekt_report_form_data');
+      if (persistedData) {
+        try {
+          const parsedData = JSON.parse(persistedData);
+          formState.value.generalData = parsedData.generalData;
+          formState.value.savedProducts = parsedData.savedProducts;
+          console.log('Successfully hydrated form state from localStorage.');
+        } catch (error) {
+          console.error('Failed to parse persisted form data:', error);
+        }
       }
+    }
+  };
+
+  // UTILITIES MAPPING
+  const getModelsForCategory = (category) => {
+    return (productMapping.value?.categoryModels?.[category]) || [];
+  };
+
+  const getModelFields = (model) => {
+    return (productMapping.value?.modelFieldConfigs?.[model]) || [];
+  };
+
+  const getSymptomAreasForModel = (model) => {
+    const fields = getModelFields(model);
+    const areaField = fields.find(f => f.isSymptomArea);
+    if (!areaField) return [];
+    const sets = productMapping.value?.symptomSets || {};
+    return (areaField.options || [])
+      .filter(setKey => !!sets[setKey])
+      .map(setKey => sets[setKey].label);
+  };
+
+  const getSymptomSetSymptoms = (setKey) => {
+    const set = productMapping.value?.symptomSets?.[setKey];
+    return set?.options || [];
+  };
+
+  const updateProductMapping = (mapping) => {
+    productMapping.value = mapping;
+  };
+
+  const updateModelFieldConfigs = (newConfigs) => {
+    if (!productMapping.value) return;
+    productMapping.value.modelFieldConfigs = newConfigs;
   };
 
   return {
-    // State
     productMapping,
     isLoading,
     error,
     formState,
 
-    // Getters
     categories,
     categoryModels,
-    isConfigured,
     symptomSets,
     symptomSetOptions,
     defectSections,
 
-    // Actions
     loadConfiguration,
-    updateProductMapping,
-    updateModelFieldConfigs,
-    getModelsForCategory,
-    getModelFields,
-    getCategoryVisibleFields,
-    resetToDefaults,
-    exportToJson,
-    importConfiguration,
-    getSymptomSetSymptoms,
-    addSymptomSet,
-    updateSymptomSet,
-    deleteSymptomSet,
-    
-    // Form Actions
     setConfirmation,
     addProduct,
     updateProduct,
     deleteProduct,
     resetForm,
     startSession,
-    loadSession
+    loadSession,
+
+    getModelsForCategory,
+    getModelFields,
+    getSymptomAreasForModel,
+    getSymptomSetSymptoms,
+    updateProductMapping,
+    updateModelFieldConfigs,
   };
 }); 
