@@ -146,6 +146,7 @@ model EmailConfig {
   supplierRecipient String?
   testingRecipient  String?
   createdAt         DateTime @default(now())
+  downloadHtmlReports Boolean @default(true)
 }
 
 // =====================

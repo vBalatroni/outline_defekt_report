@@ -60,6 +60,8 @@
             <option value="text">text</option>
             <option value="email">email</option>
             <option value="tel">tel</option>
+            <option value="number">number</option>
+            <option value="range">range</option>
             <option value="file">file</option>
           </select>
         </div>
@@ -161,7 +163,7 @@ const reloadFromServer = async () => {
 };
 
 const initFromCurrent = () => {
-  const general = store.formState?.generalData || {};
+  const general = JSON.parse(JSON.stringify(store.formState?.generalData || {}));
   const next = { sections: {} };
   Object.keys(general).forEach((sectionKey) => {
     const section = general[sectionKey];

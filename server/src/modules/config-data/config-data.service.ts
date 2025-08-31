@@ -99,7 +99,8 @@ export class ConfigDataService {
       categoryModels,
       modelFieldConfigs,
       symptomSets,
-      emailConfig: emailCfg ? { supplierRecipient: emailCfg.supplierRecipient || null, testingRecipient: emailCfg.testingRecipient || null } : undefined,
+      // Use normalized EmailConfig record from DB (latest)
+      emailConfig: (emailCfg ? { supplierRecipient: emailCfg.supplierRecipient || null, testingRecipient: emailCfg.testingRecipient || null, downloadHtmlReports: emailCfg.downloadHtmlReports } : undefined),
       generalFieldsConfig: extra.generalFieldsConfig || undefined,
     };
     return assembled;
@@ -278,6 +279,11 @@ export class ConfigDataService {
     const raw = await fs.readFile(filePath, 'utf-8');
     const json = JSON.parse(raw);
     return this.importFromJson(json);
+  }
+
+  async setEmailConfig(cfg: { supplierRecipient?: string | null; testingRecipient?: string | null; downloadHtmlReports?: boolean }) {
+    const { supplierRecipient = null, testingRecipient = null, downloadHtmlReports = true } = cfg || {};
+    await this.prisma.emailConfig.create({ data: { supplierRecipient, testingRecipient, downloadHtmlReports } });
   }
 }
 

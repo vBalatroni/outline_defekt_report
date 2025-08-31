@@ -34,6 +34,14 @@ export class ConfigDataController {
   importDefault() {
     return this.service.importDefaultFromFile();
   }
+
+  @Post('email')
+  async setEmail(@Body() body: any) {
+    if (!body || typeof body !== 'object') throw new BadRequestException('Invalid payload');
+    const { supplierRecipient, testingRecipient } = body;
+    await this.service.setEmailConfig({ supplierRecipient, testingRecipient });
+    return { ok: true };
+  }
 }
 
 

@@ -1,11 +1,24 @@
 import { Body, Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
+import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { MailService } from './mail.service';
 
 class SendMailDto {
+  @IsString()
   supplierHtml!: string;
+
+  @IsString()
   customerHtml!: string;
-  supplierRecipient!: string;
-  customerRecipient!: string;
+
+  @IsOptional()
+  @IsEmail()
+  supplierRecipient?: string;
+
+  @IsOptional()
+  @IsEmail()
+  customerRecipient?: string;
+
+  @IsOptional()
+  @IsEmail()
   testRecipient?: string;
 }
 
@@ -15,8 +28,9 @@ export class MailController {
 
   @Post('send')
   async send(@Body() body: SendMailDto) {
-    const supplierTo = body.testRecipient || body.supplierRecipient;
-    const customerTo = body.testRecipient || body.customerRecipient;
+    const defaults = this.mail.getDefaultRecipients();
+    const supplierTo = body.testRecipient || body.supplierRecipient || defaults.supplier;
+    const customerTo = body.testRecipient || body.customerRecipient || defaults.testing;
 
     if (!supplierTo || !customerTo) {
       throw new HttpException('Missing recipients', HttpStatus.BAD_REQUEST);

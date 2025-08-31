@@ -27,19 +27,43 @@ onMounted(async () => {
     const generalData = store.formState.generalData;
     const savedProducts = JSON.parse(localStorage.getItem('defekt_report_data') || '[]');
 
-    // Resolve recipients robustly
+    // Resolve recipients & settings robustly
     const emailCfg = store.productMapping?.emailConfig || {};
     const testingRecipient = emailCfg.testingRecipient || '';
     const supplierRecipient = emailCfg.supplierRecipient || testingRecipient || '';
-    const customerRecipient = (generalData?.companyData?.email?.value) || testingRecipient || '';
+    // Resolve customer email robustly: prefer companyData.email, else first email-typed field anywhere, else testing
+    const findFirstEmail = (gd) => {
+        try {
+            for (const sectionKey in gd || {}) {
+                const section = gd[sectionKey];
+                for (const fieldKey in section || {}) {
+                    const f = section[fieldKey];
+                    if ((f?.type === 'email' || /email/i.test(f?.id || '') || /email/i.test(f?.label || '')) && f?.value) {
+                        return f.value;
+                    }
+                }
+            }
+        } catch (_) {}
+        return '';
+    };
+    const customerRecipient = (generalData?.companyData?.email?.value) || findFirstEmail(generalData) || testingRecipient || '';
 
     if (savedProducts.length > 0) {
-        const supplierHtml = generateSupplierHtml(generalData, savedProducts);
-        const customerHtml = generateCustomerHtml(generalData, savedProducts);
+        let supplierHtml = generateSupplierHtml(generalData, savedProducts) || '';
+        let customerHtml = generateCustomerHtml(generalData, savedProducts) || '';
+        const fallbackIfEmpty = (str, title) => {
+          const safe = String(str || '').trim();
+          if (safe.length > 20) return safe;
+          return `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>${title}</title></head><body><p>Defekt Report</p></body></html>`;
+        };
+        supplierHtml = fallbackIfEmpty(supplierHtml, 'Defekt Report');
+        customerHtml = fallbackIfEmpty(customerHtml, 'Defekt Report');
 
-        // Download copies regardless
-        downloadFile('defekt_report_supplier.html', supplierHtml);
-        downloadFile('defekt_report_customer.html', customerHtml);
+        // Download copies only if enabled
+        if (emailCfg.downloadHtmlReports !== false) {
+          downloadFile('defekt_report_supplier.html', supplierHtml);
+          downloadFile('defekt_report_customer.html', customerHtml);
+        }
         
         // Send emails only if we have recipients
         if (supplierRecipient && customerRecipient) {
