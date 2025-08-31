@@ -1,0 +1,43 @@
+<?php
+/**
+ * Email Configuration Template.
+ *
+ * TO USE:
+ * 1. RENAME this file to `email_config.php`.
+ * 2. PLACE it in a secure, non-public directory (e.g., one level above your project root).
+ *    The `sendEmail.php` script is configured to look for it at `../../email_config.php`.
+ * 3. FILL IN your actual SMTP credentials below.
+ *
+ * IMPORTANT: DO NOT commit the `email_config.php` file to your version control (Git).
+ * The .gitignore file has been updated to ignore `email_config.php`.
+ */
+
+// ** GMAIL SMTP SETTINGS (for Google Workspace) **
+// For a standard Gmail or Google Workspace account, you will likely need to create an "App Password".
+// 1. Go to your Google Account settings: https://myaccount.google.com/
+// 2. Go to "Security".
+// 3. Enable 2-Step Verification if you haven't already.
+// 4. Go to "App passwords" (it will appear after 2FA is enabled).
+// 5. Generate a new password for "Mail" on "Other (Custom name)". Name it something like "DefektReportMailer".
+// 6. Copy the generated 16-character password and paste it into SMTP_PASSWORD below.
+
+// SMTP Host for Google
+define('SMTP_HOST', 'smtp.gmail.com');
+
+// Your full Google Workspace email address
+define('SMTP_USERNAME', 'your-email@your-google-workspace-domain.com');
+
+// The 16-character App Password you generated
+define('SMTP_PASSWORD', 'your-google-app-password');
+
+// The port for TLS encryption
+define('SMTP_PORT', 587);
+
+// The encryption method (TLS is recommended for Gmail)
+define('SMTP_SECURE', 'tls'); // Can also be 'ssl' for port 465
+
+// The "From" email address (should be the same as SMTP_USERNAME)
+define('FROM_EMAIL', 'your-email@your-google-workspace-domain.com');
+
+// The "From" name that will appear in the recipient's inbox
+define('FROM_NAME', 'Defekt Report System'); 

@@ -66,7 +66,9 @@
       "V15_KIT",
       "V24_BGM_KIT",
       "V6.5_KIT",
-      "V8CX_KIT"
+      "V8CX_KIT",
+      "Dupe",
+      "DVS_115_SW_iSP_copy"
     ],
     "Passive Speaker": [
       "AI_41",
@@ -394,6 +396,16 @@
       "label": "Three Phase Without Neutral",
       "symptoms": [
         ">240VAC"
+      ]
+    },
+    "Test_solo_per_quello": {
+      "label": "Test ",
+      "symptoms": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
       ]
     }
   },
@@ -999,6 +1011,10 @@
     "Boat",
     "Laboratory"
   ],
+  "emailConfig": {
+    "supplierRecipient": "supplier@example.com",
+    "testingRecipient": "test@example.com"
+  },
   "voltageTypes": {
     "Active Speaker": [
       "Single_phase",
@@ -1192,6 +1208,263 @@
         "order": 4,
         "conditions": [],
         "section": ""
+      }
+    ],
+    "DVS_118_SW_iSP": [
+      {
+        "id": "nome",
+        "label": "Nome",
+        "type": "text",
+        "required": false,
+        "order": 0,
+        "conditions": [],
+        "section": ""
+      },
+      {
+        "id": "cognome",
+        "label": "Cognome",
+        "type": "text",
+        "required": false,
+        "order": 1,
+        "conditions": [
+          {
+            "field": "nome",
+            "operator": "equals",
+            "value": "Valerio"
+          }
+        ],
+        "section": ""
+      },
+      {
+        "id": "campoA",
+        "label": "Campo A",
+        "type": "select",
+        "required": false,
+        "order": 2,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": false,
+        "options": [
+          "Opzione 1",
+          "Opzione 2",
+          "Opzione 3"
+        ]
+      },
+      {
+        "id": "campoB",
+        "label": "Campo B",
+        "type": "select",
+        "required": false,
+        "order": 3,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "campoA",
+        "valueMapping": {
+          "Opzione 1": {
+            "type": "symptomSet",
+            "key": "audio"
+          },
+          "Opzione 2": {
+            "type": "static",
+            "options": [
+              "A\\nB\\nC"
+            ]
+          },
+          "Opzione 3": {
+            "type": "symptomSet",
+            "key": "Test_solo_per_quello"
+          }
+        }
+      }
+    ],
+    "Dupe": [
+      {
+        "id": "symptomArea_copy_1753799055488",
+        "label": "Symptom Area",
+        "type": "select",
+        "required": false,
+        "order": 0,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": true,
+        "options": [
+          "armonia_1",
+          "mechanical_issue_1",
+          "electronics_1",
+          "hardware_1"
+        ]
+      },
+      {
+        "id": "symptomFound_copy_1753799055488",
+        "label": "Symptom Found",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "symptomArea_copy_1753799055488",
+        "valueMapping": {
+          "armonia_1": {
+            "type": "symptomSet",
+            "key": "armonia_1"
+          },
+          "mechanical_issue_1": {
+            "type": "symptomSet",
+            "key": "mechanical_issue_1"
+          },
+          "electronics_1": {
+            "type": "symptomSet",
+            "key": "electronics_1"
+          },
+          "hardware_1": {
+            "type": "symptomSet",
+            "key": "hardware_1"
+          }
+        }
+      },
+      {
+        "id": "main_copy_1753799055488",
+        "label": "Main",
+        "type": "select",
+        "required": false,
+        "order": 2,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": true,
+        "options": [
+          "singlePhase",
+          "biPhase",
+          "threePhaseWithNeutral",
+          "threePhaseWithoutNeutral"
+        ]
+      },
+      {
+        "id": "range_copy_1753799055488",
+        "label": "Range",
+        "type": "select",
+        "required": false,
+        "order": 3,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "main_copy_1753799055488",
+        "valueMapping": {
+          "singlePhase": {
+            "type": "symptomSet",
+            "key": "singlePhase"
+          },
+          "biPhase": {
+            "type": "symptomSet",
+            "key": "biPhase"
+          },
+          "threePhaseWithNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithNeutral"
+          },
+          "threePhaseWithoutNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithoutNeutral"
+          }
+        }
+      }
+    ],
+    "DVS_115_SW_iSP_copy": [
+      {
+        "id": "symptomArea_copy_1753801183410",
+        "label": "Symptom Area",
+        "type": "select",
+        "required": false,
+        "order": 0,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": true,
+        "options": [
+          "armonia_1",
+          "mechanical_issue_1",
+          "electronics_1",
+          "hardware_1"
+        ]
+      },
+      {
+        "id": "symptomFound_copy_1753801183410",
+        "label": "Symptom Found",
+        "type": "select",
+        "required": false,
+        "order": 1,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "symptomArea_copy_1753801183410",
+        "valueMapping": {
+          "armonia_1": {
+            "type": "symptomSet",
+            "key": "armonia_1"
+          },
+          "mechanical_issue_1": {
+            "type": "symptomSet",
+            "key": "mechanical_issue_1"
+          },
+          "electronics_1": {
+            "type": "symptomSet",
+            "key": "electronics_1"
+          },
+          "hardware_1": {
+            "type": "symptomSet",
+            "key": "hardware_1"
+          }
+        }
+      },
+      {
+        "id": "main_copy_1753801183410",
+        "label": "Main",
+        "type": "select",
+        "required": false,
+        "order": 2,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": true,
+        "options": [
+          "singlePhase",
+          "biPhase",
+          "threePhaseWithNeutral",
+          "threePhaseWithoutNeutral"
+        ]
+      },
+      {
+        "id": "range_copy_1753801183410",
+        "label": "Range",
+        "type": "select",
+        "required": false,
+        "order": 3,
+        "conditions": [],
+        "section": "",
+        "isSymptomArea": false,
+        "options": [],
+        "dependsOn": "main_copy_1753801183410",
+        "valueMapping": {
+          "singlePhase": {
+            "type": "symptomSet",
+            "key": "singlePhase"
+          },
+          "biPhase": {
+            "type": "symptomSet",
+            "key": "biPhase"
+          },
+          "threePhaseWithNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithNeutral"
+          },
+          "threePhaseWithoutNeutral": {
+            "type": "symptomSet",
+            "key": "threePhaseWithoutNeutral"
+          }
+        }
       }
     ]
   }
