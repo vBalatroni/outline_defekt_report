@@ -898,29 +898,8 @@ const duplicateModel = (modelToDuplicate) => {
 
     const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
     const modelFieldConfigs = currentMapping.modelFieldConfigs;
-    
+    // Refactor: keep original field IDs when duplicating a model.
     const fieldsToCopy = JSON.parse(JSON.stringify(modelFieldConfigs[modelToDuplicate] || []));
-    
-    const idMapping = {};
-    fieldsToCopy.forEach(field => {
-        const oldId = field.id;
-        const newId = `${field.id}_copy_${Date.now()}`;
-        idMapping[oldId] = newId;
-        field.id = newId;
-    });
-
-    fieldsToCopy.forEach(field => {
-        if (field.dependsOn && idMapping[field.dependsOn]) {
-            field.dependsOn = idMapping[field.dependsOn];
-        }
-        if (field.conditions) {
-            field.conditions.forEach(condition => {
-                if(idMapping[condition.field]) {
-                    condition.field = idMapping[condition.field];
-                }
-            });
-        }
-    });
 
     currentMapping.modelFieldConfigs[newModelName] = fieldsToCopy;
 
