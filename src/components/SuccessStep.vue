@@ -24,52 +24,54 @@ const downloadFile = (filename, content) => {
 };
 
 onMounted(async () => {
-    // 1. Get data
     const generalData = store.formState.generalData;
-    // The data from ProductsStep is no longer in the store, but in localStorage
     const savedProducts = JSON.parse(localStorage.getItem('defekt_report_data') || '[]');
-    const customerRecipient = generalData.companyData.email.value;
-    const supplierRecipient = store.productMapping?.emailConfig?.supplierRecipient;
-    const testRecipient = store.productMapping?.emailConfig?.testingRecipient;
 
+    // Resolve recipients robustly
+    const emailCfg = store.productMapping?.emailConfig || {};
+    const testingRecipient = emailCfg.testingRecipient || '';
+    const supplierRecipient = emailCfg.supplierRecipient || testingRecipient || '';
+    const customerRecipient = (generalData?.companyData?.email?.value) || testingRecipient || '';
 
     if (savedProducts.length > 0) {
-        // 2. Generate HTML content
         const supplierHtml = generateSupplierHtml(generalData, savedProducts);
         const customerHtml = generateCustomerHtml(generalData, savedProducts);
 
-        // 3. Trigger downloads
+        // Download copies regardless
         downloadFile('defekt_report_supplier.html', supplierHtml);
         downloadFile('defekt_report_customer.html', customerHtml);
         
-        // 4. Send emails via API
-        try {
-            const response = await fetch('http://localhost:4000/mail/send', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    supplierHtml,
-                    customerHtml,
-                    supplierRecipient,
-                    customerRecipient,
-                    testRecipient
-                }),
-            });
+        // Send emails only if we have recipients
+        if (supplierRecipient && customerRecipient) {
+            try {
+                const response = await fetch('http://localhost:4000/mail/send', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        supplierHtml,
+                        customerHtml,
+                        supplierRecipient,
+                        customerRecipient,
+                        testRecipient: testingRecipient || undefined
+                    }),
+                });
 
-            const result = await response.json();
-
-            if (!response.ok || !result.success) {
-                throw new Error(result.message || 'Unknown error sending email.');
+                const result = await response.json().catch(() => ({}));
+                if (!response.ok || (result && result.success === false)) {
+                    throw new Error(result?.message || 'Unknown error sending email.');
+                }
+                emailStatus.value = 'success';
+            } catch (error) {
+                console.error('Failed to send emails:', error);
+                emailStatus.value = 'error';
+                emailError.value = error.message;
             }
-            
-            emailStatus.value = 'success';
-
-        } catch (error) {
-            console.error('Failed to send emails:', error);
+        } else {
+            // No recipients configured; skip email send
             emailStatus.value = 'error';
-            emailError.value = error.message;
+            emailError.value = 'Missing recipients: configure emailConfig or customer email.';
         }
 
     } else {
@@ -78,7 +80,23 @@ onMounted(async () => {
         emailError.value = 'No product data found to create a report.';
     }
 
-    // 5. Reset the form state and clear storage AFTER everything is done
+    // Save submission (use deep-clone to avoid Proxy serialization)
+    try {
+        const safeGeneralData = JSON.parse(JSON.stringify(generalData));
+        await fetch('http://localhost:4000/submissions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                sessionId: store.formState.sessionId,
+                generalData: safeGeneralData,
+                products: savedProducts,
+                emailStatus: emailStatus.value
+            })
+        });
+    } catch (e) {
+        console.warn('Failed to save submission to DB:', e);
+    }
+
     store.resetForm();
     localStorage.removeItem('defekt_report_data');
     sessionStorage.removeItem('defekt_report_session_id');

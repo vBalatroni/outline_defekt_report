@@ -28,4 +28,13 @@ model EmailLog {
   error      String?
 }
 
+model Submission {
+  id          String   @id @default(cuid())
+  createdAt   DateTime @default(now())
+  sessionId   String?
+  generalData Json
+  products    Json
+  emailStatus String?
+}
+
 
