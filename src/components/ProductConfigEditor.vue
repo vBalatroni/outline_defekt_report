@@ -3,7 +3,8 @@
     <div class="editor-header">
       <h2>Product Model Field Editor</h2>
       <div class="header-actions">
-        <button @click="saveConfigurationToServer" class="btn btn-primary" :disabled="isSaving">
+        <div v-if="hasUnsavedChanges" class="unsaved-indicator" title="There are unsaved changes">● Unsaved changes</div>
+        <button @click="saveConfigurationToServer" class="btn btn-primary" :disabled="isSaving || !hasUnsavedChanges">
             {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
         <button @click="importDefaultIntoDb" class="btn btn-warning" :disabled="isSaving">
@@ -13,6 +14,15 @@
             Reload from server
         </button>
         <button @click="exportConfiguration" class="btn btn-success">Export Configuration to JSON</button>
+      </div>
+    </div>
+    
+    <!-- Toasts -->
+    <div class="toast-container" aria-live="polite" aria-atomic="true">
+      <div v-for="t in toasts" :key="t.id" class="toast-item" :class="`toast-${t.type}`">
+        <span class="toast-message">{{ t.message }}</span>
+        <button v-if="t.actionText" class="btn btn-sm btn-link toast-action" @click="handleToastAction(t.id)">{{ t.actionText }}</button>
+        <button class="btn btn-sm btn-link toast-close" @click="removeToast(t.id)">×</button>
       </div>
     </div>
     <p>Select a category and a model to configure its specific form fields.</p>
@@ -42,7 +52,15 @@
         <div v-if="availableModels.length > 0" class="model-list">
             <div v-for="model in filteredModels" :key="model" class="model-card" @click="openModelEditor(model)">
                 <div class="model-card-content">
-                    <h4>{{ model }}</h4>
+                    <div class="model-card-title">
+                        <span class="model-icon">📦</span>
+                        <h4>{{ model }}</h4>
+                        <span class="badge">{{ getFieldCount(model) }}</span>
+                    </div>
+                    <div class="model-preview" v-if="getPreviewFieldLabels(model).length">
+                        <span class="chip" v-for="label in getPreviewFieldLabels(model)" :key="label">{{ label }}</span>
+                        <span v-if="getFieldCount(model) > 3" class="more-chip">+{{ getFieldCount(model) - 3 }}</span>
+                    </div>
                 </div>
                 <div class="model-card-actions">
                     <button @click.stop="duplicateModel(model)" class="btn btn-sm btn-secondary">Duplicate</button>
@@ -69,7 +87,18 @@
                         <button @click="openAddFieldModal" class="btn btn-primary">Add Field</button>
                     </div>
                     <div v-if="modelFields.length > 0" class="field-list">
-                        <div v-for="(field, index) in modelFields" :key="index" class="field-card" :class="{ 'is-active': showFieldModal && editingFieldIndex === index }">
+                        <div 
+                            v-for="(field, index) in sortedModelFields" 
+                            :key="index" 
+                            class="field-card" 
+                            :class="{ 'is-active': showFieldModal && editingFieldIndex === index, 'drag-over': dragOverIndex === index, 'is-dragging': dragIndex === index }"
+                            draggable="true"
+                            @dragstart="onDragStart(index)"
+                            @dragenter.prevent="onDragEnter(index)"
+                            @dragover.prevent="onDragOver($event, index)"
+                            @drop.prevent="onDrop(index)"
+                            @dragend="onDragEnd"
+                        >
                             <div class="field-details">
                                 <span><strong>ID:</strong> {{ field.id }}</span>
                                 <span><strong>Label:</strong> {{ field.label }}</span>
@@ -93,6 +122,12 @@
                 <div class="field-editor-pane">
                     <div v-if="showFieldModal" class="field-editor-form">
                         <h3>{{ isEditing ? 'Edit Field' : 'Add New Field' }}</h3>
+                        <div v-if="isEditing" class="field-summary">
+                            <div class="summary-item"><strong>ID:</strong> {{ activeField.id }}</div>
+                            <div class="summary-item"><strong>Type:</strong> {{ activeField.type }}</div>
+                            <div class="summary-item"><strong>Section:</strong> {{ activeField.section || '-' }}</div>
+                            <div class="summary-item"><strong>Order:</strong> {{ activeField.order }}</div>
+                        </div>
                         <div class="field-editor-grid">
                             <!-- Column 1: General Settings -->
                             <div class="editor-column">
@@ -246,6 +281,18 @@
         </div>
     </div>
 
+    <!-- Confirm Dialog -->
+    <div v-if="confirmDialog.visible" class="modal-overlay">
+      <div class="modal-content">
+        <h3 style="margin-top:0">{{ confirmDialog.title || 'Please confirm' }}</h3>
+        <p>{{ confirmDialog.message }}</p>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" @click="closeConfirmDialog">{{ confirmDialog.cancelText || 'Cancel' }}</button>
+          <button class="btn btn-primary" @click="confirmDialogConfirm">{{ confirmDialog.confirmText || 'Confirm' }}</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -261,6 +308,50 @@ const selectedModel = ref('');
 const searchQuery = ref('');
 const showModelEditorModal = ref(false);
 const isSaving = ref(false);
+const hasUnsavedChanges = ref(false);
+
+// Toast system
+const toasts = ref([]);
+const showToast = ({ message, type = 'info', duration = 3000, actionText = null, onAction = null }) => {
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  toasts.value.push({ id, message, type, actionText, onAction });
+  if (duration) {
+    setTimeout(() => removeToast(id), duration);
+  }
+};
+const removeToast = (id) => {
+  toasts.value = toasts.value.filter(t => t.id !== id);
+};
+const handleToastAction = (id) => {
+  const t = toasts.value.find(x => x.id === id);
+  if (t && typeof t.onAction === 'function') {
+    t.onAction();
+  }
+  removeToast(id);
+};
+
+// Confirm dialog
+const confirmDialog = reactive({ visible: false, title: '', message: '', confirmText: '', cancelText: '', onConfirm: null });
+const askConfirmation = ({ title = 'Please confirm', message = '', confirmText = 'Confirm', cancelText = 'Cancel', onConfirm = null }) => {
+  confirmDialog.title = title;
+  confirmDialog.message = message;
+  confirmDialog.confirmText = confirmText;
+  confirmDialog.cancelText = cancelText;
+  confirmDialog.onConfirm = onConfirm;
+  confirmDialog.visible = true;
+};
+const closeConfirmDialog = () => {
+  confirmDialog.visible = false;
+};
+const confirmDialogConfirm = async () => {
+  const fn = confirmDialog.onConfirm;
+  confirmDialog.visible = false;
+  if (typeof fn === 'function') await fn();
+};
+
+// Dirty helpers
+const markDirty = () => { hasUnsavedChanges.value = true; };
+const resetDirty = () => { hasUnsavedChanges.value = false; };
 
 // Modal state
 const showFieldModal = ref(false);
@@ -323,9 +414,58 @@ const filteredModels = computed(() => {
     );
 });
 
+const getFieldCount = (model) => {
+    return (productStore.productMapping?.modelFieldConfigs?.[model] || []).length;
+};
+const getPreviewFieldLabels = (model) => {
+    const fields = (productStore.productMapping?.modelFieldConfigs?.[model] || []);
+    return fields.slice(0, 3).map(f => f.label || f.id);
+};
+
 const modelFields = computed(() => {
     return productStore.productMapping?.modelFieldConfigs?.[selectedModel.value] || [];
 });
+const sortedModelFields = computed(() => {
+    return [...modelFields.value].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+});
+
+// Drag & Drop state and handlers
+const dragIndex = ref(null);
+const dragOverIndex = ref(null);
+const onDragStart = (index) => {
+    dragIndex.value = index;
+};
+const onDragEnter = (index) => {
+    dragOverIndex.value = index;
+};
+const onDragOver = (e, index) => {
+    e.dataTransfer.dropEffect = 'move';
+    dragOverIndex.value = index;
+};
+const onDrop = (dropIndex) => {
+    if (dragIndex.value === null || dropIndex === null || dragIndex.value === dropIndex) {
+        onDragEnd();
+        return;
+    }
+    const current = JSON.parse(JSON.stringify(productStore.productMapping.modelFieldConfigs));
+    const list = current[selectedModel.value] || [];
+    // reorder based on sorted indexes mapping back to original ids
+    const sorted = [...list].sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
+    const draggedItem = sorted[dragIndex.value];
+    sorted.splice(dragIndex.value, 1);
+    sorted.splice(dropIndex, 0, draggedItem);
+    // reassign order sequentially
+    sorted.forEach((item, i) => { item.order = i; });
+    // write back maintaining same ids
+    current[selectedModel.value] = sorted;
+    productStore.updateModelFieldConfigs(current);
+    markDirty();
+    onDragEnd();
+};
+const onDragEnd = () => {
+    dragIndex.value = null;
+    dragOverIndex.value = null;
+};
 
 const availableParentFields = computed(() => {
     if (!selectedModel.value || !isEditing.value) return [];
@@ -429,7 +569,7 @@ const openEditFieldModal = (index) => {
 
 const saveField = () => {
     if (!activeField.id || !activeField.label) {
-        alert('Field ID and Label are required.');
+        showToast({ message: 'Field ID and Label are required.', type: 'danger' });
         return;
     }
 
@@ -500,24 +640,31 @@ const saveField = () => {
     }
     
     productStore.updateModelFieldConfigs(newFieldConfigs);
+    markDirty();
     showFieldModal.value = false;
+    showToast({ message: isEditing.value ? 'Field updated.' : 'Field added.', type: 'success' });
 };
 
 const deleteField = (index) => {
-    if (confirm('Are you sure you want to delete this field?')) {
-        const newFieldConfigs = JSON.parse(JSON.stringify(productStore.productMapping.modelFieldConfigs));
-        const fieldToDelete = newFieldConfigs[selectedModel.value][index];
-        
-        newFieldConfigs[selectedModel.value].splice(index, 1);
-
-        if (fieldToDelete.isSymptomArea) {
-            const foundFieldIndex = newFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound' && f.dependsOn === fieldToDelete.id);
-            if (foundFieldIndex !== -1) {
-                newFieldConfigs[selectedModel.value].splice(foundFieldIndex, 1);
+    askConfirmation({
+        title: 'Delete field',
+        message: 'Are you sure you want to delete this field?',
+        confirmText: 'Delete',
+        onConfirm: () => {
+            const newFieldConfigs = JSON.parse(JSON.stringify(productStore.productMapping.modelFieldConfigs));
+            const fieldToDelete = newFieldConfigs[selectedModel.value][index];
+            newFieldConfigs[selectedModel.value].splice(index, 1);
+            if (fieldToDelete && fieldToDelete.isSymptomArea) {
+                const foundFieldIndex = newFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound' && f.dependsOn === fieldToDelete.id);
+                if (foundFieldIndex !== -1) {
+                    newFieldConfigs[selectedModel.value].splice(foundFieldIndex, 1);
+                }
             }
+            productStore.updateModelFieldConfigs(newFieldConfigs);
+            markDirty();
+            showToast({ message: 'Field deleted.', type: 'success' });
         }
-        productStore.updateModelFieldConfigs(newFieldConfigs);
-    }
+    });
 };
 
 const exportConfiguration = () => {
@@ -573,26 +720,58 @@ const addModel = () => {
     currentMapping.modelFieldConfigs[newModelName] = [];
 
     productStore.updateProductMapping(currentMapping);
+    markDirty();
+    showToast({ message: `Model "${newModelName}" added.`, type: 'success' });
 };
 
+const lastDeletedModel = ref(null);
 const deleteModel = (modelToDelete) => {
-    if (!confirm(`Are you sure you want to delete the model "${modelToDelete}"? This action cannot be undone.`)) {
-        return;
-    }
-
-    const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
-
-    const modelsInCategory = currentMapping.categoryModels[selectedCategory.value];
-    if (modelsInCategory) {
-        const index = modelsInCategory.indexOf(modelToDelete);
-        if (index > -1) {
-            modelsInCategory.splice(index, 1);
+    askConfirmation({
+        title: 'Delete model',
+        message: `Are you sure you want to delete the model "${modelToDelete}"? This action cannot be undone.`,
+        confirmText: 'Delete',
+        onConfirm: () => {
+            const currentMapping = JSON.parse(JSON.stringify(productStore.productMapping));
+            const modelsInCategory = currentMapping.categoryModels[selectedCategory.value];
+            let removedIndex = -1;
+            if (modelsInCategory) {
+                const idx = modelsInCategory.indexOf(modelToDelete);
+                if (idx > -1) {
+                    removedIndex = idx;
+                    modelsInCategory.splice(idx, 1);
+                }
+            }
+            const fieldsBackup = currentMapping.modelFieldConfigs[modelToDelete] || [];
+            delete currentMapping.modelFieldConfigs[modelToDelete];
+            productStore.updateProductMapping(currentMapping);
+            lastDeletedModel.value = {
+                category: selectedCategory.value,
+                name: modelToDelete,
+                index: removedIndex,
+                fields: fieldsBackup,
+            };
+            markDirty();
+            showToast({
+                message: `Model "${modelToDelete}" deleted.`,
+                type: 'success',
+                actionText: 'Undo',
+                onAction: () => {
+                    if (!lastDeletedModel.value) return;
+                    const backup = JSON.parse(JSON.stringify(lastDeletedModel.value));
+                    const mapping = JSON.parse(JSON.stringify(productStore.productMapping));
+                    if (!mapping.categoryModels[backup.category]) mapping.categoryModels[backup.category] = [];
+                    if (backup.index >= 0) {
+                        mapping.categoryModels[backup.category].splice(backup.index, 0, backup.name);
+                    } else {
+                        mapping.categoryModels[backup.category].push(backup.name);
+                    }
+                    mapping.modelFieldConfigs[backup.name] = backup.fields;
+                    productStore.updateProductMapping(mapping);
+                    showToast({ message: `Model "${backup.name}" restored.`, type: 'info' });
+                }
+            });
         }
-    }
-
-    delete currentMapping.modelFieldConfigs[modelToDelete];
-
-    productStore.updateProductMapping(currentMapping);
+    });
 };
 
 const duplicateModel = (modelToDuplicate) => {
@@ -642,66 +821,73 @@ const duplicateModel = (modelToDuplicate) => {
     }
     
     productStore.updateProductMapping(currentMapping);
+    markDirty();
+    showToast({ message: `Model duplicated as "${newModelName}".`, type: 'success' });
 };
 
-const saveConfigurationToServer = async () => {
-    if (isSaving.value) return;
-
-    if (!confirm('This will overwrite productData.json on the server. This action cannot be undone.')) {
-        return;
-    }
-
-    isSaving.value = true;
-    
-    const mappingToSave = JSON.parse(JSON.stringify(productStore.productMapping));
-
-    try {
-        const response = await fetch('http://localhost:4000/config/import', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(mappingToSave, null, 2),
-        });
-
-        const resultText = await response.text();
-        if (!response.ok) {
-            throw new Error(`Server responded with status ${response.status}: ${resultText}`);
-        }
-        
-        alert('Configuration imported and saved in database successfully!');
-        productStore.updateProductMapping(mappingToSave);
-
-    } catch (error) {
-        console.error('Failed to save configuration to server:', error);
-        alert(`Failed to save configuration: ${error.message}`);
-    } finally {
-        isSaving.value = false;
-    }
-};
-
-const importDefaultIntoDb = async () => {
-  if (isSaving.value) return;
-  if (!confirm('This will import the default productData.json into the database and may overwrite existing entries. Continue?')) {
-    return;
-  }
+const doSaveConfigurationToServer = async () => {
   isSaving.value = true;
+  const mappingToSave = JSON.parse(JSON.stringify(productStore.productMapping));
   try {
-    const response = await fetch('http://localhost:4000/config/import-default', {
-      method: 'POST'
+    const response = await fetch('http://localhost:4000/config/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mappingToSave, null, 2),
     });
     const resultText = await response.text();
     if (!response.ok) {
       throw new Error(`Server responded with status ${response.status}: ${resultText}`);
     }
-    alert('Default configuration imported into database successfully!');
-    await productStore.loadConfiguration();
-  } catch (err) {
-    console.error('Failed to import default configuration:', err);
-    alert(`Import failed: ${err.message}`);
+    productStore.updateProductMapping(mappingToSave);
+    resetDirty();
+    showToast({ message: 'Configuration saved to server.', type: 'success' });
+  } catch (error) {
+    console.error('Failed to save configuration to server:', error);
+    showToast({ message: `Failed to save configuration: ${error.message}`, type: 'danger', duration: 6000 });
   } finally {
     isSaving.value = false;
   }
+};
+const saveConfigurationToServer = () => {
+  if (isSaving.value) return;
+  if (!hasUnsavedChanges.value) {
+    showToast({ message: 'No changes to save.', type: 'info' });
+    return;
+  }
+  askConfirmation({
+    title: 'Save configuration',
+    message: 'This will overwrite the configuration on the server. Continue?',
+    confirmText: 'Save',
+    onConfirm: doSaveConfigurationToServer,
+  });
+};
+
+const doImportDefaultIntoDb = async () => {
+  isSaving.value = true;
+  try {
+    const response = await fetch('http://localhost:4000/config/import-default', { method: 'POST' });
+    const resultText = await response.text();
+    if (!response.ok) {
+      throw new Error(`Server responded with status ${response.status}: ${resultText}`);
+    }
+    await productStore.loadConfiguration();
+    resetDirty();
+    showToast({ message: 'Default configuration imported.', type: 'success' });
+  } catch (err) {
+    console.error('Failed to import default configuration:', err);
+    showToast({ message: `Import failed: ${err.message}`, type: 'danger', duration: 6000 });
+  } finally {
+    isSaving.value = false;
+  }
+};
+const importDefaultIntoDb = () => {
+  if (isSaving.value) return;
+  askConfirmation({
+    title: 'Import default configuration',
+    message: 'This will import the default productData.json and may overwrite existing entries. Continue?',
+    confirmText: 'Import',
+    onConfirm: doImportDefaultIntoDb,
+  });
 };
 
 const reloadFromServer = async () => {
@@ -714,10 +900,11 @@ const reloadFromServer = async () => {
       selectedModel.value = '';
       searchQuery.value = '';
     }
-    alert('Configuration reloaded from server.');
+    resetDirty();
+    showToast({ message: 'Configuration reloaded from server.', type: 'info' });
   } catch (e) {
     console.error(e);
-    alert('Failed to reload configuration.');
+    showToast({ message: 'Failed to reload configuration.', type: 'danger' });
   } finally {
     isSaving.value = false;
   }
@@ -725,6 +912,7 @@ const reloadFromServer = async () => {
 
 onMounted(() => {
   productStore.loadConfiguration();
+  resetDirty();
 });
 </script>
 
@@ -788,6 +976,8 @@ onMounted(() => {
   border-radius: 8px;
   border: 1px solid #eee;
 }
+.field-summary { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.75rem; margin-bottom: 0.75rem; }
+.summary-item { background: #f7f9fc; border: 1px solid #eef2f7; border-radius: 6px; padding: 0.5rem 0.75rem; font-size: 0.9rem; }
 
 .field-editor-header {
     display: flex;
@@ -817,6 +1007,8 @@ onMounted(() => {
     border: 1px solid #eee;
     position: relative;
 }
+.field-card.is-dragging { opacity: 0.6; }
+.field-card.drag-over { outline: 2px dashed #0d6efd; outline-offset: 2px; }
 
 .field-details {
   display: flex;
@@ -924,6 +1116,40 @@ onMounted(() => {
 .btn-success {
     background-color: #28a745;
     color: white;
+}
+
+/* Toasts */
+.toast-container {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1100;
+}
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-left-width: 4px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.toast-info { border-left-color: #0d6efd; }
+.toast-success { border-left-color: #28a745; }
+.toast-danger { border-left-color: #dc3545; }
+.toast-message { flex: 1; }
+.toast-action { text-decoration: underline; }
+.toast-close { font-size: 1.1rem; line-height: 1; }
+
+.unsaved-indicator {
+  align-self: center;
+  color: #d35400;
+  font-weight: 600;
 }
 
 .dependencies-section, .conditions-section {
@@ -1073,11 +1299,62 @@ onMounted(() => {
   border-color: #007bff;
 }
 
-.model-card-content {
-    flex-grow: 1;
+.model-card-content { flex-grow: 1; display: flex; flex-direction: column; gap: 0.75rem; }
+.model-card-title { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.model-card-title h4 { margin: 0; flex: 1; text-align: left; }
+.model-icon { font-size: 1.1rem; }
+.badge { background: #0d6efd; color: #fff; padding: 0 0.5rem; border-radius: 999px; font-size: 0.75rem; }
+.model-preview { display: flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-start; }
+.chip { background: #eef3ff; border: 1px solid #d9e5ff; color: #2a4d9b; border-radius: 999px; padding: 0.15rem 0.5rem; font-size: 0.8rem; }
+.more-chip { background: #f0f0f0; border: 1px solid #e5e5e5; border-radius: 999px; padding: 0.15rem 0.5rem; font-size: 0.8rem; }
+
+.model-card-title {
     display: flex;
     align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.model-icon {
+    font-size: 1.5rem;
+}
+
+.badge {
+    background-color: #007bff;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.model-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
     justify-content: center;
+    margin-top: 0.5rem;
+}
+
+.chip {
+    background-color: #e0e0e0;
+    color: #333;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
+}
+
+.more-chip {
+    background-color: #007bff;
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: bold;
+    white-space: nowrap;
 }
 
 .model-card-actions {

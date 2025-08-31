@@ -103,6 +103,9 @@ export class ConfigDataService {
   // Import normalized data from current JSON shape
   async importFromJson(content: any) {
     return this.prisma.$transaction(async (tx) => {
+      // Purge normalized tables to reflect the incoming JSON exactly
+      await this.purgeNormalizedData(tx);
+
       // Email config
       if (content.emailConfig) {
         await tx.emailConfig.create({ data: {
@@ -249,6 +252,20 @@ export class ConfigDataService {
       await tx.config.create({ data: { content } });
       return { ok: true };
     });
+  }
+
+  private async purgeNormalizedData(tx: any) {
+    // Delete in dependency-safe order
+    await tx.mappingEntry.deleteMany({});
+    await tx.valueMapping.deleteMany({});
+    await tx.modelField.deleteMany({});
+    await tx.condition.deleteMany({});
+    await tx.symptom.deleteMany({});
+    await tx.symptomSet.deleteMany({});
+    await tx.model.deleteMany({});
+    await tx.category.deleteMany({});
+    await tx.inputField.deleteMany({});
+    await tx.section.deleteMany({});
   }
 
   async importDefaultFromFile() {

@@ -19,6 +19,14 @@
       </div>
     </div>
 
+    <!-- Toasts -->
+    <div class="toast-container" aria-live="polite" aria-atomic="true">
+      <div v-for="t in toasts" :key="t.id" class="toast-item" :class="`toast-${t.type}`">
+        <span class="toast-message">{{ t.message }}</span>
+        <button class="btn btn-sm btn-link toast-close" @click="removeToast(t.id)">×</button>
+      </div>
+    </div>
+
     <!-- Add/Edit Modal -->
     <div v-if="showModal" class="modal-overlay">
         <div class="modal-content">
@@ -43,6 +51,18 @@
         </div>
     </div>
 
+    <!-- Confirm Dialog -->
+    <div v-if="confirmDialog.visible" class="modal-overlay">
+      <div class="modal-content">
+        <h3 style="margin-top:0">{{ confirmDialog.title || 'Please confirm' }}</h3>
+        <p>{{ confirmDialog.message }}</p>
+        <div class="modal-actions">
+          <button class="btn btn-secondary" @click="closeConfirmDialog">{{ confirmDialog.cancelText || 'Cancel' }}</button>
+          <button class="btn btn-primary" @click="confirmDialogConfirm">{{ confirmDialog.confirmText || 'Confirm' }}</button>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -63,6 +83,34 @@ const activeSet = reactive({
 });
 const originalKey = ref('');
 
+// Toasts
+const toasts = ref([]);
+const showToast = ({ message, type = 'info', duration = 3000 }) => {
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  toasts.value.push({ id, message, type });
+  if (duration) setTimeout(() => removeToast(id), duration);
+};
+const removeToast = (id) => {
+  toasts.value = toasts.value.filter(t => t.id !== id);
+};
+
+// Confirm dialog
+const confirmDialog = reactive({ visible: false, title: '', message: '', confirmText: '', cancelText: '', onConfirm: null });
+const askConfirmation = ({ title = 'Please confirm', message = '', confirmText = 'Confirm', cancelText = 'Cancel', onConfirm = null }) => {
+  confirmDialog.title = title;
+  confirmDialog.message = message;
+  confirmDialog.confirmText = confirmText;
+  confirmDialog.cancelText = cancelText;
+  confirmDialog.onConfirm = onConfirm;
+  confirmDialog.visible = true;
+};
+const closeConfirmDialog = () => { confirmDialog.visible = false; };
+const confirmDialogConfirm = async () => {
+  const fn = confirmDialog.onConfirm;
+  confirmDialog.visible = false;
+  if (typeof fn === 'function') await fn();
+};
+
 const openAddModal = () => {
     isEditing.value = false;
     activeSet.key = '';
@@ -77,14 +125,14 @@ const openEditModal = (key) => {
     const setToEdit = symptomSets.value[key];
     activeSet.key = key;
     activeSet.label = setToEdit.label;
-    activeSet.symptoms = setToEdit.symptoms.join('\n');
+    activeSet.symptoms = (setToEdit.symptoms || setToEdit.options || []).join('\n');
     originalKey.value = key;
     showModal.value = true;
 };
 
 const saveSet = () => {
     if (!activeSet.key || !activeSet.label) {
-        alert('Set Key and Label are required.');
+        showToast({ message: 'Set Key and Label are required.', type: 'danger' });
         return;
     }
 
@@ -97,24 +145,31 @@ const saveSet = () => {
     if (isEditing.value) {
         success = productStore.updateSymptomSet(originalKey.value, activeSet.key, setData);
         if (!success) {
-            alert('A set with this key already exists.');
+            showToast({ message: 'A set with this key already exists.', type: 'danger' });
             return;
         }
+        showToast({ message: 'Symptom set updated.', type: 'success' });
     } else {
         success = productStore.addSymptomSet(activeSet.key, setData);
         if (!success) {
-            alert('A set with this key already exists.');
+            showToast({ message: 'A set with this key already exists.', type: 'danger' });
             return;
         }
+        showToast({ message: 'Symptom set added.', type: 'success' });
     }
-    
     showModal.value = false;
 };
 
 const deleteSet = (key) => {
-    if (confirm(`Are you sure you want to delete the symptom set "${key}"?`)) {
+    askConfirmation({
+      title: 'Delete symptom set',
+      message: `Are you sure you want to delete the symptom set "${key}"?`,
+      confirmText: 'Delete',
+      onConfirm: () => {
         productStore.deleteSymptomSet(key);
-    }
+        showToast({ message: 'Symptom set deleted.', type: 'success' });
+      }
+    });
 };
 
 </script>
@@ -206,4 +261,31 @@ const deleteSet = (key) => {
 .btn-secondary { background-color: #6c757d; color: white; }
 .btn-danger { background-color: #dc3545; color: white; }
 .btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+
+/* Toasts */
+.toast-container {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 1100;
+}
+.toast-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-left-width: 4px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+}
+.toast-info { border-left-color: #0d6efd; }
+.toast-success { border-left-color: #28a745; }
+.toast-danger { border-left-color: #dc3545; }
+.toast-message { flex: 1; }
+.toast-close { font-size: 1.1rem; line-height: 1; }
 </style> 
