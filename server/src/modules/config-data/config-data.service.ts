@@ -90,12 +90,17 @@ export class ConfigDataService {
       symptomSets[s.key] = { label: s.label, symptoms: s.symptoms.map(x => x.label) };
     }
 
+    // Try to merge extra config from latest raw snapshot (for non-normalized parts like generalFieldsConfig)
+    const latestRaw = await this.getLatest();
+    const extra: any = (latestRaw?.content as any) || {} as any;
+
     const assembled = {
       categories: categoriesArr,
       categoryModels,
       modelFieldConfigs,
       symptomSets,
       emailConfig: emailCfg ? { supplierRecipient: emailCfg.supplierRecipient || null, testingRecipient: emailCfg.testingRecipient || null } : undefined,
+      generalFieldsConfig: extra.generalFieldsConfig || undefined,
     };
     return assembled;
   }

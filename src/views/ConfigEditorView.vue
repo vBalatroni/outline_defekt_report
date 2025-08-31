@@ -8,6 +8,9 @@
             <span>Models & Fields</span>
             <span class="badge" v-if="categoryCount > 0">{{ categoryCount }}</span>
           </li>
+          <li :class="{ active: activeTab === 'general' }" @click="activeTab = 'general'">
+            <span>General Fields</span>
+          </li>
           <li :class="{ active: activeTab === 'symptoms' }" @click="activeTab = 'symptoms'">
             <span>Symptom Sets</span>
             <span class="badge" v-if="symptomSetCount > 0">{{ symptomSetCount }}</span>
@@ -16,10 +19,13 @@
       </aside>
       <main class="content">
         <header class="content-header">
-          <h2>{{ activeTab === 'models' ? 'Models & Fields' : 'Symptom Sets' }}</h2>
+          <h2>
+            {{ activeTab === 'models' ? 'Models & Fields' : (activeTab === 'general' ? 'General Fields' : 'Symptom Sets') }}
+          </h2>
         </header>
         <section class="content-body">
           <ProductConfigEditor v-if="activeTab === 'models'" />
+          <GeneralFieldsEditor v-else-if="activeTab === 'general'" />
           <SymptomSetEditor v-else />
         </section>
       </main>
@@ -31,6 +37,7 @@
 import { ref, computed } from 'vue';
 import ProductConfigEditor from '@/components/ProductConfigEditor.vue';
 import SymptomSetEditor from '@/components/SymptomSetEditor.vue';
+import GeneralFieldsEditor from '@/components/GeneralFieldsEditor.vue';
 import { useProductStore } from '@/stores/productStore';
 
 const activeTab = ref('models');

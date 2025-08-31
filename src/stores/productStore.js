@@ -6,7 +6,7 @@ import productDataJson from '@/assets/productData.json';
 const defaultProductMapping = productDataJson;
 
 // Template per i dati generali del form, per poterli resettare facilmente
-const getGeneralDataTemplate = () => ({
+const getDefaultGeneralDataTemplate = () => ({
   companyData: {
     customerNumber: { id: "customerNumber", label: "Customer Number", value: "", type: "text", isRequired: true },
     companyName: { id: "companyName", label: "Company Name", value: "", type: "text", isRequired: true },
@@ -44,7 +44,7 @@ export const useProductStore = defineStore('product', () => {
   const formState = ref({
     isConfirmed: false,
     sessionId: null,
-    generalData: getGeneralDataTemplate(),
+    generalData: getDefaultGeneralDataTemplate(),
     savedProducts: [],
   });
   
@@ -138,7 +138,7 @@ export const useProductStore = defineStore('product', () => {
   const resetForm = () => {
     formState.value.isConfirmed = false;
     formState.value.sessionId = null;
-    formState.value.generalData = getGeneralDataTemplate();
+    formState.value.generalData = generateGeneralDataFromConfig(productMapping.value?.generalFieldsConfig) || getDefaultGeneralDataTemplate();
     formState.value.savedProducts = [];
     localStorage.removeItem('defekt_report_form_data');
     console.log('Form state and persisted data have been reset.');
@@ -149,6 +149,12 @@ export const useProductStore = defineStore('product', () => {
     formState.value.sessionId = newSessionId;
     sessionStorage.setItem('defekt_report_session_id', newSessionId);
     console.log('Form session started:', newSessionId);
+    // Ensure current generalFieldsConfig is applied to the live form when starting a new session
+    const cfg = productMapping.value?.generalFieldsConfig;
+    const generated = generateGeneralDataFromConfig(cfg);
+    if (generated) {
+      formState.value.generalData = generated;
+    }
   };
 
   const loadSession = () => {
@@ -204,6 +210,53 @@ export const useProductStore = defineStore('product', () => {
     if (!productMapping.value) return;
     productMapping.value.modelFieldConfigs = newConfigs;
   };
+
+  // =====================
+  // General fields config
+  // =====================
+  const generateGeneralDataFromConfig = (config) => {
+    if (!config || !config.sections) return null;
+    const result = {};
+    Object.entries(config.sections).forEach(([sectionKey, fields]) => {
+      result[sectionKey] = {};
+      (fields || []).sort((a,b) => (a.order ?? 0) - (b.order ?? 0)).forEach((f) => {
+        result[sectionKey][f.id] = {
+          id: f.id,
+          label: f.label || f.id,
+          value: '',
+          type: f.type || 'text',
+          isRequired: !!f.isRequired,
+        };
+      });
+    });
+    // Ensure optional section exists
+    if (!result.otherReturnAddress) {
+      result.otherReturnAddress = getDefaultGeneralDataTemplate().otherReturnAddress;
+    }
+    return result;
+  };
+
+  const updateGeneralFieldsConfig = (newConfig) => {
+    if (!productMapping.value) return;
+    productMapping.value.generalFieldsConfig = newConfig;
+  };
+
+  const applyGeneralFieldsConfigToForm = () => {
+    const cfg = productMapping.value?.generalFieldsConfig;
+    const generated = generateGeneralDataFromConfig(cfg);
+    if (generated) {
+      formState.value.generalData = generated;
+    }
+  };
+
+  // When config loads, if generalFieldsConfig is present and no active session, hydrate generalData
+  watch(productMapping, (val) => {
+    if (!val) return;
+    if (!formState.value.sessionId && val.generalFieldsConfig) {
+      const generated = generateGeneralDataFromConfig(val.generalFieldsConfig);
+      if (generated) formState.value.generalData = generated;
+    }
+  }, { deep: true });
 
   // =====================
   // Category management
@@ -303,6 +356,8 @@ export const useProductStore = defineStore('product', () => {
     getSymptomSetSymptoms,
     updateProductMapping,
     updateModelFieldConfigs,
+    updateGeneralFieldsConfig,
+    applyGeneralFieldsConfigToForm,
     addCategory,
     renameCategory,
     deleteCategory,

@@ -35,6 +35,7 @@ model Submission {
   generalData Json
   products    Json
   emailStatus String?
+  generalFields SubmissionGeneralField[]
 }
 
 // =====================
@@ -145,6 +146,24 @@ model EmailConfig {
   supplierRecipient String?
   testingRecipient  String?
   createdAt         DateTime @default(now())
+}
+
+// =====================
+// Submission normalized fields for step 1 (general data)
+// =====================
+
+model SubmissionGeneralField {
+  id           String     @id @default(cuid())
+  submissionId String
+  submission   Submission @relation(fields: [submissionId], references: [id])
+  section      String?
+  fieldCode    String
+  label        String
+  value        Json
+  
+  @@index([submissionId])
+  @@index([submissionId, section])
+  @@unique([submissionId, section, fieldCode])
 }
 
 
