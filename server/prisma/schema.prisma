@@ -37,4 +37,114 @@ model Submission {
   emailStatus String?
 }
 
+// =====================
+// Normalized Config Schema
+// =====================
+
+model Category {
+  id      String  @id @default(cuid())
+  name    String  @unique
+  models  Model[]
+}
+
+model Model {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  categoryId  String
+  category    Category     @relation(fields: [categoryId], references: [id])
+  modelFields ModelField[]
+  conditions  Condition[]
+  valueMaps   ValueMapping[]
+}
+
+model Section {
+  id    String  @id @default(cuid())
+  name  String  @unique
+  fields InputField[]
+}
+
+model InputField {
+  id            String    @id @default(cuid())
+  fieldCode     String    @unique // es: symptomArea, serialNumber
+  label         String
+  type          String    // text | select | file
+  required      Boolean   @default(false)
+  sortOrder     Int?
+  isSymptomArea Boolean   @default(false)
+  sectionId     String?
+  section       Section?  @relation(fields: [sectionId], references: [id])
+  optionsJson   Json?     // per select: lista opzioni o set keys
+  usedBy        ModelField[]
+  // Disambiguate dual relations from ValueMapping
+  childOfMappings  ValueMapping[] @relation("ValueMappingChildField")
+  parentOfMappings ValueMapping[] @relation("ValueMappingParentField")
+}
+
+model ModelField {
+  id           String     @id @default(cuid())
+  modelId      String
+  inputFieldId String
+  model        Model      @relation(fields: [modelId], references: [id])
+  inputField   InputField @relation(fields: [inputFieldId], references: [id])
+}
+
+enum MappingType {
+  static
+  symptomSet
+}
+
+model ValueMapping {
+  id            String     @id @default(cuid())
+  modelId       String
+  childFieldId  String
+  parentFieldId String
+  model         Model      @relation(fields: [modelId], references: [id])
+  childField    InputField @relation("ValueMappingChildField", fields: [childFieldId], references: [id])
+  parentField   InputField @relation("ValueMappingParentField", fields: [parentFieldId], references: [id])
+  entries       MappingEntry[]
+}
+
+model MappingEntry {
+  id              String       @id @default(cuid())
+  mappingId       String
+  parentOptionKey String
+  type            MappingType
+  optionsJson     Json?
+  symptomSetId    String?
+  mapping         ValueMapping @relation(fields: [mappingId], references: [id])
+  symptomSet      SymptomSet?  @relation("MappingEntrySymptomSet", fields: [symptomSetId], references: [id])
+}
+
+model SymptomSet {
+  id       String    @id @default(cuid())
+  key      String    @unique
+  label    String
+  symptoms Symptom[]
+  mappingEntries MappingEntry[] @relation("MappingEntrySymptomSet")
+}
+
+model Symptom {
+  id          String     @id @default(cuid())
+  setId       String
+  label       String
+  symptomSet  SymptomSet @relation(fields: [setId], references: [id])
+}
+
+model Condition {
+  id        String  @id @default(cuid())
+  modelId   String
+  fieldId   String
+  fieldRef  String  // productCategory | productModel | dynamicFieldId
+  operator  String  // equals | not_equals | contains | exists
+  value     String?
+  model     Model   @relation(fields: [modelId], references: [id])
+}
+
+model EmailConfig {
+  id                String  @id @default(cuid())
+  supplierRecipient String?
+  testingRecipient  String?
+  createdAt         DateTime @default(now())
+}
+
 

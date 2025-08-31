@@ -6,6 +6,12 @@
         <button @click="saveConfigurationToServer" class="btn btn-primary" :disabled="isSaving">
             {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
+        <button @click="importDefaultIntoDb" class="btn btn-warning" :disabled="isSaving">
+            {{ isSaving ? 'Importing...' : 'Import default (from file)' }}
+        </button>
+        <button @click="reloadFromServer" class="btn btn-secondary" :disabled="isSaving">
+            Reload from server
+        </button>
         <button @click="exportConfiguration" class="btn btn-success">Export Configuration to JSON</button>
       </div>
     </div>
@@ -650,7 +656,7 @@ const saveConfigurationToServer = async () => {
     const mappingToSave = JSON.parse(JSON.stringify(productStore.productMapping));
 
     try {
-        const response = await fetch('http://localhost:4000/config', {
+        const response = await fetch('http://localhost:4000/config/import', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -663,7 +669,7 @@ const saveConfigurationToServer = async () => {
             throw new Error(`Server responded with status ${response.status}: ${resultText}`);
         }
         
-        alert('Configuration saved successfully on the server!');
+        alert('Configuration imported and saved in database successfully!');
         productStore.updateProductMapping(mappingToSave);
 
     } catch (error) {
@@ -672,6 +678,49 @@ const saveConfigurationToServer = async () => {
     } finally {
         isSaving.value = false;
     }
+};
+
+const importDefaultIntoDb = async () => {
+  if (isSaving.value) return;
+  if (!confirm('This will import the default productData.json into the database and may overwrite existing entries. Continue?')) {
+    return;
+  }
+  isSaving.value = true;
+  try {
+    const response = await fetch('http://localhost:4000/config/import-default', {
+      method: 'POST'
+    });
+    const resultText = await response.text();
+    if (!response.ok) {
+      throw new Error(`Server responded with status ${response.status}: ${resultText}`);
+    }
+    alert('Default configuration imported into database successfully!');
+    await productStore.loadConfiguration();
+  } catch (err) {
+    console.error('Failed to import default configuration:', err);
+    alert(`Import failed: ${err.message}`);
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const reloadFromServer = async () => {
+  isSaving.value = true;
+  try {
+    await productStore.loadConfiguration();
+    // reset filtered state if current selections no longer exist
+    if (!productStore.categories.includes(selectedCategory.value)) {
+      selectedCategory.value = '';
+      selectedModel.value = '';
+      searchQuery.value = '';
+    }
+    alert('Configuration reloaded from server.');
+  } catch (e) {
+    console.error(e);
+    alert('Failed to reload configuration.');
+  } finally {
+    isSaving.value = false;
+  }
 };
 
 onMounted(() => {
