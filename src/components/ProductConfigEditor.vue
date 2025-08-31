@@ -47,13 +47,16 @@
     <div v-if="selectedCategory" class="model-list-container">
         <div class="model-list-header">
             <h3>Available Models</h3>
-            <button @click="addModel" class="btn btn-primary">Add New Model</button>
+            <div style="display:flex; gap:0.5rem; align-items:center;">
+              <button @click="openCategoryManager" class="btn btn-secondary">Manage Categories</button>
+              <button @click="addModel" class="btn btn-primary">Add New Model</button>
+            </div>
         </div>
         <div v-if="availableModels.length > 0" class="model-list">
             <div v-for="model in filteredModels" :key="model" class="model-card" @click="openModelEditor(model)">
                 <div class="model-card-content">
                     <div class="model-card-title">
-                        <span class="model-icon">📦</span>
+                        <!-- <span class="model-icon">📦</span> -->
                         <h4>{{ model }}</h4>
                         <span class="badge">{{ getFieldCount(model) }}</span>
                     </div>
@@ -63,6 +66,10 @@
                     </div>
                 </div>
                 <div class="model-card-actions">
+                    <select class="btn btn-sm" @click.stop v-model="modelMoveTarget" @change="moveModel(model, modelMoveTarget)">
+                      <option disabled :value="''">Move to category...</option>
+                      <option v-for="c in categories.filter(x => x !== selectedCategory)" :key="c" :value="c">{{ c }}</option>
+                    </select>
                     <button @click.stop="duplicateModel(model)" class="btn btn-sm btn-secondary">Duplicate</button>
                     <button @click.stop="deleteModel(model)" class="btn btn-sm btn-danger">Delete</button>
                 </div>
@@ -293,6 +300,61 @@
       </div>
     </div>
 
+    <!-- Category Manager Modal -->
+    <div v-if="showCategoryModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 style="margin-top:0">Manage Categories</h3>
+        <div class="form-section">
+          <h4>Add Category</h4>
+          <div class="form-group">
+            <label>Name</label>
+            <input type="text" v-model="newCategoryName" placeholder="e.g., Amplifier">
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-secondary" @click="showCategoryModal = false">Close</button>
+            <button class="btn btn-primary" @click="addCategoryAction">Add</button>
+          </div>
+        </div>
+        <div class="form-section">
+          <h4>Rename Category</h4>
+          <div class="form-group">
+            <label>From</label>
+            <select v-model="renameFrom">
+              <option disabled value="">Select category</option>
+              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>To</label>
+            <input type="text" v-model="renameTo" placeholder="New name">
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-primary" @click="renameCategoryAction">Rename</button>
+          </div>
+        </div>
+        <div class="form-section">
+          <h4>Delete Category</h4>
+          <div class="form-group">
+            <label>Category</label>
+            <select v-model="deleteTarget">
+              <option disabled value="">Select category</option>
+              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Move models to (required if not empty)</label>
+            <select v-model="deleteMoveTo">
+              <option value="">-- Select destination --</option>
+              <option v-for="c in categories.filter(x => x !== deleteTarget)" :key="c" :value="c">{{ c }}</option>
+            </select>
+          </div>
+          <div class="modal-actions">
+            <button class="btn btn-danger" @click="deleteCategoryAction">Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </template>
 
@@ -495,6 +557,54 @@ watch(() => parentFieldOptions.value, (newOptions) => {
 const onCategoryChange = () => {
   selectedModel.value = '';
   searchQuery.value = '';
+};
+
+// Category manager modal
+const showCategoryModal = ref(false);
+const newCategoryName = ref('');
+const renameFrom = ref('');
+const renameTo = ref('');
+const deleteTarget = ref('');
+const deleteMoveTo = ref('');
+
+const openCategoryManager = () => {
+  newCategoryName.value = '';
+  renameFrom.value = '';
+  renameTo.value = '';
+  deleteTarget.value = '';
+  deleteMoveTo.value = '';
+  showCategoryModal.value = true;
+};
+const addCategoryAction = () => {
+  const ok = productStore.addCategory(newCategoryName.value);
+  if (!ok) { showToast({ message: 'Unable to add category (empty or duplicate).', type: 'danger' }); return; }
+  markDirty();
+  showToast({ message: 'Category added.', type: 'success' });
+  newCategoryName.value = '';
+};
+const renameCategoryAction = () => {
+  const ok = productStore.renameCategory(renameFrom.value, renameTo.value);
+  if (!ok) { showToast({ message: 'Unable to rename category.', type: 'danger' }); return; }
+  markDirty();
+  showToast({ message: 'Category renamed.', type: 'success' });
+  renameFrom.value = '';
+  renameTo.value = '';
+};
+const deleteCategoryAction = () => {
+  const res = productStore.deleteCategory(deleteTarget.value, deleteMoveTo.value || null);
+  if (!res.ok) {
+    const reason = res.reason === 'needs_destination' ? 'Select a destination for existing models.' : 'Unable to delete category.';
+    showToast({ message: reason, type: 'danger' }); return;
+  }
+  if (selectedCategory.value === deleteTarget.value) {
+    selectedCategory.value = '';
+    selectedModel.value = '';
+    searchQuery.value = '';
+  }
+  markDirty();
+  showToast({ message: 'Category deleted.', type: 'success' });
+  deleteTarget.value = '';
+  deleteMoveTo.value = '';
 };
 
 const openModelEditor = (model) => {
@@ -823,6 +933,19 @@ const duplicateModel = (modelToDuplicate) => {
     productStore.updateProductMapping(currentMapping);
     markDirty();
     showToast({ message: `Model duplicated as "${newModelName}".`, type: 'success' });
+};
+
+// Move model between categories
+const modelMoveTarget = ref('');
+const moveModel = (modelName, targetCategory) => {
+    if (!targetCategory) return;
+    const from = selectedCategory.value;
+    const ok = productStore.moveModelToCategory(modelName, from, targetCategory);
+    if (!ok) { showToast({ message: 'Unable to move model.', type: 'danger' }); return; }
+    markDirty();
+    showToast({ message: `Model "${modelName}" moved to ${targetCategory}.`, type: 'success' });
+    // reset select
+    modelMoveTarget.value = '';
 };
 
 const doSaveConfigurationToServer = async () => {
@@ -1269,6 +1392,7 @@ onMounted(() => {
     padding-bottom: 1rem;
     border-bottom: 1px solid #eee;
 }
+.model-list-header .btn { white-space: nowrap; }
 
 .model-list-header h3 {
     margin: 0;
@@ -1364,6 +1488,7 @@ onMounted(() => {
     opacity: 0;
     transition: opacity 0.2s ease-in-out;
     display: flex;
+    flex-direction: column;
     gap: 0.5rem;
     justify-content: center;
 }

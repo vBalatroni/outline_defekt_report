@@ -205,6 +205,77 @@ export const useProductStore = defineStore('product', () => {
     productMapping.value.modelFieldConfigs = newConfigs;
   };
 
+  // =====================
+  // Category management
+  // =====================
+  const addCategory = (name) => {
+    const trimmed = String(name || '').trim();
+    if (!trimmed) return false;
+    const current = JSON.parse(JSON.stringify(productMapping.value));
+    current.categories = Array.isArray(current.categories) ? current.categories : [];
+    if (current.categories.includes(trimmed)) return false;
+    current.categories.push(trimmed);
+    current.categoryModels = current.categoryModels || {};
+    if (!current.categoryModels[trimmed]) current.categoryModels[trimmed] = [];
+    productMapping.value = current;
+    return true;
+  };
+
+  const renameCategory = (oldName, newName) => {
+    const from = String(oldName || '').trim();
+    const to = String(newName || '').trim();
+    if (!from || !to || from === to) return false;
+    const current = JSON.parse(JSON.stringify(productMapping.value));
+    if (!current.categories || !current.categories.includes(from)) return false;
+    if (current.categories.includes(to)) return false;
+    current.categories = current.categories.map(c => (c === from ? to : c));
+    current.categoryModels = current.categoryModels || {};
+    const models = current.categoryModels[from] || [];
+    delete current.categoryModels[from];
+    current.categoryModels[to] = Array.isArray(current.categoryModels[to]) ? current.categoryModels[to].concat(models) : models;
+    productMapping.value = current;
+    return true;
+  };
+
+  const deleteCategory = (name, moveModelsTo = null) => {
+    const cat = String(name || '').trim();
+    if (!cat) return { ok: false, reason: 'invalid' };
+    const current = JSON.parse(JSON.stringify(productMapping.value));
+    const idx = (current.categories || []).indexOf(cat);
+    if (idx === -1) return { ok: false, reason: 'not_found' };
+    const models = (current.categoryModels || {})[cat] || [];
+    if (models.length > 0) {
+      const dest = String(moveModelsTo || '').trim();
+      if (!dest || !current.categories.includes(dest) || dest === cat) {
+        return { ok: false, reason: 'needs_destination' };
+      }
+      current.categoryModels[dest] = current.categoryModels[dest] || [];
+      current.categoryModels[dest].push(...models);
+    }
+    // Remove the category
+    current.categories.splice(idx, 1);
+    delete current.categoryModels[cat];
+    productMapping.value = current;
+    return { ok: true };
+  };
+
+  const moveModelToCategory = (modelName, fromCategory, toCategory) => {
+    const model = String(modelName || '').trim();
+    const from = String(fromCategory || '').trim();
+    const to = String(toCategory || '').trim();
+    if (!model || !from || !to || from === to) return false;
+    const current = JSON.parse(JSON.stringify(productMapping.value));
+    current.categoryModels = current.categoryModels || {};
+    current.categoryModels[from] = current.categoryModels[from] || [];
+    current.categoryModels[to] = current.categoryModels[to] || [];
+    const idx = current.categoryModels[from].indexOf(model);
+    if (idx === -1) return false;
+    current.categoryModels[from].splice(idx, 1);
+    if (!current.categoryModels[to].includes(model)) current.categoryModels[to].push(model);
+    productMapping.value = current;
+    return true;
+  };
+
   return {
     productMapping,
     isLoading,
@@ -232,5 +303,9 @@ export const useProductStore = defineStore('product', () => {
     getSymptomSetSymptoms,
     updateProductMapping,
     updateModelFieldConfigs,
+    addCategory,
+    renameCategory,
+    deleteCategory,
+    moveModelToCategory,
   };
 }); 
