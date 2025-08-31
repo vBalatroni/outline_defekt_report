@@ -1149,8 +1149,12 @@
             "key": "electronics_1"
           },
           "hardware_1": {
-            "type": "symptomSet",
-            "key": "hardware_1"
+            "type": "static",
+            "options": [
+              "A",
+              "B",
+              "C"
+            ]
           }
         }
       },

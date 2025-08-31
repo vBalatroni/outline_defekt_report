@@ -192,7 +192,8 @@ export const useProductStore = defineStore('product', () => {
 
   const getSymptomSetSymptoms = (setKey) => {
     const set = productMapping.value?.symptomSets?.[setKey];
-    return set?.options || [];
+    // Support both shapes: { options: [...] } and { symptoms: [...] }
+    return set?.options || set?.symptoms || [];
   };
 
   const updateProductMapping = (mapping) => {

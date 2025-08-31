@@ -127,10 +127,12 @@ const getOptionsForField = (field) => {
 
         const mapping = field.valueMapping[parentValue];
         if (mapping.type === 'static') {
-            return mapping.options || [];
+            // Support both new and legacy shapes
+            const opts = mapping.options || mapping.value || [];
+            return Array.isArray(opts) ? opts : String(opts).split('\n').map(s => s.trim()).filter(Boolean);
         } else if (mapping.type === 'symptomSet') {
-            const symptoms = productStore.getSymptomSetSymptoms(mapping.key) || [];
-            // Also return objects for consistency if needed, but for now string array is fine
+            const key = mapping.key || mapping.value; // legacy fallback
+            const symptoms = key ? (productStore.getSymptomSetSymptoms(key) || []) : [];
             return symptoms;
         }
     }
