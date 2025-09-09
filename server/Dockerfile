@@ -1,7 +1,9 @@
-FROM node:20-alpine
+FROM node:20-bookworm-slim
 
-# Prisma needs OpenSSL 1.1 on Alpine (musl); add compat libs
-RUN apk add --no-cache openssl1.1-compat libc6-compat
+# Ensure OpenSSL and CA certs present
+RUN apt-get update -y \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 
