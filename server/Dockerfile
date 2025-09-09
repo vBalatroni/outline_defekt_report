@@ -1,5 +1,8 @@
 FROM node:20-alpine
 
+# Prisma needs OpenSSL 1.1 on Alpine (musl); add compat libs
+RUN apk add --no-cache openssl1.1-compat libc6-compat
+
 WORKDIR /app
 
 # Install dependencies first (better caching)
