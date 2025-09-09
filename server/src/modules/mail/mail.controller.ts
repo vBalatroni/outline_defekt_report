@@ -1,6 +1,7 @@
-import { Body, Controller, HttpException, HttpStatus, Post } from '@nestjs/common';
+import { Body, Controller, Get, HttpException, HttpStatus, Post, Query, Res } from '@nestjs/common';
 import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { MailService } from './mail.service';
+import { Response } from 'express';
 
 class SendMailDto {
   @IsString()
@@ -43,6 +44,39 @@ export class MailController {
     } catch (e: any) {
       throw new HttpException(e?.message || 'Send failed', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+  }
+
+  // OAuth2: redirect to Google consent screen
+  @Get('auth')
+  async auth(@Res() res: Response) {
+    const url = this.mail.generateGoogleAuthUrl();
+    return res.redirect(url);
+  }
+
+  // OAuth2 callback: exchange code for tokens
+  @Get('oauth2callback')
+  async oauthCallback(@Query('code') code: string) {
+    if (!code) {
+      throw new HttpException('Missing code', HttpStatus.BAD_REQUEST);
+    }
+    const tokens = await this.mail.exchangeCodeForTokens(code);
+    return { success: true, tokens };
+  }
+
+  // Diagnostics: verify transport
+  @Get('verify')
+  async verify() {
+    return this.mail.verifyTransport();
+  }
+
+  // Diagnostics: test send
+  @Post('test')
+  async test(@Body('to') to: string) {
+    if (!to) {
+      throw new HttpException('Missing "to"', HttpStatus.BAD_REQUEST);
+    }
+    await this.mail.testSend(to);
+    return { ok: true };
   }
 }
 

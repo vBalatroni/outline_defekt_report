@@ -1,0 +1,28 @@
+# Server
+PORT=4000
+
+# Database
+DATABASE_URL=postgresql://nest:nest@localhost:5432/nest_db?schema=public
+
+# Email mittente di default
+FROM_EMAIL=your-email@your-domain.com
+FROM_NAME=Defekt Report System
+
+# Destinatari di default (opzionali)
+SUPPLIER_TO=
+TESTING_TO=
+
+# SMTP tradizionale (fallback)
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_SECURE=tls
+SMTP_USERNAME=your-email@your-domain.com
+SMTP_PASSWORD=your-app-password
+
+# Gmail OAuth2 (preferito)
+GOOGLE_CLIENT_ID=
+GOOGLE_CLIENT_SECRET=
+GOOGLE_REDIRECT_URI=http://localhost:4000/mail/oauth2callback
+GOOGLE_REFRESH_TOKEN=
+# opzionale: verrà aggiornato automaticamente se assente
+# GOOGLE_ACCESS_TOKEN=
