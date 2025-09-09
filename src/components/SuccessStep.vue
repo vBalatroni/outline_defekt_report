@@ -123,7 +123,7 @@ onMounted(async () => {
         if (supplierRecipient && customerRecipient) {
             try {
                 const fd = buildFormData();
-                const response = await fetch('http://localhost:4000/mail/send-multipart', {
+                const response = await fetch('/mail/send-multipart', {
                     method: 'POST',
                     body: fd,
                 });
@@ -153,7 +153,7 @@ onMounted(async () => {
     // Save submission (use deep-clone to avoid Proxy serialization)
     try {
         const safeGeneralData = JSON.parse(JSON.stringify(generalData));
-        await fetch('http://localhost:4000/submissions', {
+        await fetch('/submissions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

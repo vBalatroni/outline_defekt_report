@@ -91,7 +91,7 @@ export const useProductStore = defineStore('product', () => {
 
       // 1) Prova a caricare dal backend Nest
       try {
-        const resp = await fetch('http://localhost:4000/config/latest', { credentials: 'include' });
+        const resp = await fetch('/config/latest', { credentials: 'include' });
         if (resp.ok) {
           const data = await resp.json();
           if (data && data.content) {

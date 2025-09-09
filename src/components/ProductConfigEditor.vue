@@ -931,7 +931,7 @@ const doSaveConfigurationToServer = async () => {
   isSaving.value = true;
   const mappingToSave = JSON.parse(JSON.stringify(productStore.productMapping));
   try {
-    const response = await fetch('http://localhost:4000/config/import', {
+    const response = await fetch('/config/import', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(mappingToSave, null, 2),
@@ -967,7 +967,7 @@ const saveConfigurationToServer = () => {
 const doImportDefaultIntoDb = async () => {
   isSaving.value = true;
   try {
-    const response = await fetch('http://localhost:4000/config/import-default', { method: 'POST' });
+    const response = await fetch('/config/import-default', { method: 'POST' });
     const resultText = await response.text();
     if (!response.ok) {
       throw new Error(`Server responded with status ${response.status}: ${resultText}`);

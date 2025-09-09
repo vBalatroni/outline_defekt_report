@@ -19,11 +19,10 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api': {
-        target: 'http://localhost:8000',
-        changeOrigin: true,
-        secure: false,
-      }
+      '/mail': { target: 'http://localhost:4000', changeOrigin: true, secure: false },
+      '/config': { target: 'http://localhost:4000', changeOrigin: true, secure: false },
+      '/submissions': { target: 'http://localhost:4000', changeOrigin: true, secure: false },
+      '/health': { target: 'http://localhost:4000', changeOrigin: true, secure: false },
     }
   }
 })

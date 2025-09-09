@@ -48,7 +48,7 @@ const saveToServer = async () => {
       testingRecipient: emailConfig.value.testingRecipient || null,
       downloadHtmlReports: emailConfig.value.downloadHtmlReports !== false,
     };
-    const resp = await fetch('http://localhost:4000/config/email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const resp = await fetch('/config/email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const txt = await resp.text(); if (!resp.ok) throw new Error(`${resp.status}: ${txt}`);
     await reloadFromServer();
   } catch (e) { console.error(e); }
