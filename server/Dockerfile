@@ -10,11 +10,8 @@ RUN npm ci
 COPY prisma ./prisma
 RUN npx prisma generate
 
-# Build NestJS
-COPY tsconfig.json ./tsconfig.json
-COPY src ./src
-COPY nest-cli.json ./nest-cli.json 2>/dev/null || true
-RUN npm run build
+# Copy prebuilt dist (build on host CI/local to reduce memory needs in container)
+COPY dist ./dist
 
 # Entrypoint
 COPY entrypoint.sh ./entrypoint.sh
