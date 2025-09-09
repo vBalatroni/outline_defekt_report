@@ -25,7 +25,7 @@ const downloadFile = (filename, content) => {
 
 onMounted(async () => {
     const generalData = store.formState.generalData;
-    const savedProducts = JSON.parse(localStorage.getItem('defekt_report_data') || '[]');
+    const savedProducts = store.formState.savedProducts || [];
 
     // Resolve recipients & settings robustly
     const emailCfg = store.productMapping?.emailConfig || {};
@@ -65,21 +65,67 @@ onMounted(async () => {
           downloadFile('defekt_report_customer.html', customerHtml);
         }
         
+        // Utility: convert data URL to Blob
+        const dataUrlToBlob = (dataUrl) => {
+            try {
+                const [meta, b64] = String(dataUrl).split(',');
+                const match = /data:(.*?);base64/.exec(meta || '');
+                const mime = (match && match[1]) || 'application/octet-stream';
+                const binary = atob(b64 || '');
+                const len = binary.length;
+                const bytes = new Uint8Array(len);
+                for (let i = 0; i < len; i++) bytes[i] = binary.charCodeAt(i);
+                return { blob: new Blob([bytes], { type: mime }), mime };
+            } catch (_) { return null; }
+        };
+
+        // Collect media files (from savedProducts base64 values) into FormData
+        const buildFormData = () => {
+            const fd = new FormData();
+            fd.append('supplierHtml', supplierHtml);
+            fd.append('customerHtml', customerHtml);
+            if (store.formState.sessionId) fd.append('submissionId', store.formState.sessionId);
+            if (supplierRecipient) fd.append('supplierRecipient', supplierRecipient);
+            if (customerRecipient) fd.append('customerRecipient', customerRecipient);
+            if (testingRecipient) fd.append('testRecipient', testingRecipient);
+
+            try {
+                (savedProducts || []).forEach((product, pIdx) => {
+                    const defekts = product?.defekts || [];
+                    defekts.forEach((sections, dIdx) => {
+                        Object.keys(sections || {}).forEach((sectionKey) => {
+                            const fields = sections[sectionKey] || {};
+                            Object.keys(fields).forEach((fid) => {
+                                const field = fields[fid];
+                                const val = field?.value;
+                                const baseName = field?.id || 'file';
+                                // If value is a File object, attach directly
+                                if (val && typeof val === 'object' && 'name' in val && 'size' in val) {
+                                    const name = String(val.name || `${baseName}.bin`);
+                                    fd.append('files', val, name);
+                                } else if (typeof val === 'string' && val.startsWith('data:')) {
+                                    const conv = dataUrlToBlob(val);
+                                    if (conv && conv.blob) {
+                                        const ext = (conv.mime.split('/')?.[1] || 'bin').replace(/[^a-zA-Z0-9]/g, '');
+                                        const filename = `product${pIdx + 1}_defekt${dIdx + 1}_${baseName}.${ext}`;
+                                        fd.append('files', conv.blob, filename);
+                                    }
+                                }
+                            });
+                        });
+                    });
+                });
+            } catch (e) { console.warn('Failed collecting media files:', e); }
+            return fd;
+        };
+
         // Send emails only if we have recipients
         if (supplierRecipient && customerRecipient) {
             try {
-                const response = await fetch('http://localhost:4000/mail/send', {
+                const fd = buildFormData();
+                const response = await fetch('http://localhost:4000/mail/send-multipart', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        supplierHtml,
-                        customerHtml,
-                        supplierRecipient,
-                        customerRecipient,
-                        testRecipient: testingRecipient || undefined
-                    }),
+                    body: fd,
                 });
 
                 const result = await response.json().catch(() => ({}));

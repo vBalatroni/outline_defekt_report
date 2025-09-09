@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import * as nodemailer from 'nodemailer';
 import { google } from 'googleapis';
+import { Readable } from 'stream';
 import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
@@ -115,8 +116,10 @@ export class MailService {
   generateGoogleAuthUrl() {
     const oauth2Client = this.oauth2Client;
     const scopes = [
-      // Per SMTP XOAUTH2 usare lo scope completo
+      // Per SMTP XOAUTH2
       'https://mail.google.com/',
+      // Per salvataggio file su Drive (solo file creati dall'app)
+      'https://www.googleapis.com/auth/drive.file',
     ];
     return oauth2Client.generateAuthUrl({
       access_type: 'offline',
@@ -171,6 +174,84 @@ export class MailService {
         },
         error: String(e?.message || e),
       };
+    }
+  }
+
+  // ===============
+  // Google Drive I/O
+  // ===============
+  private getDriveClient() {
+    const oauth2Client = this.oauth2Client;
+    return google.drive({ version: 'v3', auth: oauth2Client });
+  }
+
+  private async createDriveFolder(name: string, parentId?: string) {
+    const drive = this.getDriveClient();
+    const fileMetadata: any = {
+      name,
+      mimeType: 'application/vnd.google-apps.folder',
+    };
+    if (parentId) fileMetadata.parents = [parentId];
+    const res = await drive.files.create({
+      requestBody: fileMetadata,
+      fields: 'id, webViewLink',
+    });
+    return res.data;
+  }
+
+  private async uploadHtmlToFolder(folderId: string, filename: string, html: string) {
+    const drive = this.getDriveClient();
+    const media = {
+      mimeType: 'text/html',
+      body: Readable.from(Buffer.from(html || '', 'utf8')),
+    } as any;
+    const requestBody: any = {
+      name: filename,
+      parents: [folderId],
+    };
+    const res = await drive.files.create({
+      requestBody,
+      media,
+      fields: 'id, webViewLink',
+    });
+    return res.data;
+  }
+
+  async saveReportsToDrive(supplierHtml: string, customerHtml: string, folderName: string) {
+    const parentId = process.env.DRIVE_PARENT_FOLDER_ID || undefined;
+    const folder = await this.createDriveFolder(folderName, parentId);
+    await this.uploadHtmlToFolder(folder.id!, 'defekt_report_supplier.html', supplierHtml || '');
+    await this.uploadHtmlToFolder(folder.id!, 'defekt_report_customer.html', customerHtml || '');
+    return folder;
+  }
+
+  async saveAttachmentsToDrive(folderId: string, attachments: { filename: string; content: string; contentType?: string }[]) {
+    const drive = this.getDriveClient();
+    for (const att of attachments || []) {
+      const media = {
+        mimeType: att.contentType || 'application/octet-stream',
+        body: Readable.from(Buffer.from(att.content, 'base64')),
+      } as any;
+      const requestBody: any = {
+        name: att.filename || `file-${Date.now()}`,
+        parents: [folderId],
+      };
+      await drive.files.create({ requestBody, media, fields: 'id' });
+    }
+  }
+
+  async saveUploadedFilesToDrive(folderId: string, files: any[]) {
+    const drive = this.getDriveClient();
+    for (const file of files || []) {
+      const media = {
+        mimeType: file.mimetype || 'application/octet-stream',
+        body: Readable.from(file.buffer),
+      } as any;
+      const requestBody: any = {
+        name: file.originalname || `file-${Date.now()}`,
+        parents: [folderId],
+      };
+      await drive.files.create({ requestBody, media, fields: 'id' });
     }
   }
 

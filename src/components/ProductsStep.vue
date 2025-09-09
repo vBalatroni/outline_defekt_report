@@ -8,7 +8,7 @@ import InputField from './InputField.vue';
 import DynamicProductForm from './DynamicProductForm.vue'; // Make sure this is imported
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useProductStore } from '@/stores/productStore';
-import { fileToBase64 } from '@/utils/fileUtils'; // Import the new utility
+// import { fileToBase64 } from '@/utils/fileUtils';
 
 const emit = defineEmits(['step-validation']);
 
@@ -163,8 +163,19 @@ const canSave = computed(() => {
     return basicInfoFieldsFilled.value && isBasicInfoValidated.value;
 });
 
+const deepClonePreservingFiles = (val) => {
+    if (val === null || typeof val !== 'object') return val;
+    // Preserve File and Blob instances
+    if (typeof File !== 'undefined' && val instanceof File) return val;
+    if (typeof Blob !== 'undefined' && val instanceof Blob) return val;
+    if (Array.isArray(val)) return val.map(deepClonePreservingFiles);
+    const out = {};
+    for (const k in val) out[k] = deepClonePreservingFiles(val[k]);
+    return out;
+};
+
 const saveData = () => {
-    const productToSave = JSON.parse(JSON.stringify(currentProduct.value));
+    const productToSave = deepClonePreservingFiles(currentProduct.value);
     
     // Ensure both modelName and basicInfo.model.value are set correctly
     productToSave.modelName = currentProductModel.value;
@@ -179,7 +190,7 @@ const saveData = () => {
     clearForm();
 };
 
-const addDefekt = async () => { // Make the function async
+const addDefekt = async () => { // keep async signature for future
     // This function is now much simpler.
     // It takes the flat data from dynamicDefektData and structures it.
     const newDefekt = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
@@ -190,17 +201,8 @@ const addDefekt = async () => { // Make the function async
             if (dynamicDefektData.value.hasOwnProperty(fieldKey)) {
                 const fieldValue = dynamicDefektData.value[fieldKey];
                 
-                // If the field is a File object, convert it to base64
-                if (fieldValue instanceof File) {
-                    try {
-                        newDefekt[sectionKey][fieldKey].value = await fileToBase64(fieldValue);
-                    } catch (error) {
-                        console.error('Error converting file to base64:', error);
-                        newDefekt[sectionKey][fieldKey].value = 'Error converting file';
-                    }
-                } else {
-                    newDefekt[sectionKey][fieldKey].value = fieldValue;
-                }
+                // Keep File objects as-is; will be sent via multipart at submit time
+                newDefekt[sectionKey][fieldKey].value = fieldValue;
             }
         }
     }
@@ -341,7 +343,7 @@ const editProduct = (index) => {
     editingProductIndex.value = index;
     
     // Set the current product
-    currentProduct.value = JSON.parse(JSON.stringify(originalProduct));
+    currentProduct.value = deepClonePreservingFiles(originalProduct);
     
     // Use the existing model value from the saved product
     currentDefekt.value = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
@@ -349,16 +351,7 @@ const editProduct = (index) => {
 };
 
 const goToNext = () => {
-    // Per the user's request, save the current state of products to localStorage
-    // before navigating to the summary page.
-    try {
-        const dataToSave = JSON.stringify(savedProducts.value);
-        localStorage.setItem('defekt_report_data', dataToSave);
-        console.log('Saved products to localStorage:', dataToSave);
-    } catch (error) {
-        console.error('Failed to save products to localStorage:', error);
-        // Optionally, inform the user that data could not be saved
-    }
+    // Do not persist File objects to localStorage; proceed to summary
     router.push({ name: 'step-summary' });
 };
 

@@ -10,25 +10,8 @@ import 'bootstrap-icons/font/bootstrap-icons.css';
 const store = useProductStore();
 const router = useRouter();
 
-// Instead of a computed property from the store, we use a local ref
-// that will be populated from localStorage.
-const generalData = computed(() => store.formState.generalData); // General data can still come from the store for now
-const savedProducts = ref([]);
-
-onMounted(() => {
-    // Per the user's request, load the product data from localStorage
-    try {
-        const storedData = localStorage.getItem('defekt_report_data');
-        if (storedData) {
-            savedProducts.value = JSON.parse(storedData);
-            console.log('Loaded products from localStorage:', savedProducts.value);
-        } else {
-            console.warn('No product data found in localStorage.');
-        }
-    } catch (error) {
-        console.error('Failed to load products from localStorage:', error);
-    }
-});
+const generalData = computed(() => store.formState.generalData);
+const savedProducts = computed(() => store.formState.savedProducts);
 
 
 const sectionTitles = {
