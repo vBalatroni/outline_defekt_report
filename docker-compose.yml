@@ -12,5 +12,34 @@ services:
     volumes:
       - db_data:/var/lib/postgresql/data
 
+  backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://nest:nest@postgres:5432/nest_db?schema=public
+      NODE_ENV: production
+      PORT: 4000
+      SMTP_HOST: ${SMTP_HOST:-}
+      SMTP_PORT: ${SMTP_PORT:-587}
+      SMTP_SECURE: ${SMTP_SECURE:-tls}
+      SMTP_USERNAME: ${SMTP_USERNAME:-}
+      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+      FROM_EMAIL: ${FROM_EMAIL:-}
+      FROM_NAME: ${FROM_NAME:-Defekt Report System}
+    ports:
+      - '4000:4000'
+
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile.frontend
+    depends_on:
+      - backend
+    ports:
+      - '8080:80'
+
 volumes:
   db_data:

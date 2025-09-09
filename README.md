@@ -26,10 +26,10 @@ Questo avvia un Postgres locale esposto su `localhost:5432` con credenziali pred
 ---
 
 ## Backend (NestJS)
-Il backend espone:
-- Health: `GET http://localhost:4000/health`
-- Config: `GET http://localhost:4000/config/latest`, `POST http://localhost:4000/config`
-- Mail: `POST http://localhost:4000/mail/send`
+Il backend espone (dietro Nginx, prefisso `/api`):
+- Health: `GET /api/health`
+- Config: `GET /api/config/latest`, `POST /api/config`
+- Mail: `POST /api/mail/send`
 
 ### Setup
 ```
@@ -68,7 +68,7 @@ npx prisma migrate dev --name init
 ```
 npm run start:dev
 ```
-API disponibili su `http://localhost:4000`.
+In dev Vite fa proxy su `http://localhost:4000` per `/api`. In produzione, Nginx serve la SPA e fa proxy `/api` verso il backend.
 
 ---
 
@@ -81,9 +81,9 @@ npm run dev
 Il frontend è su `http://localhost:5173`.
 
 ### Integrazioni principali
-- Il frontend salva la configurazione dal Product Config Editor su `POST http://localhost:4000/config`.
-- Lo store prova a caricare la configurazione da `GET http://localhost:4000/config/latest`; se non disponibile, fa fallback al file `src/assets/productData.json`.
-- A fine flusso (Success), vengono generati 2 file HTML e scaricati; inoltre il frontend chiama `POST http://localhost:4000/mail/send` per inviare i due HTML via email (fornitore e cliente). Gli indirizzi email possono essere configurati in `src/assets/productData.json` (`emailConfig.supplierRecipient`, `emailConfig.testingRecipient`).
+- Il frontend salva la configurazione su `POST /api/config`.
+- Lo store carica la configurazione da `GET /api/config/latest`; se non disponibile, fa fallback al file `src/assets/productData.json`.
+- A fine flusso (Success), il frontend chiama `POST /api/mail/send` per inviare i due HTML via email. Gli indirizzi email possono essere configurati in `src/assets/productData.json` (`emailConfig.supplierRecipient`, `emailConfig.testingRecipient`).
 
 ---
 
@@ -120,7 +120,7 @@ Se vuoi estendere: possiamo versionare configurazioni, audit trail, log degli in
 
 ## Config normalizzato (DB) e import
 
-Ora il backend può assemblare il JSON di configurazione direttamente dal database (schema normalizzato). Il frontend continua a leggere `GET http://localhost:4000/config/latest` senza modifiche.
+Ora il backend può assemblare il JSON di configurazione direttamente dal database (schema normalizzato). Il frontend legge `GET /api/config/latest`.
 
 ### Migrazione schema normalizzato
 Esegui la migrazione per creare le nuove tabelle:
@@ -134,7 +134,7 @@ npx prisma migrate dev --name config_normalized
 L’editor ora salva direttamente su DB usando l’endpoint:
 
 ```
-POST http://localhost:4000/config/import
+POST /api/config/import
 ```
 
 Il payload è lo stesso JSON compatibile (categorie, categoryModels, modelFieldConfigs, symptomSets, ecc.). Dopo l’import, `GET /config/latest` restituirà il JSON assemblato dal DB.

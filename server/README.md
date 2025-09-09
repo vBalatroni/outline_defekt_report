@@ -41,10 +41,10 @@ npm run start:dev
 ```
 
 API:
-- Health: GET http://localhost:4000/health
-- Invia email: POST http://localhost:4000/mail/send
-- Config: GET http://localhost:4000/config/latest, POST http://localhost:4000/config
+- Health: GET /api/health
+- Invia email: POST /api/mail/send
+- Config: GET /api/config/latest, POST /api/config
 
 ## Note
-- Il frontend chiama l'endpoint `http://localhost:4000/mail/send` per inviare le email HTML.
+- Il frontend chiama gli endpoint con prefisso `/api/...` ed è Nginx a fare proxy verso il backend.
 - `docker-compose.yml` è in root: espone Postgres su 5432.

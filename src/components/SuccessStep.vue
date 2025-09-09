@@ -68,7 +68,7 @@ onMounted(async () => {
         // Send emails only if we have recipients
         if (supplierRecipient && customerRecipient) {
             try {
-                const response = await fetch('http://localhost:4000/mail/send', {
+                const response = await fetch('/api/mail/send', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -107,7 +107,7 @@ onMounted(async () => {
     // Save submission (use deep-clone to avoid Proxy serialization)
     try {
         const safeGeneralData = JSON.parse(JSON.stringify(generalData));
-        await fetch('http://localhost:4000/submissions', {
+        await fetch('/api/submissions', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

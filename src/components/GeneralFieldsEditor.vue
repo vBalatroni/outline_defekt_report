@@ -146,7 +146,7 @@ const saveToServer = async () => {
     const mapping = JSON.parse(JSON.stringify(store.productMapping));
     // Ensure generalFieldsConfig gets persisted
     mapping.generalFieldsConfig = config.value;
-    const response = await fetch('http://localhost:4000/config/import', {
+    const response = await fetch('/api/config/import', {
       method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mapping, null, 2)
     });
     const txt = await response.text();
