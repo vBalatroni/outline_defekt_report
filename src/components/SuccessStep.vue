@@ -59,11 +59,7 @@ onMounted(async () => {
         supplierHtml = fallbackIfEmpty(supplierHtml, 'Defekt Report');
         customerHtml = fallbackIfEmpty(customerHtml, 'Defekt Report');
 
-        // Download copies only if enabled
-        if (emailCfg.downloadHtmlReports !== false) {
-          downloadFile('defekt_report_supplier.html', supplierHtml);
-          downloadFile('defekt_report_customer.html', customerHtml);
-        }
+        // Do not download local copies in produzione; lasciare opzionale in futuro
         
         // Utility: convert data URL to Blob
         const dataUrlToBlob = (dataUrl) => {

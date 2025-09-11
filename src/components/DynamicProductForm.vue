@@ -72,6 +72,18 @@ watch(() => props.modelValue, (newValue) => {
   }
 }, { immediate: true, deep: true });
 
+// When the upstream modelValue is cleared (after Add Defect), clear previews and inputs
+watch(() => props.modelValue, (val) => {
+  const isEmpty = val && Object.keys(val).length === 0;
+  if (isEmpty) {
+    previews.value = {};
+    try {
+      const inputs = document.querySelectorAll('input[type="file"]');
+      inputs.forEach((inp) => { inp.value = ''; });
+    } catch {}
+  }
+}, { deep: true });
+
 watch(formData, (newValue) => {
   emit('update:modelValue', newValue);
 }, { deep: true });

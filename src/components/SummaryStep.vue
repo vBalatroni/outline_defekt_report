@@ -103,7 +103,10 @@ const goToBack = () => {
                                                     <img :src="field.preview || field.value" :alt="field.label" class="summary-image-preview" />
                                                 </template>
                                                 <template v-else>
-                                                    <span class="summary-field-value">{{ field.value }}</span>
+                                                    <span v-if="field && typeof field.value === 'object' && field.preview" class="summary-field-value">
+                                                      <img :src="field.preview" :alt="field.label" class="summary-image-preview" />
+                                                    </span>
+                                                    <span v-else class="summary-field-value">{{ typeof field.value === 'object' ? '' : field.value }}</span>
                                                 </template>
                                             </div>
                                         </div>
