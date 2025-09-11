@@ -218,6 +218,11 @@ const addDefekt = async () => { // keep async signature for future
     
     editingDefektIndex.value = -1;
     dynamicDefektData.value = {}; // Clear the form data
+    // Clear file inputs preview by resetting the form fields in the dynamic form
+    try {
+      const inputs = document.querySelectorAll('input[type="file"]');
+      inputs.forEach((inp) => { inp.value = ''; });
+    } catch {}
 };
 
 

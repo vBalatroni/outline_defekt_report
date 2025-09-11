@@ -34,9 +34,15 @@
             <input 
                 type="file" 
                 :id="field.id"
+                accept="image/png,image/jpeg"
                 @change="handleFileUpload($event, field.id)"
                 :required="field.required"
+                ref="fileInputs"
+                :data-field="field.id"
             />
+            <div v-if="previews[field.id]" class="preview">
+              <img :src="previews[field.id]" alt="preview" />
+            </div>
         </template>
       </div>
     </div>
@@ -57,6 +63,8 @@ const emit = defineEmits(['update:modelValue']);
 
 const productStore = useProductStore();
 const formData = ref({});
+const previews = ref({});
+const fileInputs = ref([]);
 
 watch(() => props.modelValue, (newValue) => {
   if (JSON.stringify(newValue) !== JSON.stringify(formData.value)) {
@@ -155,11 +163,19 @@ const handleFieldChange = (changedFieldId) => {
     }
 };
 
-const handleFileUpload = (event, fieldId) => {
-    const file = event.target.files[0];
-    if (file) {
-        formData.value[fieldId] = file;
+const handleFileUpload = async (event, fieldId) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+    if (!/^image\/(png|jpe?g)$/i.test(file.type)) {
+        alert('Only PNG or JPG images are allowed.');
+        event.target.value = '';
+        return;
     }
+    formData.value[fieldId] = file;
+    // preview as data URL
+    const reader = new FileReader();
+    reader.onload = () => { previews.value[fieldId] = reader.result; };
+    reader.readAsDataURL(file);
 };
 
 onMounted(() => {
