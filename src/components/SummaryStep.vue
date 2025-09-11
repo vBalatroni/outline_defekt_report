@@ -99,8 +99,8 @@ const goToBack = () => {
                                         <div v-for="field in section" :key="field.id">
                                             <div class="defekt-summary-item" v-if="field.value">
                                                 <strong class="summary-field-label">{{ field.label }}:</strong>
-                                                <template v-if="typeof field.value === 'string' && field.value.startsWith('data:image')">
-                                                    <img :src="field.value" :alt="field.label" class="summary-image-preview" />
+                                                <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                    <img :src="field.preview || field.value" :alt="field.label" class="summary-image-preview" />
                                                 </template>
                                                 <template v-else>
                                                     <span class="summary-field-value">{{ field.value }}</span>

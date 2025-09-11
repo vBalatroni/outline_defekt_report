@@ -8,7 +8,7 @@ import InputField from './InputField.vue';
 import DynamicProductForm from './DynamicProductForm.vue'; // Make sure this is imported
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useProductStore } from '@/stores/productStore';
-// import { fileToBase64 } from '@/utils/fileUtils';
+import { fileToBase64 } from '@/utils/fileUtils';
 
 const emit = defineEmits(['step-validation']);
 
@@ -201,8 +201,11 @@ const addDefekt = async () => { // keep async signature for future
             if (dynamicDefektData.value.hasOwnProperty(fieldKey)) {
                 const fieldValue = dynamicDefektData.value[fieldKey];
                 
-                // Keep File objects as-is; will be sent via multipart at submit time
+                // Keep File objects; add preview for summaries
                 newDefekt[sectionKey][fieldKey].value = fieldValue;
+                if (typeof File !== 'undefined' && fieldValue instanceof File) {
+                    try { newDefekt[sectionKey][fieldKey].preview = await fileToBase64(fieldValue); } catch {}
+                }
             }
         }
     }
