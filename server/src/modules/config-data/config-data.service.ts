@@ -283,7 +283,16 @@ export class ConfigDataService {
 
   async setEmailConfig(cfg: { supplierRecipient?: string | null; testingRecipient?: string | null; downloadHtmlReports?: boolean }) {
     const { supplierRecipient = null, testingRecipient = null, downloadHtmlReports = true } = cfg || {};
-    await this.prisma.emailConfig.create({ data: { supplierRecipient, testingRecipient, downloadHtmlReports } });
+    try {
+      await this.prisma.emailConfig.create({ data: { supplierRecipient, testingRecipient, downloadHtmlReports } });
+    } catch (e) {
+      // Fallback: persisti nello snapshot Config.content se le tabelle normalizzate non esistono
+      console.warn('[ConfigDataService] emailConfig fallback to Config snapshot:', String((e as any)?.message || e));
+      const latest = await this.getLatest();
+      const base = (latest?.content as any) || {};
+      base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
+      await this.create(base);
+    }
   }
 }
 
