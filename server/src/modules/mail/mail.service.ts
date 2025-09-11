@@ -100,14 +100,24 @@ export class MailService {
         headers: { 'X-Mailer': 'Defekt-Report' },
         textEncoding: 'quoted-printable',
       });
-      await this.prisma.emailLog.create({
-        data: { to, subject, status: 'SENT' },
-      });
+      // Log su DB non bloccante (ignora errori se tabelle mancanti)
+      try {
+        await this.prisma.emailLog.create({
+          data: { to, subject, status: 'SENT' },
+        });
+      } catch (logErr: any) {
+        console.warn('[MailService] emailLog create failed (non-blocking):', String(logErr?.message || logErr));
+      }
       return result;
     } catch (err: any) {
-      await this.prisma.emailLog.create({
-        data: { to, subject, status: 'ERROR', error: String(err?.message || err) },
-      });
+      // Tenta log errore ma non bloccare se mancano le tabelle
+      try {
+        await this.prisma.emailLog.create({
+          data: { to, subject, status: 'ERROR', error: String(err?.message || err) },
+        });
+      } catch (logErr: any) {
+        console.warn('[MailService] emailLog create (error) failed (non-blocking):', String(logErr?.message || logErr));
+      }
       throw err;
     }
   }
@@ -185,6 +195,50 @@ export class MailService {
     return google.drive({ version: 'v3', auth: oauth2Client });
   }
 
+  // ---- Drive helpers (folder resolution by ID, name or path) ----
+  private async findFolderIdByName(name: string, parentId?: string) {
+    const drive = this.getDriveClient();
+    const qParts = [
+      `name = '${name.replace(/'/g, "\\'")}'`,
+      `mimeType = 'application/vnd.google-apps.folder'`,
+      'trashed = false',
+    ];
+    if (parentId) qParts.push(`'${parentId}' in parents`);
+    const res = await drive.files.list({
+      q: qParts.join(' and '),
+      fields: 'files(id, name)',
+      pageSize: 1,
+      spaces: 'drive',
+    });
+    const files = res.data.files || [];
+    return files.length ? files[0].id! : null;
+  }
+
+  private async ensureFolder(name: string, parentId?: string) {
+    const existingId = await this.findFolderIdByName(name, parentId);
+    if (existingId) return existingId;
+    const created = await this.createDriveFolder(name, parentId);
+    return created.id!;
+  }
+
+  private async resolveFolderSpecToId(folderSpec: string) {
+    // Try direct ID first
+    const drive = this.getDriveClient();
+    try {
+      const file = await drive.files.get({ fileId: folderSpec, fields: 'id' });
+      if (file?.data?.id) return file.data.id;
+    } catch (_) {
+      // Not an ID, treat as name or path
+    }
+    // If path-like (a/b/c), walk segments creating as needed
+    const segments = folderSpec.split('/').filter(Boolean);
+    let currentParent: string | undefined = undefined;
+    for (const seg of segments) {
+      currentParent = await this.ensureFolder(seg, currentParent);
+    }
+    return currentParent;
+  }
+
   private async createDriveFolder(name: string, parentId?: string) {
     const drive = this.getDriveClient();
     const fileMetadata: any = {
@@ -218,7 +272,8 @@ export class MailService {
   }
 
   async saveReportsToDrive(supplierHtml: string, customerHtml: string, folderName: string) {
-    const parentId = process.env.DRIVE_PARENT_FOLDER_ID || undefined;
+    const parentSpec = process.env.DRIVE_PARENT_FOLDER_ID || '';
+    const parentId = parentSpec ? await this.resolveFolderSpecToId(parentSpec) : undefined;
     const folder = await this.createDriveFolder(folderName, parentId);
     await this.uploadHtmlToFolder(folder.id!, 'defekt_report_supplier.html', supplierHtml || '');
     await this.uploadHtmlToFolder(folder.id!, 'defekt_report_customer.html', customerHtml || '');
