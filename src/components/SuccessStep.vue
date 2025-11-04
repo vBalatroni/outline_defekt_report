@@ -119,20 +119,31 @@ onMounted(async () => {
         if (supplierRecipient && customerRecipient) {
             try {
                 const fd = buildFormData();
+                console.log('[Email] Invio email in corso...');
                 const response = await fetch('/mail/send-multipart', {
                     method: 'POST',
                     body: fd,
                 });
 
-                const result = await response.json().catch(() => ({}));
+                console.log('[Email] Response status:', response.status, response.statusText);
+                const result = await response.json().catch((e) => {
+                    console.error('[Email] Errore parsing JSON:', e);
+                    return { success: false, message: 'Errore risposta server' };
+                });
+                
+                console.log('[Email] Response data:', result);
+                
                 if (!response.ok || (result && result.success === false)) {
-                    throw new Error(result?.message || 'Unknown error sending email.');
+                    const errorMsg = result?.message || result?.error || `HTTP ${response.status}: ${response.statusText}`;
+                    console.error('[Email] Errore invio:', errorMsg, result);
+                    throw new Error(errorMsg);
                 }
                 emailStatus.value = 'success';
+                console.log('[Email] Email inviata con successo');
             } catch (error) {
-                console.error('Failed to send emails:', error);
+                console.error('[Email] Errore completo:', error);
                 emailStatus.value = 'error';
-                emailError.value = error.message;
+                emailError.value = error.message || 'Errore sconosciuto durante invio email';
             }
         } else {
             // No recipients configured; skip email send

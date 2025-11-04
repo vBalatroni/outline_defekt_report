@@ -130,6 +130,8 @@ export class MailService {
       'https://mail.google.com/',
       // Per salvataggio file su Drive (solo file creati dall'app)
       'https://www.googleapis.com/auth/drive.file',
+      // Per leggere metadati di cartelle esistenti (risolve nomi/percorsi)
+      'https://www.googleapis.com/auth/drive.metadata.readonly',
     ];
     return oauth2Client.generateAuthUrl({
       access_type: 'offline',
@@ -222,19 +224,32 @@ export class MailService {
   }
 
   private async resolveFolderSpecToId(folderSpec: string) {
-    // Try direct ID first
+    // Se esplicitamente indicato che è un ID, usalo senza leggere metadati
+    const forceId = String(process.env.DRIVE_PARENT_IS_ID || '').toLowerCase() === 'true';
+    const looksLikeId = /^[A-Za-z0-9_-]{10,}$/.test(folderSpec) && !folderSpec.includes('/');
+    if (forceId || looksLikeId) {
+      return folderSpec; // usa direttamente come parentId
+    }
+
+    // Prova a risolvere via API (richiede scope metadata.readonly)
     const drive = this.getDriveClient();
     try {
       const file = await drive.files.get({ fileId: folderSpec, fields: 'id' });
       if (file?.data?.id) return file.data.id;
     } catch (_) {
-      // Not an ID, treat as name or path
+      // Non è un ID accessibile; trattalo come nome o percorso
     }
-    // If path-like (a/b/c), walk segments creating as needed
+
+    // Se percorso tipo a/b/c, risolvi (crea se mancante)
     const segments = folderSpec.split('/').filter(Boolean);
     let currentParent: string | undefined = undefined;
     for (const seg of segments) {
-      currentParent = await this.ensureFolder(seg, currentParent);
+      try {
+        currentParent = await this.ensureFolder(seg, currentParent);
+      } catch (e) {
+        // In caso di permessi insufficienti per list/create, rilancia con messaggio chiaro
+        throw new Error('Insufficient Drive permissions to resolve folder path. Use DRIVE_PARENT_IS_ID=true con un ID cartella oppure rinnova il consenso con lo scope drive.metadata.readonly.');
+      }
     }
     return currentParent;
   }

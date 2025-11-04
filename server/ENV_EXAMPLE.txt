@@ -22,7 +22,15 @@ SMTP_PASSWORD=your-app-password
 # Gmail OAuth2 (preferito)
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+# Locale: http://localhost:4000/mail/oauth2callback
+# Produzione: https://rma.outline.it/mail/oauth2callback
 GOOGLE_REDIRECT_URI=http://localhost:4000/mail/oauth2callback
 GOOGLE_REFRESH_TOKEN=
 # opzionale: verrà aggiornato automaticamente se assente
 # GOOGLE_ACCESS_TOKEN=
+
+# Google Drive (opzionale)
+# ID cartella Google Drive dove salvare i report
+DRIVE_PARENT_FOLDER_ID=
+# Se DRIVE_PARENT_FOLDER_ID è un ID cartella (non un percorso), imposta a true
+DRIVE_PARENT_IS_ID=true
