@@ -42,8 +42,23 @@ services:
       - backend
     ports:
       - '80:80'
+      - '443:443'
     volumes:
       - ./nginx/.htpasswd:/etc/nginx/.htpasswd:ro
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - certbot_certs:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: /bin/sh -c
+    # Usa questi comandi manualmente (vedi istruzioni):
+    # certonly --webroot --webroot-path=/var/www/certbot -d your-domain.com --email your-email@example.com --agree-tos --no-eff-email
+    command: "sleep 3600"
 
 volumes:
   db_data:
+  certbot_certs:
+  certbot_www:
