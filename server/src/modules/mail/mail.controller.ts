@@ -139,8 +139,23 @@ export class MailController {
   // OAuth2: redirect to Google consent screen
   @Get('auth')
   async auth(@Res() res: Response) {
-    const url = this.mail.generateGoogleAuthUrl();
-    return res.redirect(url);
+    try {
+      if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+        return res.status(400).json({
+          error: 'OAuth2 not configured',
+          message: 'GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables'
+        });
+      }
+      const url = this.mail.generateGoogleAuthUrl();
+      console.log('[OAuth2] Redirecting to Google:', url);
+      return res.redirect(url);
+    } catch (error) {
+      console.error('[OAuth2] Error generating auth URL:', error);
+      return res.status(500).json({
+        error: 'Failed to generate OAuth2 URL',
+        message: error.message || 'Unknown error'
+      });
+    }
   }
 
   // OAuth2 callback: exchange code for tokens

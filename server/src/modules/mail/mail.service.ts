@@ -260,7 +260,16 @@ export class MailService {
       name,
       mimeType: 'application/vnd.google-apps.folder',
     };
-    if (parentId) fileMetadata.parents = [parentId];
+    if (parentId) {
+      // Verifica che la cartella parent esista e sia accessibile
+      try {
+        await drive.files.get({ fileId: parentId, fields: 'id, name' });
+      } catch (e: any) {
+        console.error('[Drive] Errore accesso cartella parent:', parentId, e.message);
+        throw new Error(`Cartella Google Drive non trovata o non accessibile (ID: ${parentId}). Verifica che: 1) L'ID sia corretto, 2) La cartella sia condivisa con l'account OAuth2, 3) DRIVE_PARENT_IS_ID=true se usi un ID.`);
+      }
+      fileMetadata.parents = [parentId];
+    }
     const res = await drive.files.create({
       requestBody: fileMetadata,
       fields: 'id, webViewLink',
