@@ -982,6 +982,7 @@ const toggleSymptomSet = (value) => {
     } else {
         activeField.options.push(value);
     }
+    symptomSelectionCache.value = [...activeField.options];
     markDirty();
 };
 
