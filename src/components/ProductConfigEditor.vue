@@ -13,7 +13,15 @@
         <button @click="reloadFromServer" class="btn btn-secondary" :disabled="isSaving">
             Reload from server
         </button>
+        <button @click="triggerFileImport" class="btn btn-outline">Import Configuration from JSON</button>
         <button @click="exportConfiguration" class="btn btn-success">Export Configuration to JSON</button>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="application/json"
+          class="hidden-file-input"
+          @change="handleFileImportChange"
+        />
       </div>
     </div>
     
@@ -469,6 +477,7 @@ const manualOptions = ref([]);
 const mappingDrafts = reactive({});
 const symptomSelectionCache = ref([]);
 const initializingField = ref(false);
+const fileInputRef = ref(null);
 
 // Toast system
 const toasts = ref([]);
@@ -984,6 +993,46 @@ const toggleSymptomSet = (value) => {
     }
     symptomSelectionCache.value = [...activeField.options];
     markDirty();
+};
+
+const triggerFileImport = () => {
+    if (fileInputRef.value) {
+        fileInputRef.value.value = '';
+        fileInputRef.value.click();
+    }
+};
+
+const handleFileImportChange = (event) => {
+    const file = event.target.files && event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+        try {
+            const content = e.target?.result;
+            if (typeof content !== 'string') {
+                throw new Error('Invalid file content.');
+            }
+            const parsed = JSON.parse(content);
+            if (!parsed || typeof parsed !== 'object') {
+                throw new Error('JSON structure not valid.');
+            }
+            productStore.updateProductMapping(parsed);
+            symptomSelectionCache.value = [];
+            manualOptions.value = [];
+            manualOptionDraft.value = '';
+            Object.keys(mappingDrafts).forEach(key => { mappingDrafts[key] = ''; });
+            markDirty();
+            showToast({ message: 'Configuration imported. Review and save to server.', type: 'success', duration: 5000 });
+        } catch (error) {
+            console.error(error);
+            showToast({ message: `Failed to import configuration: ${error.message}`, type: 'danger', duration: 6000 });
+        }
+    };
+    reader.onerror = () => {
+        showToast({ message: 'Failed to read the selected file.', type: 'danger', duration: 6000 });
+    };
+    reader.readAsText(file);
 };
 
 const addManualOption = () => {
@@ -1746,6 +1795,9 @@ onMounted(() => {
 }
 .manage-symptom-link:hover {
     color: #0b5ed7;
+}
+.hidden-file-input {
+    display: none;
 }
 
 .form-section {
