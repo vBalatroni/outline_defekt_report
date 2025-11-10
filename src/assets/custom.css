@@ -268,7 +268,7 @@ body {
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: left;
   padding: 1rem;
   margin: 1rem 0;
 }

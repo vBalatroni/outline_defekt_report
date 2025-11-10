@@ -4,46 +4,52 @@
       <p class="selection-placeholder">Please select a category and model to see the form.</p>
     </div>
     <div v-else>
-      <div v-for="field in visibleFields" :key="field.id" class="form-group">
-        <label :for="field.id">{{ field.label }}</label>
-        
-        <template v-if="field.type === 'text'">
-          <input 
-            type="text" 
-            :id="field.id"
-            v-model="formData[field.id]" 
-            :required="field.required"
-          />
-        </template>
-        
-        <template v-if="field.type === 'select'">
-          <select 
-            :id="field.id"
-            v-model="formData[field.id]" 
-            :required="field.required"
-            @change="handleFieldChange(field.id)"
-          >
-            <option disabled value="">Please select an option</option>
-            <option v-for="option in getOptionsForField(field)" :key="option.value || option" :value="option.value || option">
-              {{ option.label || option }}
-            </option>
-          </select>
-        </template>
-
-        <template v-if="field.type === 'file'">
+      <div class="fields-grid">
+        <div v-for="field in visibleFields" :key="field.id" class="form-group dynamic-field-group">
+          <label :for="field.id" class="dynamic-field-label">{{ field.label }}</label>
+          
+          <template v-if="field.type === 'text'">
             <input 
-                type="file" 
-                :id="field.id"
-                accept="image/png,image/jpeg"
-                @change="handleFileUpload($event, field.id)"
-                :required="field.required"
-                ref="fileInputs"
-                :data-field="field.id"
+              type="text" 
+              :id="field.id"
+              v-model="formData[field.id]" 
+              :required="field.required"
+              class="dynamic-field-input"
             />
-            <div v-if="previews[field.id]" class="preview">
-              <img :src="previews[field.id]" alt="preview" />
-            </div>
-        </template>
+          </template>
+          
+          <template v-if="field.type === 'select'">
+            <select 
+              :id="field.id"
+              v-model="formData[field.id]" 
+              :required="field.required"
+              @change="handleFieldChange(field.id)"
+              :disabled="!hasOptions(field)"
+              class="dynamic-field-input"
+            >
+              <option disabled value="">Please select an option</option>
+              <option v-for="option in getOptionsForField(field)" :key="option.value || option" :value="option.value || option">
+                {{ option.label || option }}
+              </option>
+            </select>
+          </template>
+
+          <template v-if="field.type === 'file'">
+              <input 
+                  type="file" 
+                  :id="field.id"
+                  accept="image/png,image/jpeg"
+                  @change="handleFileUpload($event, field.id)"
+                  :required="field.required"
+                  ref="fileInputs"
+                  :data-field="field.id"
+                  class="dynamic-field-input"
+              />
+              <div v-if="previews[field.id]" class="preview">
+                <img :src="previews[field.id]" alt="preview" />
+              </div>
+          </template>
+        </div>
       </div>
     </div>
   </div>
@@ -190,6 +196,11 @@ const handleFileUpload = async (event, fieldId) => {
     reader.readAsDataURL(file);
 };
 
+const hasOptions = (field) => {
+  const options = getOptionsForField(field);
+  return Array.isArray(options) && options.length > 0;
+};
+
 onMounted(() => {
     productStore.loadConfiguration();
 });
@@ -200,21 +211,44 @@ onMounted(() => {
 .dynamic-product-form {
   padding: 1rem;
 }
-.form-group {
-  margin-bottom: 1.5rem;
+.fields-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 1.25rem;
 }
-.form-group label {
+.dynamic-field-group {
+  margin-bottom: 1.5rem;
+  display: flex;
+  flex-direction: column;
+}
+.dynamic-field-label {
   display: block;
   margin-bottom: 0.5rem;
   font-weight: bold;
+  color: #333;
 }
-.form-group input,
-.form-group select,
-.form-group textarea {
+.dynamic-field-input {
   width: 100%;
   padding: 0.75rem;
   border: 1px solid #ccc;
   border-radius: 4px;
+  background-color: #fff;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+.dynamic-field-input:focus {
+  outline: none;
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.15);
+}
+.dynamic-field-input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
+  color: #888;
+}
+.dynamic-field-help {
+  margin-top: 0.35rem;
+  font-size: 0.75rem;
+  color: #777;
 }
 .selection-placeholder {
   color: #777;
@@ -222,5 +256,16 @@ onMounted(() => {
   padding: 2rem;
   border: 2px dashed #ddd;
   border-radius: 4px;
+}
+.preview {
+  margin-top: 0.75rem;
+}
+.preview img {
+  max-width: 140px;
+  max-height: 140px;
+  border-radius: 6px;
+  border: 1px solid #ddd;
+  object-fit: cover;
+  display: inline-block;
 }
 </style> 

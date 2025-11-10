@@ -64,7 +64,7 @@ const initializeNewProduct = () => {
                 label: 'Serial Number',
                 type: 'text',
                 value: '',
-                isRequired: false
+                isRequired: true
             }
         },
         defekts: []
@@ -104,6 +104,7 @@ const clearForm = () => {
     isBasicInfoValidated.value = false;
     showModal.value = false;
     editingProductIndex.value = -1;
+    currentProductModel.value = '';
 };
 
 const clearDefektForm = () => {
@@ -120,17 +121,16 @@ const handleInputChange = (event) => {
         updateDependentOptions(currentProduct.value);
         currentProduct.value.basicInfo.model.value = '';
         isBasicInfoValidated.value = false;
+        currentProductModel.value = '';
 
     } else if (event.id === 'model') {
         if (event.value) {
-            isBasicInfoValidated.value = true;
             currentProductModel.value = event.value;
-            // Now that we have a model and are about to display the defect form,
-            // we must initialize it with the correct fields for that model.
-            currentDefekt.value = initializeNewDefekt(event.value);
         } else {
-            isBasicInfoValidated.value = false;
+            currentProductModel.value = '';
         }
+        isBasicInfoValidated.value = false;
+        currentDefekt.value = initializeNewDefekt(event.value || null);
         
         // This logic is now handled by initializeNewDefekt and is redundant/error-prone.
         /*
@@ -153,8 +153,8 @@ const handleInputChange = (event) => {
 
 const basicInfoFieldsFilled = computed(() => {
     if (!currentProduct.value) return false;
-    const { category, model } = currentProduct.value.basicInfo;
-    return category.value && model.value;
+    const { category, model, serialNumber } = currentProduct.value.basicInfo;
+    return Boolean(category.value && model.value && serialNumber.value);
 });
 
 const canSave = computed(() => {
@@ -264,6 +264,7 @@ const openNewProductModal = () => {
     currentDefekt.value = initializeNewDefekt();
     isBasicInfoValidated.value = false;
     showModal.value = true;
+    currentProductModel.value = '';
     
     // Debug log
     console.log('Initialized currentProduct:', currentProduct.value);
@@ -352,10 +353,53 @@ const editProduct = (index) => {
     
     // Set the current product
     currentProduct.value = deepClonePreservingFiles(originalProduct);
+    currentProductModel.value = currentProduct.value.basicInfo.model.value;
     
     // Use the existing model value from the saved product
     currentDefekt.value = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
     showModal.value = true;
+};
+
+const proceedToDefektStep = () => {
+    if (!basicInfoFieldsFilled.value) return;
+    currentProductModel.value = currentProduct.value.basicInfo.model.value;
+    currentDefekt.value = initializeNewDefekt(currentProductModel.value);
+    isBasicInfoValidated.value = true;
+};
+
+const editBasicInfo = () => {
+    isBasicInfoValidated.value = false;
+    // keep current selections, ensure dynamic form resets
+    currentDefekt.value = initializeNewDefekt(currentProduct.value.basicInfo.model.value);
+    nextTick(() => {
+        const topSection = document.querySelector('.modal-body-custom');
+        if (topSection) topSection.scrollTop = 0;
+    });
+};
+
+const formatFieldValue = (field) => {
+    if (!field) return '';
+    const value = field.value;
+    if (value === null || value === undefined || value === '') return '';
+
+    if (typeof File !== 'undefined' && value instanceof File) {
+        return value.name;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => {
+            if (typeof item === 'object' && item !== null) {
+                return item.label || item.value || JSON.stringify(item);
+            }
+            return item;
+        }).join(', ');
+    }
+
+    if (typeof value === 'object') {
+        return value.label || value.value || JSON.stringify(value);
+    }
+
+    return value;
 };
 
 const goToNext = () => {
@@ -433,21 +477,39 @@ const goToBack = () => {
                                 />
                             </div>
                         </div>
+                        <div class="basic-info-actions text-end mt-3">
+                            <Button
+                                :type="'primary'"
+                                :text="'Continue'"
+                                :isDisabled="!basicInfoFieldsFilled"
+                                @click="proceedToDefektStep"
+                            />
+                        </div>
                     </template>
                     
                     <template v-else>
                         <!-- Product Summary Section -->
                         <div class="product-summary mb-4">
-                            <h3 class="section-header">Product</h3>
-                            <div class="product-info-box">
-    <div>
-                                    <p><strong>Model:</strong> {{ currentProductModel }}</p>
-                                    <p><strong>Serial Number:</strong> {{ currentProduct.basicInfo.serialNumber.value }}</p>
-                                    <p><strong>Category:</strong> {{ currentProduct.basicInfo.category.value }}</p>
-                                </div>
-                                <!-- Remove the change product link -->
+                            <div class="product-summary-header">
+                                <h3 class="section-header mb-0">Product Overview</h3>
+                                <button class="link-button" type="button" @click="editBasicInfo">Change product</button>
                             </div>
-                            <Divider />
+                            <div class="product-info-box">
+                                <div class="product-info-grid">
+                                    <div class="product-info-item">
+                                        <span class="info-label">Model</span>
+                                        <span class="info-value">{{ currentProductModel }}</span>
+                                    </div>
+                                    <div class="product-info-item">
+                                        <span class="info-label">Serial Number</span>
+                                        <span class="info-value">{{ currentProduct.basicInfo.serialNumber.value }}</span>
+                                    </div>
+                                    <div class="product-info-item">
+                                        <span class="info-label">Category</span>
+                                        <span class="info-value">{{ currentProduct.basicInfo.category.value }}</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                         
                         <!-- Defect Form Section -->
@@ -489,7 +551,7 @@ const goToBack = () => {
                                                         <img :src="field.value" :alt="field.label" class="summary-image-preview" />
                                                     </template>
                                                     <template v-else>
-                                                        <span class="summary-field-value">{{ field.value }}</span>
+                                                        <span class="summary-field-value">{{ formatFieldValue(field) }}</span>
                                                     </template>
                                                 </div>
                                             </div>
@@ -586,11 +648,61 @@ const goToBack = () => {
 }
 
 .product-summary {
-    padding: 1.5rem;
-    border: 1px solid #ccc;
-    border-radius: 8px;
+    padding: 1.1rem 1.3rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    border: 1px solid ;
+    border-radius: 10px;
     margin-bottom: 1.5rem;
-    background-color: #fafafa;
+    background: #f9fbff;
+}
+.product-summary-header {
+    display: flex;
+    flex-direction: column;
+    align-items: left;
+    gap: 1rem;
+    margin-bottom: 0.9rem;
+}
+.product-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.75rem;
+}
+.product-info-item {
+    padding: 0.6rem 0.85rem;
+    background: #fff;
+    border: 1px solid ;
+    border-radius: 8px;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+}
+.info-label {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    
+    font-weight: 600;
+}
+.info-value {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2d3d;
+}
+.link-button {
+    background: none;
+    border: none;
+    text-decoration: underline;
+    padding: 0;
+    font-size: 0.9rem;
+    cursor: pointer;
+    font-weight: 600;
+    text-align: left;
+    text-decoration: none;
+}
+.link-button:hover {
+    text-decoration: underline;
 }
 
 .product-info-box {
