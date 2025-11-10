@@ -21,6 +21,9 @@
             <span>Symptom Sets</span>
             <span class="badge" v-if="symptomSetCount > 0">{{ symptomSetCount }}</span>
           </li>
+          <li :class="{ active: activeTab === 'guide' }" @click="activeTab = 'guide'">
+            <span>Guide & Tips</span>
+          </li>
         </ul>
       </aside>
       <main class="content">
@@ -35,7 +38,9 @@
                 ? 'Intro Content'
                 : activeTab === 'email'
                 ? 'Email Settings'
-                : 'Symptom Sets'
+                : activeTab === 'symptoms'
+                ? 'Symptom Sets'
+                : 'Guide'
             }}
           </h2>
         </header>
@@ -44,7 +49,8 @@
           <GeneralFieldsEditor v-else-if="activeTab === 'general'" />
           <IntroContentEditor v-else-if="activeTab === 'intro'" />
           <EmailSettingsEditor v-else-if="activeTab === 'email'" />
-          <SymptomSetEditor v-else />
+          <SymptomSetEditor v-else-if="activeTab === 'symptoms'" />
+          <ConfigGuide v-else />
         </section>
       </main>
     </div>
@@ -52,18 +58,38 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, watch } from 'vue';
+import { useRoute, useRouter } from 'vue-router';
 import ProductConfigEditor from '@/components/ProductConfigEditor.vue';
 import SymptomSetEditor from '@/components/SymptomSetEditor.vue';
 import GeneralFieldsEditor from '@/components/GeneralFieldsEditor.vue';
 import EmailSettingsEditor from '@/components/EmailSettingsEditor.vue';
 import IntroContentEditor from '@/components/IntroContentEditor.vue';
+import ConfigGuide from '@/components/ConfigGuide.vue';
 import { useProductStore } from '@/stores/productStore';
 
-const activeTab = ref('models');
+const route = useRoute();
+const router = useRouter();
+const validTabs = ['models', 'general', 'intro', 'email', 'symptoms', 'guide'];
+const initialTab = typeof route.query.tab === 'string' && validTabs.includes(route.query.tab)
+  ? route.query.tab
+  : 'models';
+const activeTab = ref(initialTab);
 const store = useProductStore();
 const categoryCount = computed(() => (store.categories || []).length);
 const symptomSetCount = computed(() => Object.keys(store.symptomSets || {}).length);
+
+watch(() => route.query.tab, (tab) => {
+  if (typeof tab === 'string' && validTabs.includes(tab) && tab !== activeTab.value) {
+    activeTab.value = tab;
+  }
+});
+
+watch(activeTab, (tab) => {
+  const current = typeof route.query.tab === 'string' ? route.query.tab : undefined;
+  if (current === tab) return;
+  router.replace({ name: 'config-editor', query: { ...route.query, tab } });
+});
 </script>
 
 <style scoped>

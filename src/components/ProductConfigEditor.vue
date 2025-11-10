@@ -140,38 +140,40 @@
                             <div class="editor-column">
                                 <div class="form-section">
                                     <h4>General</h4>
-                                    <div class="form-group">
-                                        <label>Field ID</label>
-                                        <input type="text" v-model="activeField.id" placeholder="e.g., serialNumber">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Field Label</label>
-                                        <input type="text" v-model="activeField.label" placeholder="e.g., Serial Number">
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Field Section</label>
-                                        <select v-model="activeField.section" required>
-                                            <option disabled value="">Assign to a section</option>
-                                            <option v-for="sectionName in defectSections" :key="sectionName" :value="sectionName">
-                                                {{ sectionName }}
-                                            </option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Field Type</label>
-                                        <select v-model="activeField.type">
-                                            <option value="text">Text</option>
-                                            <option value="select">Select</option>
-                                            <option value="file">File</option>
-                                        </select>
-                                    </div>
-                                    <div class="form-group">
-                                        <label>Order</label>
-                                        <input type="number" v-model.number="activeField.order">
-                                    </div>
-                                     <div class="form-group checkbox-group compact-checkbox">
-                                        <input type="checkbox" v-model="activeField.required" id="isRequired" />
-                                        <label for="isRequired">Field is required</label>
+                                    <div class="form-grid form-grid-2">
+                                        <div class="form-group">
+                                            <label>Field ID</label>
+                                            <input type="text" v-model="activeField.id" placeholder="e.g., serialNumber">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Field Label</label>
+                                            <input type="text" v-model="activeField.label" placeholder="e.g., Serial Number">
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Field Section</label>
+                                            <select v-model="activeField.section" required>
+                                                <option disabled value="">Assign to a section</option>
+                                                <option v-for="sectionName in defectSections" :key="sectionName" :value="sectionName">
+                                                    {{ sectionName }}
+                                                </option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Field Type</label>
+                                            <select v-model="activeField.type">
+                                                <option value="text">Text</option>
+                                                <option value="select">Select</option>
+                                                <option value="file">File</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label>Order</label>
+                                            <input type="number" v-model.number="activeField.order" min="0">
+                                        </div>
+                                        <div class="form-group checkbox-group compact-checkbox">
+                                            <input type="checkbox" v-model="activeField.required" id="isRequired" />
+                                            <label for="isRequired">Field is required</label>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
@@ -183,26 +185,77 @@
                                         <h4>Options & Dependencies</h4>
                                         <div class="form-group checkbox-group">
                                             <input type="checkbox" v-model="activeField.isSymptomArea" id="isSymptomArea" />
-                                            <label for="isSymptomArea">This is a Symptom Area selector</label>
+                                            <label for="isSymptomArea">Use Symptom Sets as options</label>
                                         </div>
+                                        <p class="helper-text">
+                                            Attiva questa opzione se il menù deve mostrare i Symptom Set disponibili per il modello.
+                                        </p>
                                         <div v-if="activeField.isSymptomArea" class="form-group">
                                             <label>Available Symptom Sets</label>
-                                            <div class="symptom-sets-selection">
-                                                <div v-for="set in availableSymptomSets" :key="set.value" class="checkbox-group">
-                                                    <input type="checkbox" :id="`set-${set.value}`" :value="set.value" v-model="activeField.options" />
-                                                    <label :for="`set-${set.value}`">{{ set.label }} ({{ set.value }})</label>
+                                            <div class="symptom-selector">
+                                                <input
+                                                    type="text"
+                                                    v-model="symptomSearch"
+                                                    placeholder="Filter sets..."
+                                                    class="symptom-search"
+                                                />
+                                                <button type="button" class="manage-symptom-link" @click="openSymptomSetManager">
+                                                    Manage Symptom Sets
+                                                </button>
+                                                <div class="chip-grid">
+                                                    <button
+                                                        type="button"
+                                                        class="chip-toggle"
+                                                        v-for="set in filteredSymptomSets"
+                                                        :key="set.value"
+                                                        :class="{ selected: isSymptomSetSelected(set.value) }"
+                                                        @click="toggleSymptomSet(set.value)"
+                                                    >
+                                                        <span class="chip-title">{{ set.label }}</span>
+                                                        <span class="chip-sub">{{ set.value }}</span>
+                                                    </button>
+                                                </div>
+                                                <p v-if="!filteredSymptomSets.length" class="empty-state">No symptom sets match your search.</p>
+                                                <div v-if="activeField.options?.length" class="selected-preview">
+                                                    <span class="preview-label">Selected:</span>
+                                                    <span class="preview-chip" v-for="value in activeField.options" :key="value">
+                                                        {{ value }}
+                                                    </span>
                                                 </div>
                                             </div>
                                         </div>
-                                        <div v-if="!activeField.isSymptomArea" class="form-group">
-                                            <label>Options (one per line)</label>
-                                            <textarea v-model="activeField.options" placeholder="Option 1&#10;Option 2" rows="4"></textarea>
+                                        <div v-else class="form-group">
+                                            <label>Options</label>
+                                            <div class="manual-options">
+                                                <div class="manual-options-input">
+                                                    <input
+                                                        type="text"
+                                                        v-model="manualOptionDraft"
+                                                        placeholder="Type an option and press Enter"
+                                                        @keyup.enter.prevent="addManualOption"
+                                                    />
+                                                    <button type="button" class="chip-add" @click="addManualOption">Add</button>
+                                                </div>
+                                                <div v-if="manualOptions.length" class="manual-options-chips">
+                                                    <span class="manual-chip" v-for="option in manualOptions" :key="option">
+                                                        {{ option }}
+                                                        <button type="button" class="chip-remove" @click="removeManualOption(option)">×</button>
+                                                    </span>
+                                                </div>
+                                                <p v-else class="empty-state">No options yet. Add at least one to populate the select.</p>
+                                                <button type="button" class="manage-symptom-link subtle" @click="openSymptomSetManager">
+                                                    Need a Symptom Set instead? Manage them here
+                                                </button>
+                                            </div>
                                         </div>
                                         <div v-if="isEditing && !activeField.isSymptomArea" class="dependencies-section">
-                                            <h5>Dependencies</h5>
+                                            <h5>Parent/child options</h5>
+                                            <p class="helper-text">
+                                                Collega questo select a un altro per mostrare opzioni diverse in base alla scelta del genitore.
+                                            </p>
                                             <div class="form-group">
-                                                <label>Depends on which field?</label>
-                                                <select v-model="activeField.dependsOn">
+                                                <label>Parent select field</label>
+                                                <select v-model="activeField.dependsOn" @change="markDirty()">
                                                     <option :value="null">None</option>
                                                     <option v-for="field in availableParentFields" :key="field.id" :value="field.id">
                                                         {{ field.label }} ({{ field.id }})
@@ -210,30 +263,66 @@
                                                 </select>
                                             </div>
                                             <div v-if="activeField.dependsOn" class="value-mapping">
-                                                <h6>Option Mapping</h6>
-                                                <p>For each parent option, define the source of the child options.</p>
-                                                <div v-for="parentOption in parentFieldOptions" :key="parentOption" class="mapping-row">
-                                                    <span class="parent-option-label">{{ parentOption }}</span>
-                                                    <div class="mapping-controls">
-                                                        <select v-model="activeField.valueMapping[parentOption].type" class="mapping-type-select">
-                                                            <option value="static">Manual Options</option>
-                                                            <option value="symptomSet">From Symptom Set</option>
-                                                        </select>
-                                                        <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'static'">
-                                                            <textarea 
-                                                                v-model="activeField.valueMapping[parentOption].value"
-                                                                placeholder="Child options (one per line)"
-                                                                rows="3"
-                                                            ></textarea>
-                                                        </template>
-                                                        <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'symptomSet'">
-                                                            <select v-model="activeField.valueMapping[parentOption].value">
-                                                                <option disabled value="">Select a symptom set</option>
-                                                                <option v-for="set in availableSymptomSets" :key="set.value" :value="set.value">
-                                                                    {{ set.label }} ({{ set.value }})
-                                                                </option>
+                                                <h6>Mapping</h6>
+                                                <p class="helper-text">Definisci da dove recuperare le opzioni in base al valore scelto nel campo padre.</p>
+                                                <div class="mapping-table">
+                                                    <div class="mapping-row mapping-header">
+                                                        <span>Parent option</span>
+                                                        <span>Child options</span>
+                                                    </div>
+                                                    <div v-for="parentOption in parentFieldOptions" :key="parentOption" class="mapping-row">
+                                                        <span class="parent-option-label">{{ parentOption }}</span>
+                                                        <div class="mapping-controls">
+                                                        <select
+                                                            v-model="activeField.valueMapping[parentOption].type"
+                                                            class="mapping-type-select"
+                                                            @change="onMappingTypeChange(parentOption)"
+                                                        >
+                                                                <option value="static">Manual list</option>
+                                                                <option value="symptomSet">Symptom Set</option>
                                                             </select>
-                                                        </template>
+                                                            <template v-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'static'">
+                                                            <div class="mapping-static">
+                                                                <div class="manual-options-input">
+                                                                    <input
+                                                                        type="text"
+                                                                        v-model="mappingDrafts[parentOption]"
+                                                                        placeholder="Add child option"
+                                                                        @keyup.enter.prevent="addMappingOption(parentOption)"
+                                                                    />
+                                                                    <button type="button" class="chip-add" @click="addMappingOption(parentOption)">Add</button>
+                                                                </div>
+                                                                <div class="manual-options-chips" v-if="getMappingOptionList(parentOption).length">
+                                                                    <span
+                                                                        class="manual-chip"
+                                                                        v-for="option in getMappingOptionList(parentOption)"
+                                                                        :key="option"
+                                                                    >
+                                                                        {{ option }}
+                                                                        <button
+                                                                            type="button"
+                                                                            class="chip-remove"
+                                                                            @click="removeMappingOption(parentOption, option)"
+                                                                        >
+                                                                            ×
+                                                                        </button>
+                                                                    </span>
+                                                                </div>
+                                                                <p v-else class="empty-state">No child options configured yet.</p>
+                                                            </div>
+                                                            </template>
+                                                            <template v-else-if="activeField.valueMapping[parentOption] && activeField.valueMapping[parentOption].type === 'symptomSet'">
+                                                                <select v-model="activeField.valueMapping[parentOption].value" @change="markDirty()">
+                                                                    <option disabled value="">Select a symptom set</option>
+                                                                    <option v-for="set in availableSymptomSets" :key="set.value" :value="set.value">
+                                                                        {{ set.label }} ({{ set.value }})
+                                                                    </option>
+                                                                </select>
+                                                            <button type="button" class="manage-symptom-link subtle" @click="openSymptomSetManager">
+                                                                Manage Symptom Sets
+                                                            </button>
+                                                            </template>
+                                                        </div>
                                                     </div>
                                                 </div>
                                             </div>
@@ -360,6 +449,7 @@
 
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue';
+import { useRouter } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
 
 const productStore = useProductStore();
@@ -368,9 +458,17 @@ const selectedCategory = ref('');
 const selectedModel = ref('');
 
 const searchQuery = ref('');
+const router = useRouter();
+
 const showModelEditorModal = ref(false);
 const isSaving = ref(false);
 const hasUnsavedChanges = ref(false);
+const symptomSearch = ref('');
+const manualOptionDraft = ref('');
+const manualOptions = ref([]);
+const mappingDrafts = reactive({});
+const symptomSelectionCache = ref([]);
+const initializingField = ref(false);
 
 // Toast system
 const toasts = ref([]);
@@ -453,11 +551,35 @@ watch(() => activeField.label, (newLabel, oldLabel) => {
 
 watch(() => activeField.isSymptomArea, (isSymptomArea) => {
     if (isSymptomArea) {
-        activeField.options = [];
+        const restored = Array.isArray(activeField.options)
+            ? [...activeField.options]
+            : symptomSelectionCache.value.length
+            ? [...symptomSelectionCache.value]
+            : [];
+        activeField.options = restored;
+        manualOptions.value = [];
     } else {
-        activeField.options = '';
+        symptomSelectionCache.value = Array.isArray(activeField.options) ? [...activeField.options] : [];
+        const existing = Array.isArray(activeField.options)
+            ? [...activeField.options]
+            : String(activeField.options || '')
+                  .split('\n')
+                  .map(opt => opt.trim())
+                  .filter(Boolean);
+        manualOptions.value = existing;
+        activeField.options = manualOptions.value.join('\n');
+    }
+    symptomSearch.value = '';
+    if (!initializingField.value) {
+        markDirty();
     }
 });
+
+watch(manualOptions, (list) => {
+    if (!activeField.isSymptomArea) {
+        activeField.options = list.join('\n');
+    }
+}, { deep: true });
 
 const categories = computed(() => productStore.categories || []);
 const availableModels = computed(() => {
@@ -550,8 +672,15 @@ watch(() => parentFieldOptions.value, (newOptions) => {
     const newMapping = {};
     newOptions.forEach(opt => {
         newMapping[opt] = activeField.valueMapping[opt] || { type: 'static', value: '' };
+        ensureMappingDraft(opt);
     });
     activeField.valueMapping = newMapping;
+    Object.keys(activeField.valueMapping).forEach(key => ensureMappingDraft(key));
+    Object.keys(mappingDrafts).forEach(key => {
+        if (!newOptions.includes(key)) {
+            delete mappingDrafts[key];
+        }
+    });
 }, { deep: true });
 
 const onCategoryChange = () => {
@@ -618,6 +747,7 @@ const closeModelEditor = () => {
 };
 
 const openAddFieldModal = () => {
+    initializingField.value = true;
     isEditing.value = false;
     editingFieldIndex.value = null;
     activeField.id = '';
@@ -632,9 +762,16 @@ const openAddFieldModal = () => {
     activeField.conditions = [];
     activeField.section = '';
     showFieldModal.value = true;
+    symptomSearch.value = '';
+    manualOptions.value = [];
+    manualOptionDraft.value = '';
+    symptomSelectionCache.value = [];
+    Object.keys(mappingDrafts).forEach(key => { mappingDrafts[key] = ''; });
+    initializingField.value = false;
 };
 
 const openEditFieldModal = (index) => {
+    initializingField.value = true;
     isEditing.value = true;
     editingFieldIndex.value = index;
     const fieldToEdit = JSON.parse(JSON.stringify(modelFields.value[index])); // Deep copy
@@ -650,8 +787,11 @@ const openEditFieldModal = (index) => {
     activeField.section = fieldToEdit.section || '';
 
     if (activeField.isSymptomArea) {
-        activeField.options = Array.isArray(fieldToEdit.options) ? fieldToEdit.options : [];
+        activeField.options = Array.isArray(fieldToEdit.options) ? [...fieldToEdit.options] : [];
+        symptomSelectionCache.value = [...activeField.options];
+        manualOptions.value = [];
     } else {
+        symptomSelectionCache.value = [];
         const valueMappingForEdit = {};
         if (fieldToEdit.valueMapping) {
             const parentField = modelFields.value.find(f => f.id === fieldToEdit.dependsOn);
@@ -672,9 +812,20 @@ const openEditFieldModal = (index) => {
         }
         activeField.valueMapping = valueMappingForEdit;
         activeField.options = Array.isArray(fieldToEdit.options) ? fieldToEdit.options.join('\\n') : '';
+        manualOptions.value = Array.isArray(fieldToEdit.options)
+            ? [...fieldToEdit.options]
+            : String(fieldToEdit.options || '')
+                  .split('\n')
+                  .map(opt => opt.trim())
+                  .filter(Boolean);
+        Object.keys(activeField.valueMapping).forEach(key => ensureMappingDraft(key));
     }
 
     showFieldModal.value = true;
+    symptomSearch.value = '';
+    manualOptionDraft.value = '';
+    Object.keys(mappingDrafts).forEach(key => { mappingDrafts[key] = ''; });
+    initializingField.value = false;
 };
 
 const saveField = () => {
@@ -703,7 +854,7 @@ const saveField = () => {
         if (activeField.isSymptomArea) {
             fieldData.options = activeField.options;
         } else {
-            fieldData.options = activeField.options.split('\n').map(opt => opt.trim()).filter(Boolean);
+            fieldData.options = manualOptions.value.filter(Boolean);
         }
         if (activeField.dependsOn) {
             fieldData.dependsOn = activeField.dependsOn;
@@ -713,7 +864,10 @@ const saveField = () => {
                 if (mapping.type === 'static') {
                     finalValueMapping[key] = {
                         type: 'static',
-                        options: mapping.value.split('\n').map(opt => opt.trim()).filter(Boolean)
+                        options: String(mapping.value || '')
+                            .split('\n')
+                            .map(opt => opt.trim())
+                            .filter(Boolean)
                     };
                 } else {
                     finalValueMapping[key] = {
@@ -801,6 +955,107 @@ const exportConfiguration = () => {
 
 const availableSymptomSets = computed(() => productStore.symptomSetOptions);
 const defectSections = computed(() => productStore.defectSections);
+const filteredSymptomSets = computed(() => {
+    const term = symptomSearch.value.trim().toLowerCase();
+    if (!term) return availableSymptomSets.value;
+    return availableSymptomSets.value.filter(set =>
+        set.label.toLowerCase().includes(term) || set.value.toLowerCase().includes(term)
+    );
+});
+
+const openSymptomSetManager = () => {
+    router.replace({ name: 'config-editor', query: { ...router.currentRoute.value.query, tab: 'symptoms' } });
+};
+
+const isSymptomSetSelected = (value) => {
+    if (!Array.isArray(activeField.options)) return false;
+    return activeField.options.includes(value);
+};
+
+const toggleSymptomSet = (value) => {
+    if (!Array.isArray(activeField.options)) {
+        activeField.options = [];
+    }
+    const index = activeField.options.indexOf(value);
+    if (index >= 0) {
+        activeField.options.splice(index, 1);
+    } else {
+        activeField.options.push(value);
+    }
+    markDirty();
+};
+
+const addManualOption = () => {
+    const value = manualOptionDraft.value.trim();
+    if (!value) return;
+    if (!manualOptions.value.includes(value)) {
+        manualOptions.value.push(value);
+        markDirty();
+    }
+    manualOptionDraft.value = '';
+};
+
+const removeManualOption = (value) => {
+    manualOptions.value = manualOptions.value.filter(item => item !== value);
+    markDirty();
+};
+
+const ensureMappingDraft = (key) => {
+    if (mappingDrafts[key] === undefined) {
+        mappingDrafts[key] = '';
+    }
+};
+
+const getMappingOptionList = (parentOption) => {
+    const mapping = activeField.valueMapping[parentOption];
+    if (!mapping || mapping.type !== 'static') return [];
+    const raw = mapping.value || '';
+    return String(raw)
+        .split('\n')
+        .map(opt => opt.trim())
+        .filter(Boolean);
+};
+
+const setMappingOptionList = (parentOption, list) => {
+    if (!activeField.valueMapping[parentOption]) return;
+    activeField.valueMapping[parentOption].value = list.join('\n');
+    if (!initializingField.value) {
+        markDirty();
+    }
+};
+
+const addMappingOption = (parentOption) => {
+    ensureMappingDraft(parentOption);
+    const value = mappingDrafts[parentOption].trim();
+    if (!value) return;
+    const current = getMappingOptionList(parentOption);
+    if (!current.includes(value)) {
+        current.push(value);
+        setMappingOptionList(parentOption, current);
+    }
+    mappingDrafts[parentOption] = '';
+};
+
+const removeMappingOption = (parentOption, option) => {
+    const current = getMappingOptionList(parentOption).filter(item => item !== option);
+    setMappingOptionList(parentOption, current);
+};
+
+const onMappingTypeChange = (parentOption) => {
+    const mapping = activeField.valueMapping[parentOption];
+    if (!mapping) return;
+    if (mapping.type === 'static') {
+        if (typeof mapping.value !== 'string') {
+            mapping.value = '';
+        }
+    } else if (mapping.type === 'symptomSet') {
+        mapping.value = mapping.value || '';
+    }
+    mappingDrafts[parentOption] = '';
+    if (!initializingField.value) {
+        markDirty();
+    }
+};
 
 const addCondition = () => {
     activeField.conditions.push({ field: '', operator: 'equals', value: '' });
@@ -1265,6 +1520,48 @@ onMounted(() => {
     padding-left: 1rem;
     border-left: 2px solid #eee;
 }
+.mapping-table {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.mapping-row {
+    display: grid;
+    grid-template-columns: 1fr minmax(0, 1.5fr);
+    gap: 1rem;
+    padding: 0.75rem 1rem;
+    align-items: flex-start;
+    background: #fff;
+}
+.mapping-row:nth-child(odd) {
+    background: #f9fafc;
+}
+.mapping-header {
+    font-weight: 600;
+    color: #1f2937;
+    background: #eef2ff !important;
+}
+.mapping-controls textarea,
+.mapping-controls select {
+    margin-top: 0.35rem;
+}
+.mapping-controls textarea {
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    padding: 0.5rem;
+}
+.mapping-controls {
+    display: flex;
+    flex-direction: column;
+}
+.mapping-static {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
 
 .mapping-row {
     display: grid;
@@ -1295,24 +1592,159 @@ onMounted(() => {
     gap: 0.5rem;
 }
 
-.symptom-sets-selection {
-    border: 1px solid #eee;
-    padding: 1rem;
-    border-radius: 4px;
-    max-height: 200px;
-    overflow-y: auto;
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 0.5rem;
-}
-
-.symptom-sets-selection .checkbox-group {
-    margin-bottom: 0.5rem;
-}
-
 .compact-checkbox {
     padding-top: 0.5rem;
     margin-bottom: 0;
+}
+
+.form-grid {
+    display: grid;
+    gap: 1rem;
+}
+.form-grid-2 {
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+.helper-text {
+    color: #6b7280;
+    font-size: 0.85rem;
+}
+
+.symptom-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.symptom-search {
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+}
+.chip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 0.5rem;
+}
+.chip-toggle {
+    background: #f4f6fb;
+    border: 1px solid #dbe3f5;
+    border-radius: 10px;
+    padding: 0.45rem 0.75rem;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+.chip-toggle:hover {
+    border-color: #b9cdf6;
+    background: #eff3ff;
+}
+.chip-toggle.selected {
+    background: #0d6efd;
+    border-color: #0d6efd;
+    color: #fff;
+    box-shadow: 0 4px 12px rgba(13, 110, 253, 0.18);
+}
+.chip-title {
+    font-weight: 600;
+}
+.chip-sub {
+    font-size: 0.8rem;
+    opacity: 0.8;
+}
+.selected-preview {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+    align-items: center;
+}
+.preview-label {
+    font-weight: 600;
+    color: #1f2937;
+}
+.preview-chip {
+    background: #eef3ff;
+    color: #2a4d9b;
+    border-radius: 999px;
+    padding: 0.15rem 0.6rem;
+    font-size: 0.8rem;
+}
+.empty-state {
+    color: #6b7280;
+    font-size: 0.9rem;
+    margin: 0;
+}
+
+.manual-options {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+.manual-options-input {
+    display: flex;
+    gap: 0.5rem;
+}
+.manual-options-input input,
+.symptom-search {
+    flex: 1;
+    padding: 0.5rem 0.65rem;
+    border-radius: 6px;
+    border: 1px solid #d1d5db;
+    font-size: 0.95rem;
+}
+.chip-add {
+    background: #0d6efd;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.45rem 0.85rem;
+    cursor: pointer;
+}
+.chip-add:hover {
+    background: #0b5ed7;
+}
+.manual-options-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+}
+.manual-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.25rem 0.65rem;
+    border-radius: 999px;
+    background: #eef3ff;
+    border: 1px solid #dbe3f5;
+    color: #2a4d9b;
+    font-size: 0.85rem;
+}
+.chip-remove {
+    background: transparent;
+    border: none;
+    color: inherit;
+    font-weight: 600;
+    cursor: pointer;
+}
+.chip-remove:hover {
+    opacity: 0.7;
+}
+.manage-symptom-link {
+    align-self: flex-start;
+    background: transparent;
+    border: none;
+    color: #0d6efd;
+    padding: 0;
+    font-size: 0.85rem;
+    cursor: pointer;
+    text-decoration: underline;
+}
+.manage-symptom-link.subtle {
+    color: #4c6fbf;
+}
+.manage-symptom-link:hover {
+    color: #0b5ed7;
 }
 
 .form-section {
@@ -1331,9 +1763,9 @@ onMounted(() => {
 }
 
 .field-editor-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1.75rem;
 }
 
 .editor-column h4 {
@@ -1491,7 +1923,7 @@ onMounted(() => {
 
 .model-editor-layout {
     display: grid;
-    grid-template-columns: 1fr 1.2fr;
+    grid-template-columns: minmax(240px, 0.32fr) minmax(0, 0.68fr);
     gap: 2rem;
     overflow: hidden;
     flex-grow: 1;
