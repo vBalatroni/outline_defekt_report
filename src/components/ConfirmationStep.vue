@@ -1,7 +1,7 @@
 <script setup>
 import { computed } from 'vue'; // Import computed
 import { useRouter } from 'vue-router';
-import { useProductStore } from '@/stores/productStore'; // Import store
+import { useProductStore, defaultIntroContent } from '@/stores/productStore'; // Import store
 import StepHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
@@ -16,6 +16,20 @@ const isConfirmed = computed({
   set: (value) => store.setConfirmation(value)
 });
 
+const introContent = computed(() => {
+    const content = store.productMapping?.introContent || {};
+    const merged = { ...defaultIntroContent, ...content };
+    const bullets = Array.isArray(content.bulletPoints)
+        ? content.bulletPoints.filter(item => typeof item === 'string' && item.trim().length)
+        : [];
+    merged.bulletPoints = bullets.length ? bullets : defaultIntroContent.bulletPoints;
+    merged.checkboxLabel = content.checkboxLabel || defaultIntroContent.checkboxLabel;
+    merged.startButtonLabel = content.startButtonLabel || defaultIntroContent.startButtonLabel;
+    merged.title = content.title || defaultIntroContent.title;
+    merged.subtitle = content.subtitle || defaultIntroContent.subtitle;
+    return merged;
+});
+
 const nextStep = () => {
     // Start the session before navigating away
     store.startSession();
@@ -26,22 +40,18 @@ const nextStep = () => {
 <template>
     <div class="confirmation-step">
         <div class="confirmation-wrapper">
-            <StepHeader title="Before starting" subtitle="Have you completed all the necessary checks before filling out the Defekt Report?"/>
+            <StepHeader :title="introContent.title" :subtitle="introContent.subtitle"/>
             <div class="step-body px-2 py-4">
                 <ul class="step-list mt-0">
-                    <li>Lorem ipsum dolor sit amet, consectetur adipiscing elit.</li>
-                    <li>Pellentesque et tortor congue, congue libero at, interdum ex.</li>
-                    <li>Mauris faucibus ipsum in  feugiat feugiat.</li>
-                    <li>Aenean sit amet velit cursus, suscipit mi ut, aliquet sapien.</li>
-                    <li>Aliquam eleifend nulla pulvinar, feugiat sem id, pretium turpis.</li>
+                    <li v-for="(bullet, index) in introContent.bulletPoints" :key="index">{{ bullet }}</li>
                 </ul>
                 <div class="form-check custom-checkbox d-flex">
                     <input v-model="isConfirmed" type="checkbox" class="form-check-input" id="confirmCheck" />
-                    <label class="form-check-label" for="confirmCheck">I confirm that the required checks have been completed.</label>
+                    <label class="form-check-label" for="confirmCheck">{{ introContent.checkboxLabel }}</label>
                 </div>
                 <div class="button-group mt-4">
                     <!-- <Button :type="'secondary'" :text="'Cancel'" :isDisabled="false" ></Button> -->
-                    <Button :type="'primary'" :text="'Start'" :isDisabled="!isConfirmed" @click="nextStep"></Button>
+                    <Button :type="'primary'" :text="introContent.startButtonLabel" :isDisabled="!isConfirmed" @click="nextStep"></Button>
                 </div>
             </div>
             <Divider/>

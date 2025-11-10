@@ -3,6 +3,22 @@ import { ref, computed, watch } from 'vue';
 import { loadProductMapping, saveProductMapping } from '@/utils/storageUtils';
 import productDataJson from '@/assets/productData.json';
 
+export const defaultIntroContent = {
+  title: 'Before starting',
+  subtitle: 'Have you completed all the necessary checks before filling out the Defekt Report?',
+  bulletPoints: [
+    'Lorem ipsum dolor sit amet, consectetur adipiscing elit.',
+    'Pellentesque et tortor congue, congue libero at, interdum ex.',
+    'Mauris faucibus ipsum in  feugiat feugiat.',
+    'Aenean sit amet velit cursus, suscipit mi ut, aliquet sapien.',
+    'Aliquam eleifend nulla pulvinar, feugiat sem id, pretium turpis.',
+  ],
+  checkboxLabel: 'I confirm that the required checks have been completed.',
+  startButtonLabel: 'Start',
+};
+
+const cloneDefaultIntro = () => JSON.parse(JSON.stringify(defaultIntroContent));
+
 const defaultProductMapping = productDataJson;
 
 // Template per i dati generali del form, per poterli resettare facilmente
@@ -95,7 +111,9 @@ export const useProductStore = defineStore('product', () => {
         if (resp.ok) {
           const data = await resp.json();
           if (data && data.content) {
-            productMapping.value = data.content;
+            const incoming = data.content;
+            ensureIntroContent(incoming);
+            productMapping.value = incoming;
             console.log('Configuration loaded from backend.');
             return;
           }
@@ -106,6 +124,7 @@ export const useProductStore = defineStore('product', () => {
 
       // 2) Fallback: usa il file bundle
       let currentMapping = JSON.parse(JSON.stringify(defaultProductMapping));
+      ensureIntroContent(currentMapping);
       productMapping.value = currentMapping;
       console.log('Configuration loaded from file.');
 
@@ -203,6 +222,7 @@ export const useProductStore = defineStore('product', () => {
   };
 
   const updateProductMapping = (mapping) => {
+    ensureIntroContent(mapping);
     productMapping.value = mapping;
   };
 
@@ -364,3 +384,21 @@ export const useProductStore = defineStore('product', () => {
     moveModelToCategory,
   };
 }); 
+
+function ensureIntroContent(mapping) {
+  if (!mapping) return;
+  if (!mapping.introContent) {
+    mapping.introContent = cloneDefaultIntro();
+  } else {
+    const merged = { ...cloneDefaultIntro(), ...mapping.introContent };
+    const bullets = Array.isArray(mapping.introContent.bulletPoints)
+      ? mapping.introContent.bulletPoints.filter((item) => typeof item === 'string' && item.trim().length)
+      : [];
+    merged.bulletPoints = bullets.length ? bullets : cloneDefaultIntro().bulletPoints;
+    merged.checkboxLabel = mapping.introContent.checkboxLabel || defaultIntroContent.checkboxLabel;
+    merged.startButtonLabel = mapping.introContent.startButtonLabel || defaultIntroContent.startButtonLabel;
+    merged.title = mapping.introContent.title || defaultIntroContent.title;
+    merged.subtitle = mapping.introContent.subtitle || defaultIntroContent.subtitle;
+    mapping.introContent = merged;
+  }
+}

@@ -11,6 +11,9 @@
           <li :class="{ active: activeTab === 'general' }" @click="activeTab = 'general'">
             <span>General Fields</span>
           </li>
+          <li :class="{ active: activeTab === 'intro' }" @click="activeTab = 'intro'">
+            <span>Intro Content</span>
+          </li>
           <li :class="{ active: activeTab === 'email' }" @click="activeTab = 'email'">
             <span>Email Settings</span>
           </li>
@@ -23,12 +26,23 @@
       <main class="content">
         <header class="content-header">
           <h2>
-            {{ activeTab === 'models' ? 'Models & Fields' : (activeTab === 'general' ? 'General Fields' : (activeTab === 'email' ? 'Email Settings' : 'Symptom Sets')) }}
+            {{
+              activeTab === 'models'
+                ? 'Models & Fields'
+                : activeTab === 'general'
+                ? 'General Fields'
+                : activeTab === 'intro'
+                ? 'Intro Content'
+                : activeTab === 'email'
+                ? 'Email Settings'
+                : 'Symptom Sets'
+            }}
           </h2>
         </header>
         <section class="content-body">
           <ProductConfigEditor v-if="activeTab === 'models'" />
           <GeneralFieldsEditor v-else-if="activeTab === 'general'" />
+          <IntroContentEditor v-else-if="activeTab === 'intro'" />
           <EmailSettingsEditor v-else-if="activeTab === 'email'" />
           <SymptomSetEditor v-else />
         </section>
@@ -43,6 +57,7 @@ import ProductConfigEditor from '@/components/ProductConfigEditor.vue';
 import SymptomSetEditor from '@/components/SymptomSetEditor.vue';
 import GeneralFieldsEditor from '@/components/GeneralFieldsEditor.vue';
 import EmailSettingsEditor from '@/components/EmailSettingsEditor.vue';
+import IntroContentEditor from '@/components/IntroContentEditor.vue';
 import { useProductStore } from '@/stores/productStore';
 
 const activeTab = ref('models');

@@ -1,4 +1,17 @@
 {
+  "introContent": {
+    "title": "Before starting",
+    "subtitle": "Have you completed all the necessary checks before filling out the Defekt Report?",
+    "bulletPoints": [
+      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
+      "Pellentesque et tortor congue, congue libero at, interdum ex.",
+      "Mauris faucibus ipsum in feugiat feugiat.",
+      "Aenean sit amet velit cursus, suscipit mi ut, aliquet sapien.",
+      "Aliquam eleifend nulla pulvinar, feugiat sem id, pretium turpis."
+    ],
+    "checkboxLabel": "I confirm that the required checks have been completed.",
+    "startButtonLabel": "Start"
+  },
   "categories": [
     "Active Speaker",
     "Passive Speaker",
