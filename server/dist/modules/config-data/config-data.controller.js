@@ -20,11 +20,8 @@ let ConfigDataController = class ConfigDataController {
         this.service = service;
     }
     async getLatest() {
-        const assembled = await this.service.assembleLatest();
-        if (assembled)
-            return { content: assembled };
-        const fallback = await this.service.getLatest();
-        return fallback || { content: null };
+        const latest = await this.service.getLatest();
+        return latest ? { content: latest.content } : { content: null };
     }
     save(body) {
         return this.service.create(body);
