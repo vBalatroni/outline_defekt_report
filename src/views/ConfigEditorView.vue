@@ -14,8 +14,8 @@
           <li :class="{ active: activeTab === 'intro' }" @click="activeTab = 'intro'">
             <span>Intro Content</span>
           </li>
-          <li :class="{ active: activeTab === 'email' }" @click="activeTab = 'email'">
-            <span>Email Settings</span>
+          <li :class="{ active: activeTab === 'settings' }" @click="activeTab = 'settings'">
+            <span>General Settings</span>
           </li>
           <li :class="{ active: activeTab === 'symptoms' }" @click="activeTab = 'symptoms'">
             <span>Symptom Sets</span>
@@ -36,8 +36,8 @@
                 ? 'General Fields'
                 : activeTab === 'intro'
                 ? 'Intro Content'
-                : activeTab === 'email'
-                ? 'Email Settings'
+                : activeTab === 'settings'
+                ? 'General Settings'
                 : activeTab === 'symptoms'
                 ? 'Symptom Sets'
                 : 'Guide'
@@ -48,7 +48,7 @@
           <ProductConfigEditor v-if="activeTab === 'models'" />
           <GeneralFieldsEditor v-else-if="activeTab === 'general'" />
           <IntroContentEditor v-else-if="activeTab === 'intro'" />
-          <EmailSettingsEditor v-else-if="activeTab === 'email'" />
+          <GeneralSettingsEditor v-else-if="activeTab === 'settings'" />
           <SymptomSetEditor v-else-if="activeTab === 'symptoms'" />
           <ConfigGuide v-else />
         </section>
@@ -63,30 +63,39 @@ import { useRoute, useRouter } from 'vue-router';
 import ProductConfigEditor from '@/components/ProductConfigEditor.vue';
 import SymptomSetEditor from '@/components/SymptomSetEditor.vue';
 import GeneralFieldsEditor from '@/components/GeneralFieldsEditor.vue';
-import EmailSettingsEditor from '@/components/EmailSettingsEditor.vue';
+import GeneralSettingsEditor from '@/components/GeneralSettingsEditor.vue';
 import IntroContentEditor from '@/components/IntroContentEditor.vue';
 import ConfigGuide from '@/components/ConfigGuide.vue';
 import { useProductStore } from '@/stores/productStore';
 
 const route = useRoute();
 const router = useRouter();
-const validTabs = ['models', 'general', 'intro', 'email', 'symptoms', 'guide'];
-const initialTab = typeof route.query.tab === 'string' && validTabs.includes(route.query.tab)
-  ? route.query.tab
-  : 'models';
+const validTabs = ['models', 'general', 'intro', 'settings', 'symptoms', 'guide'];
+const normalizeTab = (tab) => {
+  if (tab === 'email') return 'settings';
+  return tab;
+};
+const initialQuery = typeof route.query.tab === 'string' ? normalizeTab(route.query.tab) : undefined;
+const initialTab = initialQuery && validTabs.includes(initialQuery) ? initialQuery : 'models';
 const activeTab = ref(initialTab);
 const store = useProductStore();
 const categoryCount = computed(() => (store.categories || []).length);
 const symptomSetCount = computed(() => Object.keys(store.symptomSets || {}).length);
 
 watch(() => route.query.tab, (tab) => {
-  if (typeof tab === 'string' && validTabs.includes(tab) && tab !== activeTab.value) {
-    activeTab.value = tab;
+  if (typeof tab !== 'string') return;
+  const normalized = normalizeTab(tab);
+  if (tab !== normalized) {
+    router.replace({ name: 'config-editor', query: { ...route.query, tab: normalized } });
+    return;
+  }
+  if (validTabs.includes(normalized) && normalized !== activeTab.value) {
+    activeTab.value = normalized;
   }
 });
 
 watch(activeTab, (tab) => {
-  const current = typeof route.query.tab === 'string' ? route.query.tab : undefined;
+  const current = typeof route.query.tab === 'string' ? normalizeTab(route.query.tab) : undefined;
   if (current === tab) return;
   router.replace({ name: 'config-editor', query: { ...route.query, tab } });
 });

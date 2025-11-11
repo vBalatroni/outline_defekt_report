@@ -36,8 +36,8 @@ const props = defineProps({
 
 // Use the store's state for saved products
 const savedProducts = computed(() => productStore.formState.savedProducts);
-const serialValidationMessage = ref('');
 const serialValidationEnabled = computed(() => Boolean(productStore.productMapping?.validationConfig?.serial?.enabled));
+const serialDebugEnabled = computed(() => Boolean(productStore.productMapping?.validationConfig?.serial?.debugEnabled));
 
 const cipherMap = Object.freeze({
     '1': 'B',
@@ -58,6 +58,14 @@ const reverseCipherMap = Object.freeze(Object.keys(cipherMap).reduce((acc, digit
     return acc;
 }, {}));
 
+const dayLabels = {
+    '1': 'Lunedi',
+    '2': 'Martedi',
+    '3': 'Mercoledi',
+    '4': 'Giovedi',
+    '5': 'Venerdi',
+};
+
 const decodeLetters = (letters) => {
     let digits = '';
     for (const ch of letters) {
@@ -73,50 +81,57 @@ const decodeLetters = (letters) => {
 const validateSerialCode = (rawSerial) => {
     const serial = String(rawSerial || '').trim().toUpperCase();
     if (!serial) {
-        return { valid: false, error: '' };
+        return { valid: false, reason: '', breakdown: null };
     }
     if (serial.length < 6) {
-        return { valid: false, error: 'La matricola deve includere settimana (2), giorno (1), anno (2) e contatore numerico.' };
+        return { valid: false, reason: 'Formato troppo corto (minimo 6 caratteri).', breakdown: null };
     }
 
     const weekLetters = serial.slice(0, 2);
     const dayLetter = serial[2];
     const yearLetters = serial.slice(3, 5);
     const counter = serial.slice(5);
+    if (!counter) {
+        return { valid: false, reason: 'Il contatore finale è mancante.', breakdown: null };
+    }
 
     const weekDigits = decodeLetters(weekLetters);
-    if (!weekDigits) {
-        return { valid: false, error: 'Settimana non valida nella matricola.' };
+    if (!weekDigits || !/^\d{2}$/.test(weekDigits)) {
+        return { valid: false, reason: 'Settimana non valida nella matricola.', breakdown: null };
     }
     const weekNum = Number(weekDigits);
     if (!Number.isInteger(weekNum) || weekNum < 1 || weekNum > 52) {
-        return { valid: false, error: 'La settimana deve essere compresa tra 01 e 52.' };
+        return { valid: false, reason: 'La settimana deve essere compresa tra 01 e 52.', breakdown: null };
     }
 
     const dayDigit = decodeLetters(dayLetter);
-    if (!dayDigit) {
-        return { valid: false, error: 'Giorno della settimana non valido nella matricola.' };
+    if (!dayDigit || !/^\d$/.test(dayDigit)) {
+        return { valid: false, reason: 'Giorno della settimana non valido nella matricola.', breakdown: null };
     }
     const dayNum = Number(dayDigit);
     if (!Number.isInteger(dayNum) || dayNum < 1 || dayNum > 5) {
-        return { valid: false, error: 'Il giorno deve essere compreso tra 1 e 5 (giorni lavorativi).' };
+        return { valid: false, reason: 'Il giorno deve essere compreso tra 1 e 5 (giorni lavorativi).', breakdown: null };
     }
 
     const yearDigits = decodeLetters(yearLetters);
-    if (!yearDigits) {
-        return { valid: false, error: 'Anno non valido nella matricola.' };
-    }
-    const currentYear = new Date().getFullYear() % 100;
-    const currentYearStr = currentYear.toString().padStart(2, '0');
-    if (yearDigits !== currentYearStr) {
-        return { valid: false, error: `Le lettere 4 e 5 devono rappresentare l'anno corrente (${currentYearStr}).` };
+    if (!yearDigits || !/^\d{2}$/.test(yearDigits)) {
+        return { valid: false, reason: 'Anno non valido nella matricola.', breakdown: null };
     }
 
-    if (!/^[0-9]+$/.test(counter)) {
-        return { valid: false, error: 'Il contatore finale deve essere composto da sole cifre numeriche.' };
+    if (!/^\d+$/.test(counter)) {
+        return { valid: false, reason: 'Il contatore finale deve essere composto da cifre numeriche.', breakdown: null };
     }
 
-    return { valid: true, error: '' };
+    return {
+        valid: true,
+        reason: '',
+        breakdown: {
+            week: weekDigits,
+            day: dayDigit,
+            year: yearDigits,
+            counter,
+        },
+    };
 };
 
 const initializeNewProduct = () => {
@@ -245,13 +260,31 @@ const basicInfoFieldsFilled = computed(() => {
 });
 
 const serialValidationResult = computed(() => {
-    if (!serialValidationEnabled.value) return { valid: true, error: '' };
+    if (!serialValidationEnabled.value) return { valid: true, reason: '', breakdown: null };
     const serial = currentProduct.value?.basicInfo?.serialNumber?.value || '';
     return validateSerialCode(serial);
 });
 
-watch(serialValidationResult, (result) => {
-    serialValidationMessage.value = result.error;
+const serialValidationSummary = computed(() => {
+    if (!serialValidationEnabled.value || !basicInfoFieldsFilled.value) return '';
+    return serialValidationResult.value.valid ? 'Seriale valido: si' : 'Seriale valido: no';
+});
+
+const serialValidationDetails = computed(() => {
+    if (
+        !serialValidationEnabled.value ||
+        !serialDebugEnabled.value ||
+        !basicInfoFieldsFilled.value
+    ) {
+        return '';
+    }
+    const { valid, reason, breakdown } = serialValidationResult.value;
+    if (!valid) {
+        return reason || 'Formato non valido.';
+    }
+    if (!breakdown) return '';
+    const dayText = dayLabels[breakdown.day] ? `${breakdown.day} (${dayLabels[breakdown.day]})` : breakdown.day;
+    return `Settimana ${breakdown.week}, Giorno ${dayText}, Anno ${breakdown.year}, Contatore ${breakdown.counter}`;
 });
 
 const canSave = computed(() => {
@@ -579,12 +612,20 @@ const goToBack = () => {
                                 />
                             </div>
                         </div>
-                        <p
-                            v-if="serialValidationEnabled && serialValidationMessage && basicInfoFieldsFilled"
-                            class="serial-validation-message"
+                        <div
+                            v-if="serialValidationEnabled && basicInfoFieldsFilled"
+                            class="serial-validation-status"
                         >
-                            {{ serialValidationMessage }}
-                        </p>
+                            <span
+                                class="serial-summary"
+                                :class="{ 'is-valid': serialValidationResult.valid, 'is-invalid': !serialValidationResult.valid }"
+                            >
+                                {{ serialValidationSummary }}
+                            </span>
+                            <p v-if="serialValidationDetails" class="serial-debug-details">
+                                {{ serialValidationDetails }}
+                            </p>
+                        </div>
                         <div class="basic-info-actions text-end mt-3">
                             <Button
                                 :type="'primary'"
@@ -755,10 +796,26 @@ const goToBack = () => {
     overflow-y: auto;
 }
 
-.serial-validation-message {
+.serial-validation-status {
     margin-top: 0.75rem;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.4rem;
+}
+.serial-summary {
+    font-weight: 600;
+    font-size: 0.95rem;
+}
+.serial-summary.is-valid {
+    color: #1e7e34;
+}
+.serial-summary.is-invalid {
     color: #c0392b;
-    font-size: 0.9rem;
+}
+.serial-debug-details {
+    font-size: 0.85rem;
+    color: #34495e;
 }
 
 .product-summary {

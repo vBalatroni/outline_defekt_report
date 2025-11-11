@@ -22,6 +22,7 @@ const cloneDefaultIntro = () => JSON.parse(JSON.stringify(defaultIntroContent));
 const defaultValidationConfig = {
   serial: {
     enabled: false,
+    debugEnabled: false,
   },
 };
 
@@ -478,7 +479,11 @@ function ensureValidationConfig(mapping) {
     serial: {
       ...defaultValidationConfig.serial,
       ...serial,
-      enabled: typeof serial.enabled === 'boolean' ? serial.enabled : !!defaultValidationConfig.serial.enabled,
+      enabled: typeof serial.enabled === 'boolean' ? serial.enabled : defaultValidationConfig.serial.enabled,
+      debugEnabled:
+        typeof serial.debugEnabled === 'boolean'
+          ? serial.debugEnabled
+          : defaultValidationConfig.serial.debugEnabled,
     },
   };
 }

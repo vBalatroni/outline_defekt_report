@@ -487,6 +487,12 @@ const symptomSelectionCache = ref([]);
 const initializingField = ref(false);
 const fileInputRef = ref(null);
 
+const defaultFieldSection = computed(() => (
+  Array.isArray(productStore.defectSections) && productStore.defectSections.length
+    ? productStore.defectSections[0]
+    : 'additionalInfo'
+));
+
 // Toast system
 const toasts = ref([]);
 const showToast = ({ message, type = 'info', duration = 3000, actionText = null, onAction = null }) => {
@@ -545,7 +551,7 @@ const activeField = reactive({
   required: false,
   order: 0,
   conditions: [],
-  section: ''
+  section: defaultFieldSection.value
 });
 
 const generateId = (str) => {
@@ -813,7 +819,7 @@ const openAddFieldModal = () => {
     activeField.required = false;
     activeField.order = modelFields.value.length;
     activeField.conditions = [];
-    activeField.section = '';
+    activeField.section = defaultFieldSection.value;
     showFieldModal.value = true;
     symptomSearch.value = '';
     manualOptions.value = [];
@@ -837,7 +843,7 @@ const openEditFieldModal = (index) => {
     activeField.required = fieldToEdit.required || false;
     activeField.order = fieldToEdit.order === undefined ? index : fieldToEdit.order;
     activeField.conditions = fieldToEdit.conditions || [];
-    activeField.section = fieldToEdit.section || '';
+    activeField.section = fieldToEdit.section || defaultFieldSection.value;
 
     if (activeField.isSymptomArea) {
         activeField.options = Array.isArray(fieldToEdit.options) ? [...fieldToEdit.options] : [];
