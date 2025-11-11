@@ -53,7 +53,10 @@ const getDefaultGeneralDataTemplate = () => ({
     city: { id: "city", label: "City", value: "", type: "text", isRequired: true },
     zip: { id: "zip", label: "ZIP Code", value: "", type: "text", isRequired: true },
     country: { id: "country", label: "Country", value: "", type: "text", isRequired: true }
-  }
+  },
+  addSymptomSet: (key, data) => false,
+  updateSymptomSet: (originalKey, nextKey, data) => false,
+  deleteSymptomSet: (key) => {},
 });
 
 export const useProductStore = defineStore('product', () => {
@@ -358,6 +361,56 @@ export const useProductStore = defineStore('product', () => {
     return true;
   };
 
+  const setSymptomSets = (nextSets) => {
+    const mapping = productMapping.value ? JSON.parse(JSON.stringify(productMapping.value)) : {};
+    mapping.symptomSets = nextSets;
+    ensureValidationConfig(mapping);
+    ensureIntroContent(mapping);
+    productMapping.value = mapping;
+  };
+
+  const addSymptomSet = (key, data) => {
+    const trimmedKey = String(key || '').trim();
+    if (!trimmedKey) return false;
+    const current = JSON.parse(JSON.stringify(productMapping.value?.symptomSets || {}));
+    if (current[trimmedKey]) return false;
+    current[trimmedKey] = {
+      label: data?.label || trimmedKey,
+      symptoms: Array.isArray(data?.symptoms) ? data.symptoms : [],
+    };
+    setSymptomSets(current);
+    return true;
+  };
+
+  const updateSymptomSet = (originalKey, nextKey, data) => {
+    const from = String(originalKey || '').trim();
+    const to = String(nextKey || '').trim();
+    if (!from || !productMapping.value?.symptomSets?.[from]) return false;
+    const current = JSON.parse(JSON.stringify(productMapping.value.symptomSets || {}));
+    if (from !== to && current[to]) return false;
+    const payload = {
+      label: data?.label || to || from,
+      symptoms: Array.isArray(data?.symptoms) ? data.symptoms : [],
+    };
+    if (from !== to && to) {
+      delete current[from];
+      current[to] = payload;
+    } else {
+      current[from] = payload;
+    }
+    setSymptomSets(current);
+    return true;
+  };
+
+  const deleteSymptomSet = (key) => {
+    const target = String(key || '').trim();
+    if (!target) return;
+    const current = JSON.parse(JSON.stringify(productMapping.value?.symptomSets || {}));
+    if (!current[target]) return;
+    delete current[target];
+    setSymptomSets(current);
+  };
+
   return {
     productMapping,
     isLoading,
@@ -391,6 +444,9 @@ export const useProductStore = defineStore('product', () => {
     renameCategory,
     deleteCategory,
     moveModelToCategory,
+    addSymptomSet,
+    updateSymptomSet,
+    deleteSymptomSet,
   };
 }); 
 
