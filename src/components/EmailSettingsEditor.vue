@@ -73,8 +73,18 @@ const saveToServer = async () => {
       serialValidationEnabled: Boolean(serialValidationEnabled.value),
     };
     const resp = await fetch('/config/email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
-    const txt = await resp.text(); if (!resp.ok) throw new Error(`${resp.status}: ${txt}`);
-    await reloadFromServer();
+    const result = await resp.json().catch(async () => {
+      const fallbackTxt = await resp.text();
+      throw new Error(`${resp.status}: ${fallbackTxt}`);
+    });
+    if (!resp.ok) {
+      throw new Error(result?.message || `${resp.status}: ${resp.statusText}`);
+    }
+    if (result?.content) {
+      store.updateProductMapping(result.content);
+    } else {
+      await reloadFromServer();
+    }
   } catch (e) { console.error(e); }
   finally { isSaving.value = false; }
 };

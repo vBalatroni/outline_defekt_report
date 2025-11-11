@@ -42,13 +42,13 @@ export class ConfigDataController {
       downloadHtmlReports,
       serialValidationEnabled,
     } = body;
-    await this.service.setEmailConfig({
+    const updatedContent = await this.service.setEmailConfig({
       supplierRecipient,
       testingRecipient,
       downloadHtmlReports,
       serialValidationEnabled,
     });
-    return { ok: true };
+    return { ok: true, content: updatedContent };
   }
 }
 

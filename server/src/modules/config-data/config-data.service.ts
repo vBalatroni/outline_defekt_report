@@ -325,7 +325,8 @@ export class ConfigDataService {
       console.warn('[ConfigDataService] emailConfig persistence failed, continuing with snapshot update only:', String((e as any)?.message || e));
     }
 
-    await this.create(base);
+    const saved = await this.create(base);
+    return saved.content;
   }
 }
 
