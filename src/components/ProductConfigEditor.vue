@@ -158,15 +158,6 @@
                                             <input type="text" v-model="activeField.label" placeholder="e.g., Serial Number">
                                         </div>
                                         <div class="form-group">
-                                            <label>Field Section</label>
-                                            <select v-model="activeField.section" required>
-                                                <option disabled value="">Assign to a section</option>
-                                                <option v-for="sectionName in defectSections" :key="sectionName" :value="sectionName">
-                                                    {{ sectionName }}
-                                                </option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
                                             <label>Field Type</label>
                                             <select v-model="activeField.type">
                                                 <option value="text">Text</option>
@@ -256,7 +247,7 @@
                                                 </button>
                                             </div>
                                         </div>
-                                        <div v-if="isEditing && !activeField.isSymptomArea" class="dependencies-section">
+                                        <div v-if="!activeField.isSymptomArea" class="dependencies-section">
                                             <h5>Parent/child options</h5>
                                             <p class="helper-text">
                                                 Collega questo select a un altro per mostrare opzioni diverse in base alla scelta del genitore.
@@ -609,12 +600,13 @@ watch(manualOptions, (list) => {
 
 const categories = computed(() => productStore.categories || []);
 const categoryModels = computed(() => productStore.categoryModels || {});
-const categoryStats = computed(() =>
-  categories.value.map((name) => ({
+const categoryStats = computed(() => {
+  const stats = categories.value.map((name) => ({
     name,
     modelCount: Array.isArray(categoryModels.value?.[name]) ? categoryModels.value[name].length : 0,
-  })),
-);
+  }));
+  return stats.sort((a, b) => a.name.localeCompare(b.name));
+});
 const availableModels = computed(() => {
   if (selectedCategory.value) {
     return productStore.getModelsForCategory(selectedCategory.value) || [];
@@ -685,8 +677,9 @@ const onDragEnd = () => {
 };
 
 const availableParentFields = computed(() => {
-    if (!selectedModel.value || !isEditing.value) return [];
-    return modelFields.value.filter(field => field.id !== activeField.id && field.type === 'select');
+    if (!selectedModel.value) return [];
+    const selfId = isEditing.value ? activeField.id : null;
+    return modelFields.value.filter(field => field.id !== selfId && field.type === 'select');
 });
 
 const availableConditionFields = computed(() => {
@@ -741,10 +734,14 @@ const closeCategoryModal = () => {
   showCategoryModal.value = false;
 };
 const addCategoryAction = () => {
-  const ok = productStore.addCategory(newCategoryName.value);
+  const trimmed = String(newCategoryName.value || '').trim();
+  const ok = productStore.addCategory(trimmed);
   if (!ok) { showToast({ message: 'Unable to add category (empty or duplicate).', type: 'danger' }); return; }
   markDirty();
   showToast({ message: 'Category added.', type: 'success' });
+  if (trimmed) {
+    startRenameCategory(trimmed);
+  }
   newCategoryName.value = '';
 };
 const renameCategoryAction = () => {
@@ -945,20 +942,6 @@ const saveField = () => {
         newFieldConfigs[selectedModel.value].push(fieldData);
     }
 
-    if (fieldData.isSymptomArea) {
-        const foundFieldIndex = newFieldConfigs[selectedModel.value].findIndex(f => f.id === 'symptomFound');
-        if (foundFieldIndex === -1) {
-            newFieldConfigs[selectedModel.value].push({
-                id: 'symptomFound',
-                label: 'Symptom Found',
-                type: 'select',
-                dependsOn: fieldData.id,
-            });
-        } else {
-            newFieldConfigs[selectedModel.value][foundFieldIndex].dependsOn = fieldData.id;
-        }
-    }
-    
     productStore.updateModelFieldConfigs(newFieldConfigs);
     markDirty();
     showFieldModal.value = false;
