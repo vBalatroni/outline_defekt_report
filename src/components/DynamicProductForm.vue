@@ -483,6 +483,4 @@ onMounted(() => {
   justify-content: center;
   cursor: pointer;
 }
-.field-editor-placeholder {
-
 </style> 
