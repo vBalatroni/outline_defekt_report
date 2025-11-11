@@ -66,25 +66,38 @@ const serialValidationEnabled = computed({
 const saveToServer = async () => {
   if (isSaving.value) return; isSaving.value = true;
   try {
-    const payload = {
-      supplierRecipient: emailConfig.value.supplierRecipient || null,
-      testingRecipient: emailConfig.value.testingRecipient || null,
-      downloadHtmlReports: emailConfig.value.downloadHtmlReports !== false,
-      serialValidationEnabled: Boolean(serialValidationEnabled.value),
+    const sanitize = (val) => {
+      const trimmed = typeof val === 'string' ? val.trim() : '';
+      return trimmed.length ? trimmed : null;
     };
-    const resp = await fetch('/config/email', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+
+    const mapping = JSON.parse(JSON.stringify(store.productMapping || {}));
+    mapping.emailConfig = {
+      supplierRecipient: sanitize(emailConfig.value.supplierRecipient),
+      testingRecipient: sanitize(emailConfig.value.testingRecipient),
+      downloadHtmlReports: emailConfig.value.downloadHtmlReports !== false,
+    };
+    mapping.validationConfig = mapping.validationConfig || {};
+    mapping.validationConfig.serial = mapping.validationConfig.serial || {};
+    mapping.validationConfig.serial.enabled = Boolean(serialValidationEnabled.value);
+
+    const resp = await fetch('/config/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mapping, null, 2),
+    });
+
     const result = await resp.json().catch(async () => {
       const fallbackTxt = await resp.text();
       throw new Error(`${resp.status}: ${fallbackTxt}`);
     });
-    if (!resp.ok) {
+
+    if (!resp.ok || result?.ok === false) {
       throw new Error(result?.message || `${resp.status}: ${resp.statusText}`);
     }
-    if (result?.content) {
-      store.updateProductMapping(result.content);
-    } else {
-      await reloadFromServer();
-    }
+
+    store.updateProductMapping(mapping);
+    await reloadFromServer();
   } catch (e) { console.error(e); }
   finally { isSaving.value = false; }
 };
