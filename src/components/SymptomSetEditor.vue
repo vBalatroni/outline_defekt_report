@@ -1,8 +1,27 @@
 <template>
   <div class="symptom-set-editor">
-    <div class="editor-header">
-      <h2>Symptom Set Editor</h2>
-      <button @click="openAddModal" class="btn btn-primary">Add New Set</button>
+  <div class="editor-header">
+      <div class="header-title">
+        <h2>Symptom Set Editor</h2>
+        <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
+      </div>
+      <div class="header-actions">
+        <button
+          class="btn btn-primary"
+          :disabled="isSaving || !hasUnsavedChanges"
+          @click="saveToServer"
+        >
+          {{ isSaving ? 'Saving...' : 'Save to Server' }}
+        </button>
+        <button
+          class="btn btn-secondary"
+          :disabled="isSaving || isReloading"
+          @click="reloadFromServer"
+        >
+          {{ isReloading ? 'Reloading...' : 'Reload from Server' }}
+        </button>
+        <button @click="openAddModal" class="btn btn-outline">Add New Set</button>
+      </div>
     </div>
     <p>Manage the shared lists of symptoms that can be used across different product models.</p>
 
@@ -67,7 +86,7 @@
 </template>
 
 <script setup>
-import { ref, computed, reactive } from 'vue';
+import { ref, computed, reactive, onMounted, watch } from 'vue';
 import { useProductStore } from '@/stores/productStore';
 
 const productStore = useProductStore();
@@ -109,6 +128,79 @@ const confirmDialogConfirm = async () => {
   const fn = confirmDialog.onConfirm;
   confirmDialog.visible = false;
   if (typeof fn === 'function') await fn();
+};
+
+const isSaving = ref(false);
+const isReloading = ref(false);
+const hasUnsavedChanges = ref(false);
+const snapshotRef = ref('');
+
+const serializeSymptomSets = (sets) => {
+  const result = {};
+  const entries = Object.entries(sets || {}).sort(([a], [b]) => a.localeCompare(b));
+  entries.forEach(([key, value]) => {
+    const symptoms = Array.isArray(value?.symptoms) ? [...value.symptoms] : Array.isArray(value?.options) ? [...value.options] : [];
+    result[key] = {
+      label: value?.label || key,
+      symptoms,
+    };
+  });
+  return JSON.stringify(result);
+};
+
+const syncSnapshot = () => {
+  snapshotRef.value = serializeSymptomSets(symptomSets.value);
+  hasUnsavedChanges.value = false;
+};
+
+onMounted(() => {
+  syncSnapshot();
+});
+
+watch(symptomSets, (val) => {
+  const current = serializeSymptomSets(val);
+  hasUnsavedChanges.value = current !== snapshotRef.value;
+}, { deep: true });
+
+const saveToServer = async () => {
+  if (isSaving.value || !hasUnsavedChanges.value) return;
+  isSaving.value = true;
+  try {
+    const mapping = JSON.parse(JSON.stringify(productStore.productMapping || {}));
+    mapping.symptomSets = JSON.parse(serializeSymptomSets(symptomSets.value));
+    const resp = await fetch('/config/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mapping, null, 2),
+    });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error(`Server responded ${resp.status}: ${txt}`);
+    }
+    await productStore.loadConfiguration();
+    syncSnapshot();
+    showToast({ message: 'Symptom sets saved to server.', type: 'success', duration: 4000 });
+  } catch (e) {
+    console.error(e);
+    showToast({ message: `Failed to save: ${e.message || e}`, type: 'danger', duration: 5000 });
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const reloadFromServer = async () => {
+  if (isReloading.value) return;
+  isReloading.value = true;
+  try {
+    await productStore.loadConfiguration();
+    syncSnapshot();
+    showToast({ message: 'Symptom sets reloaded from server.', type: 'success', duration: 3500 });
+  } catch (e) {
+    console.error(e);
+    showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger', duration: 5000 });
+  } finally {
+    isReloading.value = false;
+  }
 };
 
 const openAddModal = () => {
@@ -184,10 +276,28 @@ const deleteSet = (key) => {
 .editor-header {
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1rem;
   margin-bottom: 1rem;
   padding-bottom: 1rem;
   border-bottom: 1px solid #e0e0e0;
+}
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.unsaved-indicator {
+  color: #f39c12;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+.header-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
 }
 .set-list {
   display: grid;
@@ -256,6 +366,14 @@ const deleteSet = (key) => {
     border: none;
     cursor: pointer;
     font-size: 1rem;
+}
+.btn-outline {
+    border: 1px dashed #0d6efd;
+    color: #0d6efd;
+    background: rgba(13,110,253,0.05);
+}
+.btn-outline:hover {
+    background: rgba(13,110,253,0.12);
 }
 .btn-primary { background-color: #007bff; color: white; }
 .btn-secondary { background-color: #6c757d; color: white; }

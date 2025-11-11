@@ -399,54 +399,71 @@
 
     <!-- Category Manager Modal -->
     <div v-if="showCategoryModal" class="modal-overlay">
-      <div class="modal-content">
-        <h3 style="margin-top:0">Manage Categories</h3>
-        <div class="form-section">
-          <h4>Add Category</h4>
-          <div class="form-group">
-            <label>Name</label>
-            <input type="text" v-model="newCategoryName" placeholder="e.g., Amplifier">
+      <div class="modal-content category-manager-modal">
+        <div class="category-manager-grid">
+          <div class="category-list-pane">
+            <div class="category-list-header">
+              <h3>Manage Categories</h3>
+              <p class="helper-text">Review existing groups and quickly jump into edit actions.</p>
+            </div>
+            <div v-if="categoryStats.length" class="category-list">
+              <div
+                v-for="cat in categoryStats"
+                :key="cat.name"
+                class="category-row"
+                :class="{ 'is-selected': renameFrom === cat.name || deleteTarget === cat.name }"
+              >
+                <div class="category-info">
+                  <strong>{{ cat.name }}</strong>
+                  <span>{{ cat.modelCount }} {{ cat.modelCount === 1 ? 'model' : 'models' }}</span>
+                </div>
+                <div class="category-row-actions">
+                  <button class="btn btn-sm btn-secondary" @click="startRenameCategory(cat.name)">Rename</button>
+                  <button class="btn btn-sm btn-danger" @click="startDeleteCategory(cat.name)">Delete</button>
+                </div>
+              </div>
+            </div>
+            <div v-else class="empty-state">No categories yet. Add your first one from the panel.</div>
           </div>
-          <div class="modal-actions">
-            <button class="btn btn-secondary" @click="showCategoryModal = false">Close</button>
-            <button class="btn btn-primary" @click="addCategoryAction">Add</button>
-          </div>
-        </div>
-        <div class="form-section">
-          <h4>Rename Category</h4>
-          <div class="form-group">
-            <label>From</label>
-            <select v-model="renameFrom">
-              <option disabled value="">Select category</option>
-              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>To</label>
-            <input type="text" v-model="renameTo" placeholder="New name">
-          </div>
-          <div class="modal-actions">
-            <button class="btn btn-primary" @click="renameCategoryAction">Rename</button>
-          </div>
-        </div>
-        <div class="form-section">
-          <h4>Delete Category</h4>
-          <div class="form-group">
-            <label>Category</label>
-            <select v-model="deleteTarget">
-              <option disabled value="">Select category</option>
-              <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Move models to (required if not empty)</label>
-            <select v-model="deleteMoveTo">
-              <option value="">-- Select destination --</option>
-              <option v-for="c in categories.filter(x => x !== deleteTarget)" :key="c" :value="c">{{ c }}</option>
-            </select>
-          </div>
-          <div class="modal-actions">
-            <button class="btn btn-danger" @click="deleteCategoryAction">Delete</button>
+          <div class="category-action-pane">
+            <section class="action-card">
+              <h4>Add Category</h4>
+              <p class="helper-text">Create a new group for your models.</p>
+              <input type="text" v-model="newCategoryName" placeholder="e.g., Amplifiers">
+              <div class="action-buttons">
+                <button class="btn btn-primary" @click="addCategoryAction">Add</button>
+              </div>
+            </section>
+            <section class="action-card">
+              <h4>Rename Category</h4>
+              <p class="helper-text">Select a category and give it a clearer name.</p>
+              <select v-model="renameFrom">
+                <option disabled value="">Select category</option>
+                <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+              </select>
+              <input type="text" v-model="renameTo" placeholder="New name">
+              <div class="action-buttons">
+                <button class="btn btn-secondary" @click="renameCategoryAction" :disabled="!renameFrom || !renameTo || renameTo === renameFrom">Rename</button>
+              </div>
+            </section>
+            <section class="action-card">
+              <h4>Delete Category</h4>
+              <p class="helper-text">Choose where existing models should move before deleting.</p>
+              <select v-model="deleteTarget">
+                <option disabled value="">Select category</option>
+                <option v-for="c in categories" :key="c" :value="c">{{ c }}</option>
+              </select>
+              <select v-model="deleteMoveTo">
+                <option value="">Move models to…</option>
+                <option v-for="c in categories.filter(x => x !== deleteTarget)" :key="c" :value="c">{{ c }}</option>
+              </select>
+              <div class="action-buttons">
+                <button class="btn btn-danger" @click="deleteCategoryAction" :disabled="!deleteTarget">Delete</button>
+              </div>
+            </section>
+            <div class="modal-footer-actions">
+              <button class="btn btn-secondary" @click="closeCategoryModal">Close</button>
+            </div>
           </div>
         </div>
       </div>
@@ -591,6 +608,13 @@ watch(manualOptions, (list) => {
 }, { deep: true });
 
 const categories = computed(() => productStore.categories || []);
+const categoryModels = computed(() => productStore.categoryModels || {});
+const categoryStats = computed(() =>
+  categories.value.map((name) => ({
+    name,
+    modelCount: Array.isArray(categoryModels.value?.[name]) ? categoryModels.value[name].length : 0,
+  })),
+);
 const availableModels = computed(() => {
   if (selectedCategory.value) {
     return productStore.getModelsForCategory(selectedCategory.value) || [];
@@ -713,6 +737,9 @@ const openCategoryManager = () => {
   deleteMoveTo.value = '';
   showCategoryModal.value = true;
 };
+const closeCategoryModal = () => {
+  showCategoryModal.value = false;
+};
 const addCategoryAction = () => {
   const ok = productStore.addCategory(newCategoryName.value);
   if (!ok) { showToast({ message: 'Unable to add category (empty or duplicate).', type: 'danger' }); return; }
@@ -744,6 +771,26 @@ const deleteCategoryAction = () => {
   deleteTarget.value = '';
   deleteMoveTo.value = '';
 };
+const startRenameCategory = (name) => {
+  renameFrom.value = name;
+  renameTo.value = name;
+};
+const startDeleteCategory = (name) => {
+  deleteTarget.value = name;
+  deleteMoveTo.value = '';
+};
+
+watch(renameFrom, (val, oldVal) => {
+  if (val && (!renameTo.value || renameTo.value === oldVal)) {
+    renameTo.value = val;
+  }
+});
+
+watch(deleteTarget, (val) => {
+  if (!val || deleteMoveTo.value === val) {
+    deleteMoveTo.value = '';
+  }
+});
 
 const openModelEditor = (model) => {
     selectedModel.value = model;
@@ -2035,4 +2082,94 @@ onMounted(() => {
     border-color: #007bff;
     box-shadow: 0 0 0 2px rgba(0,123,255,.25);
 }
+
++.category-manager-modal {
++  max-width: 900px;
++  width: 95%;
++}
++.category-manager-grid {
++  display: grid;
++  grid-template-columns: minmax(240px, 1fr) minmax(320px, 1.2fr);
++  gap: 1.5rem;
++}
++.category-list-pane {
++  border-right: 1px solid #e0e0e0;
++  padding-right: 1.5rem;
++  display: flex;
++  flex-direction: column;
++  gap: 1rem;
++}
++.category-list-header h3 {
++  margin: 0;
++}
++.category-list {
++  display: flex;
++  flex-direction: column;
++  gap: 0.5rem;
++  max-height: 420px;
++  overflow-y: auto;
++}
++.category-row {
++  display: flex;
++  justify-content: space-between;
++  align-items: center;
++  padding: 0.75rem 1rem;
++  border: 1px solid #e0e0e0;
++  border-radius: 6px;
++  background: #fff;
++}
++.category-row.is-selected {
++  border-color: #0d6efd;
++  background: rgba(13, 110, 253, 0.08);
++}
++.category-info {
++  display: flex;
++  flex-direction: column;
++  gap: 0.25rem;
++}
++.category-info span {
++  font-size: 0.85rem;
++  color: #6c757d;
++}
++.category-row-actions {
++  display: flex;
++  gap: 0.4rem;
++}
++.category-action-pane {
++  display: flex;
++  flex-direction: column;
++  gap: 1rem;
++}
++.action-card {
++  background: #fff;
++  border: 1px solid #e0e0e0;
++  border-radius: 6px;
++  padding: 1rem;
++  display: flex;
++  flex-direction: column;
++  gap: 0.75rem;
++}
++.action-card input,
++.action-card select {
++  width: 100%;
++  padding: 0.5rem;
++  border: 1px solid #ccc;
++  border-radius: 4px;
++  font-size: 0.95rem;
++}
++.action-buttons {
++  display: flex;
++  justify-content: flex-end;
++  gap: 0.5rem;
++}
++.modal-footer-actions {
++  display: flex;
++  justify-content: flex-end;
++  margin-top: 0.5rem;
++}
++.empty-state {
++  font-size: 0.9rem;
++  color: #6c757d;
++  padding: 0.75rem 0;
++}
 </style>
