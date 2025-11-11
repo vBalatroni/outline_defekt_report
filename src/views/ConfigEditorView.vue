@@ -12,7 +12,7 @@
             <span>General Fields</span>
           </li>
           <li :class="{ active: activeTab === 'intro' }" @click="activeTab = 'intro'">
-            <span>Intro Content</span>
+            <span>Acceptance Page</span>
           </li>
           <li :class="{ active: activeTab === 'settings' }" @click="activeTab = 'settings'">
             <span>General Settings</span>
@@ -21,8 +21,8 @@
             <span>Symptom Sets</span>
             <span class="badge" v-if="symptomSetCount > 0">{{ symptomSetCount }}</span>
           </li>
-          <li :class="{ active: activeTab === 'guide' }" @click="activeTab = 'guide'">
-            <span>Guide & Tips</span>
+          <li :class="{ active: activeTab === 'wiki' }" @click="activeTab = 'wiki'">
+            <span>Wiki</span>
           </li>
         </ul>
       </aside>
@@ -35,12 +35,12 @@
                 : activeTab === 'general'
                 ? 'General Fields'
                 : activeTab === 'intro'
-                ? 'Intro Content'
+                ? 'Acceptance Page'
                 : activeTab === 'settings'
                 ? 'General Settings'
                 : activeTab === 'symptoms'
                 ? 'Symptom Sets'
-                : 'Guide'
+                : 'Wiki'
             }}
           </h2>
         </header>
@@ -50,7 +50,7 @@
           <IntroContentEditor v-else-if="activeTab === 'intro'" />
           <GeneralSettingsEditor v-else-if="activeTab === 'settings'" />
           <SymptomSetEditor v-else-if="activeTab === 'symptoms'" />
-          <ConfigGuide v-else />
+          <WikiPage v-else />
         </section>
       </main>
     </div>
@@ -65,14 +65,15 @@ import SymptomSetEditor from '@/components/SymptomSetEditor.vue';
 import GeneralFieldsEditor from '@/components/GeneralFieldsEditor.vue';
 import GeneralSettingsEditor from '@/components/GeneralSettingsEditor.vue';
 import IntroContentEditor from '@/components/IntroContentEditor.vue';
-import ConfigGuide from '@/components/ConfigGuide.vue';
+import WikiPage from '@/components/WikiPage.vue';
 import { useProductStore } from '@/stores/productStore';
 
 const route = useRoute();
 const router = useRouter();
-const validTabs = ['models', 'general', 'intro', 'settings', 'symptoms', 'guide'];
+const validTabs = ['models', 'general', 'intro', 'settings', 'symptoms', 'wiki'];
 const normalizeTab = (tab) => {
   if (tab === 'email') return 'settings';
+  if (tab === 'guide') return 'wiki';
   return tab;
 };
 const initialQuery = typeof route.query.tab === 'string' ? normalizeTab(route.query.tab) : undefined;

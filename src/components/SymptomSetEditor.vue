@@ -7,20 +7,20 @@
       </div>
       <div class="header-actions">
         <button
-          class="btn btn-primary"
+          class="admin-btn admin-btn-primary"
           :disabled="isSaving || !hasUnsavedChanges"
           @click="saveToServer"
         >
           {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
         <button
-          class="btn btn-secondary"
+          class="admin-btn admin-btn-muted"
           :disabled="isSaving || isReloading"
           @click="reloadFromServer"
         >
           {{ isReloading ? 'Reloading...' : 'Reload from Server' }}
         </button>
-        <button @click="openAddModal" class="btn btn-outline">Add New Set</button>
+        <button @click="openAddModal" class="admin-btn admin-btn-outline">Add New Set</button>
       </div>
     </div>
     <p>Manage the shared lists of symptoms that can be used across different product models.</p>
@@ -32,8 +32,8 @@
           <span><strong>Label:</strong> {{ set.label }}</span>
         </div>
         <div class="set-actions">
-            <button @click="openEditModal(key)" class="btn btn-sm btn-secondary">Edit</button>
-            <button @click="deleteSet(key)" class="btn btn-sm btn-danger">Delete</button>
+            <button @click="openEditModal(key)" class="admin-btn admin-btn-muted">Edit</button>
+            <button @click="deleteSet(key)" class="admin-btn admin-btn-danger">Delete</button>
         </div>
       </div>
     </div>
@@ -64,8 +64,8 @@
             </div>
 
             <div class="modal-actions">
-                <button @click="showModal = false" class="btn btn-secondary">Cancel</button>
-                <button @click="saveSet" class="btn btn-primary">{{ isEditing ? 'Save Changes' : 'Add Set' }}</button>
+                <button @click="showModal = false" class="admin-btn admin-btn-muted">Cancel</button>
+                <button @click="saveSet" class="admin-btn admin-btn-primary">{{ isEditing ? 'Save Changes' : 'Add Set' }}</button>
             </div>
         </div>
     </div>
@@ -76,8 +76,8 @@
         <h3 style="margin-top:0">{{ confirmDialog.title || 'Please confirm' }}</h3>
         <p>{{ confirmDialog.message }}</p>
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="closeConfirmDialog">{{ confirmDialog.cancelText || 'Cancel' }}</button>
-          <button class="btn btn-primary" @click="confirmDialogConfirm">{{ confirmDialog.confirmText || 'Confirm' }}</button>
+          <button class="admin-btn admin-btn-muted" @click="closeConfirmDialog">{{ confirmDialog.cancelText || 'Cancel' }}</button>
+          <button class="admin-btn admin-btn-primary" @click="confirmDialogConfirm">{{ confirmDialog.confirmText || 'Confirm' }}</button>
         </div>
       </div>
     </div>
@@ -360,25 +360,7 @@ const deleteSet = (key) => {
     border-radius: 4px;
     font-size: 1rem;
 }
-.btn {
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    border: none;
-    cursor: pointer;
-    font-size: 1rem;
-}
-.btn-outline {
-    border: 1px dashed #0d6efd;
-    color: #0d6efd;
-    background: rgba(13,110,253,0.05);
-}
-.btn-outline:hover {
-    background: rgba(13,110,253,0.12);
-}
-.btn-primary { background-color: #007bff; color: white; }
-.btn-secondary { background-color: #6c757d; color: white; }
-.btn-danger { background-color: #dc3545; color: white; }
-.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.875rem; }
+/* inherits admin-btn styles from global custom.css */
 
 /* Toasts */
 .toast-container {

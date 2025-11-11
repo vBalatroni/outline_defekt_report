@@ -1,19 +1,24 @@
 <template>
   <div class="general-fields-editor">
-    <div class="editor-header">
-      <h2>General Fields Editor</h2>
-      <div class="header-actions">
-        <button class="btn btn-secondary" @click="initFromCurrent" :disabled="isSaving">Init from current</button>
-        <button class="btn btn-primary" @click="saveToServer" :disabled="isSaving">{{ isSaving ? 'Saving...' : 'Save to Server' }}</button>
-        <button class="btn btn-secondary" @click="reloadFromServer" :disabled="isSaving">Reload from server</button>
-      </div>
+    <div class="helper-banner">
+      <h2>General Fields</h2>
+      <p class="muted">
+        Qui gestisci la scheda iniziale del form (anagrafica, indirizzi). Ogni sezione corrisponde a un blocco della pagina utente.
+      </p>
     </div>
 
     <div class="sections">
-      <div class="section-card" v-for="(fields, sectionKey) in sectionsView" :key="sectionKey">
+      <div
+        class="section-card"
+        v-for="(fields, sectionKey) in sectionsView"
+        :key="sectionKey"
+      >
         <div class="section-header">
-          <h3>{{ sectionTitles[sectionKey] || sectionKey }}</h3>
-          <button class="btn btn-sm btn-primary" @click="openAddField(sectionKey)">Add Field</button>
+          <div>
+            <h3>{{ sectionTitles[sectionKey] || sectionKey }}</h3>
+            <small class="muted">{{ (fields || []).length }} campo{{ (fields || []).length === 1 ? '' : 'i' }}</small>
+          </div>
+          <button class="admin-btn admin-btn-primary" @click="openAddField(sectionKey)">Add Field</button>
         </div>
         <div class="field-list" v-if="(fields || []).length">
           <div class="field-row" v-for="(field, idx) in sorted(fields)" :key="field.id">
@@ -22,21 +27,19 @@
               <small class="muted">{{ field.id }}</small>
             </div>
             <div class="field-meta">
-              <span class="tag">{{ field.type }}</span>
-              <span class="tag" :class="{ req: field.isRequired }">{{ field.isRequired ? 'required' : 'optional' }}</span>
-              <span class="tag">order: {{ field.order ?? idx }}</span>
+              <span class="badge">{{ field.type }}</span>
+              <span class="badge" :class="{ req: field.isRequired }">{{ field.isRequired ? 'required' : 'optional' }}</span>
             </div>
             <div class="field-actions">
-              <button class="btn btn-sm btn-secondary" @click="openEditField(sectionKey, field)">Edit</button>
-              <button class="btn btn-sm btn-danger" @click="removeField(sectionKey, field.id)">Delete</button>
+              <button class="admin-btn admin-btn-muted" @click="openEditField(sectionKey, field)">Edit</button>
+              <button class="admin-btn admin-btn-danger" @click="removeField(sectionKey, field.id)">Delete</button>
             </div>
           </div>
         </div>
-        <div v-else class="empty">No fields</div>
+        <div v-else class="empty">No fields configured yet.</div>
       </div>
     </div>
 
-    <!-- Modal Add/Edit -->
     <div v-if="modal.visible" class="modal-overlay">
       <div class="modal-content">
         <h3 style="margin-top:0">{{ modal.editing ? 'Edit Field' : 'Add Field' }}</h3>
@@ -61,21 +64,20 @@
             <option value="email">email</option>
             <option value="tel">tel</option>
             <option value="number">number</option>
-            <option value="range">range</option>
             <option value="file">file</option>
           </select>
         </div>
-        <div class="form-group">
-          <label>Required</label>
+        <div class="form-group checkbox-row">
           <input type="checkbox" v-model="modal.field.isRequired" />
+          <label>Required</label>
         </div>
         <div class="form-group">
           <label>Order</label>
           <input type="number" v-model.number="modal.field.order" />
         </div>
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="closeModal">Cancel</button>
-          <button class="btn btn-primary" @click="saveField">Save</button>
+          <button class="admin-btn admin-btn-muted" @click="closeModal">Cancel</button>
+          <button class="admin-btn admin-btn-primary" @click="saveField">Save</button>
         </div>
       </div>
     </div>
@@ -87,7 +89,6 @@ import { computed, reactive, ref } from 'vue';
 import { useProductStore } from '@/stores/productStore';
 
 const store = useProductStore();
-const isSaving = ref(false);
 const sectionTitles = {
   companyData: 'Company Information',
   freightForwarderData: 'Freight Forwarder',
@@ -123,7 +124,6 @@ const removeField = (sectionKey, fieldId) => {
   const next = JSON.parse(JSON.stringify(config.value));
   next.sections[sectionKey] = (next.sections[sectionKey] || []).filter(f => f.id !== fieldId);
   store.updateGeneralFieldsConfig(next);
-  // apply to live form so the frontend renders them immediately
   store.applyGeneralFieldsConfigToForm();
 };
 
@@ -138,76 +138,136 @@ const saveField = () => {
   store.applyGeneralFieldsConfigToForm();
   modal.visible = false;
 };
-
-const saveToServer = async () => {
-  if (isSaving.value) return;
-  isSaving.value = true;
-  try {
-    const mapping = JSON.parse(JSON.stringify(store.productMapping));
-    // Ensure generalFieldsConfig gets persisted
-    mapping.generalFieldsConfig = config.value;
-    const response = await fetch('/config/import', {
-      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(mapping, null, 2)
-    });
-    const txt = await response.text();
-    if (!response.ok) throw new Error(`Server responded ${response.status}: ${txt}`);
-    await reloadFromServer();
-  } catch (e) { console.error(e); }
-  finally { isSaving.value = false; }
-};
-
-const reloadFromServer = async () => {
-  await store.loadConfiguration();
-  // ensure the live form reflects the just reloaded config
-  store.applyGeneralFieldsConfigToForm();
-};
-
-const initFromCurrent = () => {
-  const general = JSON.parse(JSON.stringify(store.formState?.generalData || {}));
-  const next = { sections: {} };
-  Object.keys(general).forEach((sectionKey) => {
-    const section = general[sectionKey];
-    const fields = [];
-    let i = 0;
-    Object.keys(section || {}).forEach((fieldKey) => {
-      const f = section[fieldKey];
-      fields.push({
-        id: f.id || fieldKey,
-        label: f.label || fieldKey,
-        type: f.type || 'text',
-        isRequired: !!f.isRequired,
-        order: typeof f.order === 'number' ? f.order : i,
-      });
-      i += 1;
-    });
-    next.sections[sectionKey] = fields;
-  });
-  store.updateGeneralFieldsConfig(next);
-  store.applyGeneralFieldsConfigToForm();
-};
 </script>
 
 <style scoped>
-.general-fields-editor { padding: 1rem; background: #fff; border-radius: 8px; border: 1px solid #eee; }
-.editor-header { display:flex; align-items:center; justify-content:space-between; margin-bottom: 1rem; }
-.header-actions { display:flex; gap:0.5rem; }
-.sections { display:grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 1rem; }
-.section-card { border:1px solid #eee; border-radius:8px; padding:1rem; background:#fafafa; }
-.section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:0.5rem; }
-.field-list { display:flex; flex-direction:column; gap:0.5rem; }
-.field-row { display:flex; align-items:center; justify-content:space-between; gap:0.5rem; padding:0.5rem; background:#fff; border:1px solid #eee; border-radius:6px; }
-.field-main { display:flex; flex-direction:column; }
-.field-meta { display:flex; gap:0.4rem; align-items:center; }
-.tag { background:#eef3ff; border:1px solid #dce6ff; color:#2a4d9b; border-radius:999px; padding:0.1rem 0.4rem; font-size:0.75rem; }
-.tag.req { background:#ffecea; border-color:#ffd1ca; color:#9b2a2a; }
-.empty { color:#777; font-style:italic; }
-.modal-overlay { position:fixed; inset:0; background: rgba(0,0,0,0.5); display:flex; align-items:center; justify-content:center; }
-.modal-content { background:#fff; padding:1rem 1.5rem; border-radius:8px; width: 90%; max-width: 520px; display:flex; flex-direction:column; gap:0.75rem; }
-.form-group { display:flex; flex-direction:column; gap:0.25rem; }
-.btn { padding: 0.5rem 1rem; border:none; border-radius:4px; cursor:pointer; }
-.btn-primary { background:#0d6efd; color:#fff; }
-.btn-secondary { background:#6c757d; color:#fff; }
-.btn-danger { background:#dc3545; color:#fff; }
-.btn-sm { padding: 0.25rem 0.5rem; font-size: 0.85rem; }
+.general-fields-editor {
+  padding: 1rem;
+  background: #fff;
+  border-radius: 8px;
+  border: 1px solid #eee;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+.helper-banner {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+.muted {
+  color: #6c757d;
+  font-size: 0.9rem;
+}
+.sections {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1rem;
+}
+.section-card {
+  border:1px solid #eee;
+  border-radius:8px;
+  padding:1rem;
+  background:#fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+.section-header {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+}
+.field-list {
+  display:flex;
+  flex-direction:column;
+  gap:0.5rem;
+}
+.field-row {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:0.5rem;
+  padding:0.5rem;
+  background:#fff;
+  border:1px solid #eee;
+  border-radius:6px;
+}
+.field-main {
+  display:flex;
+  flex-direction:column;
+}
+.field-meta {
+  display:flex;
+  gap:0.4rem;
+  align-items:center;
+}
+.badge {
+  background: #e8f1ff;
+  color: #0d6efd;
+  padding: 0.25rem 0.5rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+}
+.badge.req {
+  background: #ffe8e8;
+  color: #dc3545;
+}
+.field-actions {
+  display:flex;
+  gap:0.4rem;
+}
+/* buttons reuse global admin-btn styles */
+.empty {
+  border: 1px dashed #d1d5db;
+  border-radius: 6px;
+  padding: 1rem;
+  text-align: center;
+  color: #6c757d;
+}
+.modal-overlay {
+  position: fixed;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+  background: rgba(0,0,0,0.4);
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  z-index: 2000;
+}
+.modal-content {
+  background:#fff;
+  border-radius:8px;
+  padding:1.5rem;
+  width: 100%;
+  max-width: 420px;
+  display:flex;
+  flex-direction:column;
+  gap:0.75rem;
+}
+.form-group {
+  display:flex;
+  flex-direction:column;
+  gap:0.35rem;
+}
+.form-group input,
+.form-group select {
+  padding:0.6rem;
+  border:1px solid #ccc;
+  border-radius:4px;
+}
+.checkbox-row {
+  flex-direction:row;
+  align-items:center;
+  gap:0.5rem;
+}
+.modal-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:0.5rem;
+  margin-top:0.5rem;
+}
 </style>
 

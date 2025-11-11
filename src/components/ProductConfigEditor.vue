@@ -4,17 +4,16 @@
       <h2>Product Model Field Editor</h2>
       <div class="header-actions">
         <div v-if="hasUnsavedChanges" class="unsaved-indicator" title="There are unsaved changes">● Unsaved changes</div>
-        <button @click="saveConfigurationToServer" class="btn btn-primary" :disabled="isSaving || !hasUnsavedChanges">
+        <button @click="saveConfigurationToServer" class="admin-btn admin-btn-primary" :disabled="isSaving || !hasUnsavedChanges">
             {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
-        <button @click="importDefaultIntoDb" class="btn btn-warning" :disabled="isSaving">
+        <button @click="importDefaultIntoDb" class="admin-btn admin-btn-muted" :disabled="isSaving">
             {{ isSaving ? 'Importing...' : 'Import default (from file)' }}
         </button>
-        <button @click="reloadFromServer" class="btn btn-secondary" :disabled="isSaving">
+        <button @click="reloadFromServer" class="admin-btn admin-btn-muted" :disabled="isSaving">
             Reload from server
         </button>
-        <button @click="triggerFileImport" class="btn btn-outline">Import Configuration from JSON</button>
-        <button @click="exportConfiguration" class="btn btn-success">Export Configuration to JSON</button>
+        <button @click="exportConfiguration" class="admin-btn admin-btn-outline">Export Configuration to JSON</button>
         <input
           ref="fileInputRef"
           type="file"
@@ -29,11 +28,13 @@
     <div class="toast-container" aria-live="polite" aria-atomic="true">
       <div v-for="t in toasts" :key="t.id" class="toast-item" :class="`toast-${t.type}`">
         <span class="toast-message">{{ t.message }}</span>
-        <button v-if="t.actionText" class="btn btn-sm btn-link toast-action" @click="handleToastAction(t.id)">{{ t.actionText }}</button>
+        <button v-if="t.actionText" class="admin-btn admin-btn-link" @click="handleToastAction(t.id)">{{ t.actionText }}</button>
         <button class="btn btn-sm btn-link toast-close" @click="removeToast(t.id)">×</button>
       </div>
     </div>
-    <p>Select a category and a model to configure its specific form fields.</p>
+    <div class="helper-text">
+      <p>Select a category and a model to configure its specific form fields. The section for each field is managed automatically.</p>
+    </div>
 
     <div class="selection-controls">
       <div class="control-group">
@@ -56,8 +57,8 @@
         <div class="model-list-header">
             <h3>Available Models</h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
-              <button @click="openCategoryManager" class="btn btn-secondary">Manage Categories</button>
-              <button @click="addModel" class="btn btn-primary">Add New Model</button>
+              <button @click="openCategoryManager" class="admin-btn admin-btn-muted">Manage Categories</button>
+              <button @click="addModel" class="admin-btn admin-btn-primary">Add New Model</button>
             </div>
         </div>
         <div v-if="availableModels.length > 0" class="model-list">
@@ -74,12 +75,12 @@
                     </div>
                 </div>
                 <div class="model-card-actions">
-                    <select class="btn btn-sm" @click.stop v-model="modelMoveTarget" @change="moveModel(model, modelMoveTarget)">
+                    <select class="admin-btn admin-btn-ghost" @click.stop v-model="modelMoveTarget" @change="moveModel(model, modelMoveTarget)">
                       <option disabled :value="''">Move to category...</option>
                       <option v-for="c in categories.filter(x => x !== selectedCategory)" :key="c" :value="c">{{ c }}</option>
                     </select>
-                    <button @click.stop="duplicateModel(model)" class="btn btn-sm btn-secondary">Duplicate</button>
-                    <button @click.stop="deleteModel(model)" class="btn btn-sm btn-danger">Delete</button>
+                    <button @click.stop="duplicateModel(model)" class="admin-btn admin-btn-muted">Duplicate</button>
+                    <button @click.stop="deleteModel(model)" class="admin-btn admin-btn-danger">Delete</button>
                 </div>
             </div>
             <div v-if="filteredModels.length === 0" class="field-list-placeholder">
@@ -99,7 +100,7 @@
                 <div class="field-list-pane">
                     <div class="field-editor-header">
                         <h3>Fields for: <strong>{{ selectedModel }}</strong></h3>
-                        <button @click="openAddFieldModal" class="btn btn-primary">Add Field</button>
+                        <button @click="openAddFieldModal" class="admin-btn admin-btn-primary">Add Field</button>
                     </div>
                     <div v-if="modelFields.length > 0" class="field-list">
                         <div 
@@ -123,8 +124,8 @@
                                 <strong>Options:</strong> {{ Array.isArray(field.options) ? field.options.join(', ') : field.options }}
                             </div>
                             <div class="field-actions">
-                                <button @click="openEditFieldModal(index)" class="btn btn-sm btn-secondary">Edit</button>
-                                <button @click="deleteField(index)" class="btn btn-sm btn-danger">Delete</button>
+                                <button @click="openEditFieldModal(index)" class="admin-btn admin-btn-muted">Edit</button>
+                                <button @click="deleteField(index)" class="admin-btn admin-btn-danger">Delete</button>
                             </div>
                         </div>
                     </div>
@@ -140,7 +141,6 @@
                         <div v-if="isEditing" class="field-summary">
                             <div class="summary-item"><strong>ID:</strong> {{ activeField.id }}</div>
                             <div class="summary-item"><strong>Type:</strong> {{ activeField.type }}</div>
-                            <div class="summary-item"><strong>Section:</strong> {{ activeField.section || '-' }}</div>
                             <div class="summary-item"><strong>Order:</strong> {{ activeField.order }}</div>
                         </div>
                         <div class="field-editor-grid">
@@ -233,7 +233,7 @@
                                                         placeholder="Type an option and press Enter"
                                                         @keyup.enter.prevent="addManualOption"
                                                     />
-                                                    <button type="button" class="chip-add" @click="addManualOption">Add</button>
+                                                    <button type="button" class="admin-btn admin-btn-outline" @click="addManualOption">Add</button>
                                                 </div>
                                                 <div v-if="manualOptions.length" class="manual-options-chips">
                                                     <span class="manual-chip" v-for="option in manualOptions" :key="option">
@@ -289,7 +289,7 @@
                                                                         placeholder="Add child option"
                                                                         @keyup.enter.prevent="addMappingOption(parentOption)"
                                                                     />
-                                                                    <button type="button" class="chip-add" @click="addMappingOption(parentOption)">Add</button>
+                                                                    <button type="button" class="admin-btn admin-btn-outline" @click="addMappingOption(parentOption)">Add</button>
                                                                 </div>
                                                                 <div class="manual-options-chips" v-if="getMappingOptionList(parentOption).length">
                                                                     <span
@@ -361,8 +361,8 @@
                         </div>
 
                         <div class="modal-actions">
-                            <button @click="showFieldModal = false" class="btn btn-secondary">Cancel</button>
-                            <button @click="saveField" class="btn btn-primary">{{ isEditing ? 'Save Changes' : 'Add Field' }}</button>
+                            <button @click="showFieldModal = false" class="admin-btn admin-btn-muted">Cancel</button>
+                            <button @click="saveField" class="admin-btn admin-btn-primary">{{ isEditing ? 'Save Changes' : 'Add Field' }}</button>
                         </div>
                     </div>
                      <div v-else class="field-editor-placeholder">
@@ -371,7 +371,7 @@
                 </div>
             </div>
             <div class="modal-actions main-modal-actions">
-                <button @click="closeModelEditor" class="btn btn-secondary">Close Editor</button>
+                <button @click="closeModelEditor" class="admin-btn admin-btn-muted">Close Editor</button>
             </div>
         </div>
     </div>
@@ -382,8 +382,8 @@
         <h3 style="margin-top:0">{{ confirmDialog.title || 'Please confirm' }}</h3>
         <p>{{ confirmDialog.message }}</p>
         <div class="modal-actions">
-          <button class="btn btn-secondary" @click="closeConfirmDialog">{{ confirmDialog.cancelText || 'Cancel' }}</button>
-          <button class="btn btn-primary" @click="confirmDialogConfirm">{{ confirmDialog.confirmText || 'Confirm' }}</button>
+          <button class="admin-btn admin-btn-muted" @click="closeConfirmDialog">{{ confirmDialog.cancelText || 'Cancel' }}</button>
+          <button class="admin-btn admin-btn-primary" @click="confirmDialogConfirm">{{ confirmDialog.confirmText || 'Confirm' }}</button>
         </div>
       </div>
     </div>
@@ -409,8 +409,8 @@
                   <span>{{ cat.modelCount }} {{ cat.modelCount === 1 ? 'model' : 'models' }}</span>
                 </div>
                 <div class="category-row-actions">
-                  <button class="btn btn-sm btn-secondary" @click="startRenameCategory(cat.name)">Rename</button>
-                  <button class="btn btn-sm btn-danger" @click="startDeleteCategory(cat.name)">Delete</button>
+                  <button class="admin-btn admin-btn-muted" @click="startRenameCategory(cat.name)">Rename</button>
+                  <button class="admin-btn admin-btn-danger" @click="startDeleteCategory(cat.name)">Delete</button>
                 </div>
               </div>
             </div>
@@ -422,7 +422,7 @@
               <p class="helper-text">Create a new group for your models.</p>
               <input type="text" v-model="newCategoryName" placeholder="e.g., Amplifiers">
               <div class="action-buttons">
-                <button class="btn btn-primary" @click="addCategoryAction">Add</button>
+                <button class="admin-btn admin-btn-primary" @click="addCategoryAction">Add</button>
               </div>
             </section>
             <section class="action-card">
@@ -434,7 +434,7 @@
               </select>
               <input type="text" v-model="renameTo" placeholder="New name">
               <div class="action-buttons">
-                <button class="btn btn-secondary" @click="renameCategoryAction" :disabled="!renameFrom || !renameTo || renameTo === renameFrom">Rename</button>
+                <button class="admin-btn admin-btn-muted" @click="renameCategoryAction" :disabled="!renameFrom || !renameTo || renameTo === renameFrom">Rename</button>
               </div>
             </section>
             <section class="action-card">
@@ -449,11 +449,11 @@
                 <option v-for="c in categories.filter(x => x !== deleteTarget)" :key="c" :value="c">{{ c }}</option>
               </select>
               <div class="action-buttons">
-                <button class="btn btn-danger" @click="deleteCategoryAction" :disabled="!deleteTarget">Delete</button>
+                <button class="admin-btn admin-btn-danger" @click="deleteCategoryAction" :disabled="!deleteTarget">Delete</button>
               </div>
             </section>
             <div class="modal-footer-actions">
-              <button class="btn btn-secondary" @click="closeCategoryModal">Close</button>
+              <button class="admin-btn admin-btn-muted" @click="closeCategoryModal">Close</button>
             </div>
           </div>
         </div>
@@ -1892,7 +1892,7 @@ onMounted(() => {
     padding-bottom: 1rem;
     border-bottom: 1px solid #eee;
 }
-.model-list-header .btn { white-space: nowrap; }
+.model-list-header .admin-btn { white-space: nowrap; }
 
 .model-list-header h3 {
     margin: 0;

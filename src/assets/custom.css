@@ -295,4 +295,49 @@ body {
   margin: 1rem 0;
 }
 
+.admin-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  border: none;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  transition: background-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+.admin-btn-primary { background: #0d6efd; color: #fff; }
+.admin-btn-primary:hover { background: #0b5ed7; }
+.admin-btn-muted { background: #6c757d; color:#fff; }
+.admin-btn-muted:hover { background: #5c636a; }
+.admin-btn-danger { background: #dc3545; color:#fff; }
+.admin-btn-danger:hover { background: #bb2d3b; }
+.admin-btn-outline {
+  border: 1px dashed #0d6efd;
+  background: rgba(13,110,253,0.05);
+  color: #0d6efd;
+}
+.admin-btn-outline:hover {
+  background: rgba(13,110,253,0.12);
+}
+.admin-btn-link {
+  background: none;
+  color: #0d6efd;
+  border: none;
+  padding: 0;
+}
+.admin-btn-ghost {
+  background: #fff;
+  border: 1px solid #d1d5db;
+  padding: 0.35rem 0.6rem;
+  border-radius: 4px;
+  font-size: 0.85rem;
+}
+.admin-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 /*# sourceMappingURL=custom.css.map */

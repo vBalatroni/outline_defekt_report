@@ -7,14 +7,14 @@
       </div>
       <div class="header-actions">
         <button
-          class="btn btn-primary"
+          class="admin-btn admin-btn-primary"
           :disabled="isSaving || !hasUnsavedChanges"
           @click="saveToServer"
         >
           {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
         <button
-          class="btn btn-secondary"
+          class="admin-btn admin-btn-muted"
           :disabled="isReloading"
           @click="reloadFromServer"
         >
@@ -397,21 +397,7 @@ input[type='email'] {
   color: #6c757d;
   font-size: 0.85rem;
 }
-.btn {
-  padding: 0.5rem 1rem;
-  border-radius: 4px;
-  border: none;
-  cursor: pointer;
-  font-size: 0.95rem;
-}
-.btn-primary {
-  background: #0d6efd;
-  color: #fff;
-}
-.btn-secondary {
-  background: #6c757d;
-  color: #fff;
-}
+/* buttons use global admin-btn styles */
 textarea {
   padding: 0.6rem;
   border: 1px solid #ccc;
