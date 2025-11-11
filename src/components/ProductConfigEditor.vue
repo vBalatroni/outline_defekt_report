@@ -7,13 +7,11 @@
         <button @click="saveConfigurationToServer" class="admin-btn admin-btn-primary" :disabled="isSaving || !hasUnsavedChanges">
             {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
-        <button @click="importDefaultIntoDb" class="admin-btn admin-btn-muted" :disabled="isSaving">
-            {{ isSaving ? 'Importing...' : 'Import default (from file)' }}
-        </button>
         <button @click="reloadFromServer" class="admin-btn admin-btn-muted" :disabled="isSaving">
             Reload from server
         </button>
         <button @click="exportConfiguration" class="admin-btn admin-btn-outline">Export Configuration to JSON</button>
+        <button @click="triggerFileImport" class="admin-btn admin-btn-muted">Upload JSON Configuration</button>
         <input
           ref="fileInputRef"
           type="file"
@@ -1302,34 +1300,6 @@ const saveConfigurationToServer = () => {
     message: 'This will overwrite the configuration on the server. Continue?',
     confirmText: 'Save',
     onConfirm: doSaveConfigurationToServer,
-  });
-};
-
-const doImportDefaultIntoDb = async () => {
-  isSaving.value = true;
-  try {
-    const response = await fetch('/config/import-default', { method: 'POST' });
-    const resultText = await response.text();
-    if (!response.ok) {
-      throw new Error(`Server responded with status ${response.status}: ${resultText}`);
-    }
-    await productStore.loadConfiguration();
-    resetDirty();
-    showToast({ message: 'Default configuration imported.', type: 'success' });
-  } catch (err) {
-    console.error('Failed to import default configuration:', err);
-    showToast({ message: `Import failed: ${err.message}`, type: 'danger', duration: 6000 });
-  } finally {
-    isSaving.value = false;
-  }
-};
-const importDefaultIntoDb = () => {
-  if (isSaving.value) return;
-  askConfirmation({
-    title: 'Import default configuration',
-    message: 'This will import the default productData.json and may overwrite existing entries. Continue?',
-    confirmText: 'Import',
-    onConfirm: doImportDefaultIntoDb,
   });
 };
 
