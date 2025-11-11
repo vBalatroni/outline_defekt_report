@@ -281,6 +281,21 @@ export class ConfigDataService {
     return this.importFromJson(json);
   }
 
+  private async loadBaseConfigContent() {
+    const latest = await this.getLatest();
+    if (latest?.content) {
+      return JSON.parse(JSON.stringify(latest.content));
+    }
+    try {
+      const filePath = path.resolve(process.cwd(), '../src/assets/productData.json');
+      const raw = await fs.readFile(filePath, 'utf-8');
+      return JSON.parse(raw);
+    } catch (e: any) {
+      console.warn('[ConfigDataService] Unable to load default productData.json:', String(e?.message || e));
+      return {};
+    }
+  }
+
   async setEmailConfig(cfg: {
     supplierRecipient?: string | null;
     testingRecipient?: string | null;
@@ -293,36 +308,24 @@ export class ConfigDataService {
       downloadHtmlReports = true,
       serialValidationEnabled,
     } = cfg || {};
+
+    const base = await this.loadBaseConfigContent();
+    base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
+    if (serialValidationEnabled !== undefined) {
+      base.validationConfig = base.validationConfig || {};
+      base.validationConfig.serial = base.validationConfig.serial || {};
+      base.validationConfig.serial.enabled = !!serialValidationEnabled;
+    }
+
     try {
       await this.prisma.emailConfig.create({
         data: { supplierRecipient, testingRecipient, downloadHtmlReports },
       });
     } catch (e) {
-      // Fallback: persisti nello snapshot Config.content se le tabelle normalizzate non esistono
-      console.warn('[ConfigDataService] emailConfig fallback to Config snapshot:', String((e as any)?.message || e));
-      const latest = await this.getLatest();
-      const base = (latest?.content as any) || {};
-      base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
-      if (serialValidationEnabled !== undefined) {
-        base.validationConfig = base.validationConfig || {};
-        base.validationConfig.serial = base.validationConfig.serial || {};
-        base.validationConfig.serial.enabled = !!serialValidationEnabled;
-      }
-      await this.create(base);
-      return;
+      console.warn('[ConfigDataService] emailConfig persistence failed, continuing with snapshot update only:', String((e as any)?.message || e));
     }
 
-    const latest = await this.getLatest();
-    if (latest?.content) {
-      const base = JSON.parse(JSON.stringify(latest.content));
-      base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
-      if (serialValidationEnabled !== undefined) {
-        base.validationConfig = base.validationConfig || {};
-        base.validationConfig.serial = base.validationConfig.serial || {};
-        base.validationConfig.serial.enabled = !!serialValidationEnabled;
-      }
-      await this.create(base);
-    }
+    await this.create(base);
   }
 }
 
