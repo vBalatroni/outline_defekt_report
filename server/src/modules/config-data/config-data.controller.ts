@@ -36,8 +36,18 @@ export class ConfigDataController {
   @Post('email')
   async setEmail(@Body() body: any) {
     if (!body || typeof body !== 'object') throw new BadRequestException('Invalid payload');
-    const { supplierRecipient, testingRecipient } = body;
-    await this.service.setEmailConfig({ supplierRecipient, testingRecipient });
+    const {
+      supplierRecipient,
+      testingRecipient,
+      downloadHtmlReports,
+      serialValidationEnabled,
+    } = body;
+    await this.service.setEmailConfig({
+      supplierRecipient,
+      testingRecipient,
+      downloadHtmlReports,
+      serialValidationEnabled,
+    });
     return { ok: true };
   }
 }

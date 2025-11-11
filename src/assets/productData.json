@@ -1024,6 +1024,11 @@
     "Boat",
     "Laboratory"
   ],
+  "validationConfig": {
+    "serial": {
+      "enabled": false
+    }
+  },
   "emailConfig": {
     "supplierRecipient": "supplier@example.com",
     "testingRecipient": "test@example.com"

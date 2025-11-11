@@ -281,16 +281,46 @@ export class ConfigDataService {
     return this.importFromJson(json);
   }
 
-  async setEmailConfig(cfg: { supplierRecipient?: string | null; testingRecipient?: string | null; downloadHtmlReports?: boolean }) {
-    const { supplierRecipient = null, testingRecipient = null, downloadHtmlReports = true } = cfg || {};
+  async setEmailConfig(cfg: {
+    supplierRecipient?: string | null;
+    testingRecipient?: string | null;
+    downloadHtmlReports?: boolean;
+    serialValidationEnabled?: boolean;
+  }) {
+    const {
+      supplierRecipient = null,
+      testingRecipient = null,
+      downloadHtmlReports = true,
+      serialValidationEnabled,
+    } = cfg || {};
     try {
-      await this.prisma.emailConfig.create({ data: { supplierRecipient, testingRecipient, downloadHtmlReports } });
+      await this.prisma.emailConfig.create({
+        data: { supplierRecipient, testingRecipient, downloadHtmlReports },
+      });
     } catch (e) {
       // Fallback: persisti nello snapshot Config.content se le tabelle normalizzate non esistono
       console.warn('[ConfigDataService] emailConfig fallback to Config snapshot:', String((e as any)?.message || e));
       const latest = await this.getLatest();
       const base = (latest?.content as any) || {};
       base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
+      if (serialValidationEnabled !== undefined) {
+        base.validationConfig = base.validationConfig || {};
+        base.validationConfig.serial = base.validationConfig.serial || {};
+        base.validationConfig.serial.enabled = !!serialValidationEnabled;
+      }
+      await this.create(base);
+      return;
+    }
+
+    const latest = await this.getLatest();
+    if (latest?.content) {
+      const base = JSON.parse(JSON.stringify(latest.content));
+      base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
+      if (serialValidationEnabled !== undefined) {
+        base.validationConfig = base.validationConfig || {};
+        base.validationConfig.serial = base.validationConfig.serial || {};
+        base.validationConfig.serial.enabled = !!serialValidationEnabled;
+      }
       await this.create(base);
     }
   }

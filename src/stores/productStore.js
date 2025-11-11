@@ -19,6 +19,12 @@ export const defaultIntroContent = {
 
 const cloneDefaultIntro = () => JSON.parse(JSON.stringify(defaultIntroContent));
 
+const defaultValidationConfig = {
+  serial: {
+    enabled: false,
+  },
+};
+
 const defaultProductMapping = productDataJson;
 
 // Template per i dati generali del form, per poterli resettare facilmente
@@ -113,6 +119,7 @@ export const useProductStore = defineStore('product', () => {
           if (data && data.content) {
             const incoming = data.content;
             ensureIntroContent(incoming);
+            ensureValidationConfig(incoming);
             productMapping.value = incoming;
             console.log('Configuration loaded from backend.');
             return;
@@ -125,6 +132,7 @@ export const useProductStore = defineStore('product', () => {
       // 2) Fallback: usa il file bundle
       let currentMapping = JSON.parse(JSON.stringify(defaultProductMapping));
       ensureIntroContent(currentMapping);
+      ensureValidationConfig(currentMapping);
       productMapping.value = currentMapping;
       console.log('Configuration loaded from file.');
 
@@ -223,6 +231,7 @@ export const useProductStore = defineStore('product', () => {
 
   const updateProductMapping = (mapping) => {
     ensureIntroContent(mapping);
+  ensureValidationConfig(mapping);
     productMapping.value = mapping;
   };
 
@@ -401,4 +410,19 @@ function ensureIntroContent(mapping) {
     merged.subtitle = mapping.introContent.subtitle || defaultIntroContent.subtitle;
     mapping.introContent = merged;
   }
+}
+
+function ensureValidationConfig(mapping) {
+  if (!mapping) return;
+  const existing = mapping.validationConfig || {};
+  const serial = existing.serial || {};
+  mapping.validationConfig = {
+    ...defaultValidationConfig,
+    ...existing,
+    serial: {
+      ...defaultValidationConfig.serial,
+      ...serial,
+      enabled: typeof serial.enabled === 'boolean' ? serial.enabled : !!defaultValidationConfig.serial.enabled,
+    },
+  };
 }

@@ -36,6 +36,88 @@ const props = defineProps({
 
 // Use the store's state for saved products
 const savedProducts = computed(() => productStore.formState.savedProducts);
+const serialValidationMessage = ref('');
+const serialValidationEnabled = computed(() => Boolean(productStore.productMapping?.validationConfig?.serial?.enabled));
+
+const cipherMap = Object.freeze({
+    '1': 'B',
+    '2': 'A',
+    '3': 'R',
+    '4': 'T',
+    '5': 'I',
+    '6': 'L',
+    '7': 'O',
+    '8': 'M',
+    '9': 'E',
+    '0': 'U'
+});
+
+const reverseCipherMap = Object.freeze(Object.keys(cipherMap).reduce((acc, digit) => {
+    const letter = cipherMap[digit];
+    acc[letter] = digit;
+    return acc;
+}, {}));
+
+const decodeLetters = (letters) => {
+    let digits = '';
+    for (const ch of letters) {
+        const digit = reverseCipherMap[ch];
+        if (digit === undefined) {
+            return null;
+        }
+        digits += digit;
+    }
+    return digits;
+};
+
+const validateSerialCode = (rawSerial) => {
+    const serial = String(rawSerial || '').trim().toUpperCase();
+    if (!serial) {
+        return { valid: false, error: '' };
+    }
+    if (serial.length < 6) {
+        return { valid: false, error: 'La matricola deve includere settimana (2), giorno (1), anno (2) e contatore numerico.' };
+    }
+
+    const weekLetters = serial.slice(0, 2);
+    const dayLetter = serial[2];
+    const yearLetters = serial.slice(3, 5);
+    const counter = serial.slice(5);
+
+    const weekDigits = decodeLetters(weekLetters);
+    if (!weekDigits) {
+        return { valid: false, error: 'Settimana non valida nella matricola.' };
+    }
+    const weekNum = Number(weekDigits);
+    if (!Number.isInteger(weekNum) || weekNum < 1 || weekNum > 52) {
+        return { valid: false, error: 'La settimana deve essere compresa tra 01 e 52.' };
+    }
+
+    const dayDigit = decodeLetters(dayLetter);
+    if (!dayDigit) {
+        return { valid: false, error: 'Giorno della settimana non valido nella matricola.' };
+    }
+    const dayNum = Number(dayDigit);
+    if (!Number.isInteger(dayNum) || dayNum < 1 || dayNum > 5) {
+        return { valid: false, error: 'Il giorno deve essere compreso tra 1 e 5 (giorni lavorativi).' };
+    }
+
+    const yearDigits = decodeLetters(yearLetters);
+    if (!yearDigits) {
+        return { valid: false, error: 'Anno non valido nella matricola.' };
+    }
+    const currentYear = new Date().getFullYear() % 100;
+    const currentYearStr = currentYear.toString().padStart(2, '0');
+    if (yearDigits !== currentYearStr) {
+        return { valid: false, error: `Le lettere 4 e 5 devono rappresentare l'anno corrente (${currentYearStr}).` };
+    }
+
+    if (!/^[0-9]+$/.test(counter)) {
+        return { valid: false, error: 'Il contatore finale deve essere composto da sole cifre numeriche.' };
+    }
+
+    return { valid: true, error: '' };
+};
 
 const initializeNewProduct = () => {
     // The previous approach was incorrect because productMapping is a config file,
@@ -148,6 +230,11 @@ const handleInputChange = (event) => {
             currentDefekt.value.symptomInfo.symptomFound.value = '';
         }
         */
+    } else if (event.id === 'serialNumber') {
+        if (typeof event.value === 'string') {
+            currentProduct.value.basicInfo.serialNumber.value = event.value.toUpperCase();
+        }
+        isBasicInfoValidated.value = false;
     }
 };
 
@@ -157,10 +244,22 @@ const basicInfoFieldsFilled = computed(() => {
     return Boolean(category.value && model.value && serialNumber.value);
 });
 
+const serialValidationResult = computed(() => {
+    if (!serialValidationEnabled.value) return { valid: true, error: '' };
+    const serial = currentProduct.value?.basicInfo?.serialNumber?.value || '';
+    return validateSerialCode(serial);
+});
+
+watch(serialValidationResult, (result) => {
+    serialValidationMessage.value = result.error;
+});
+
 const canSave = computed(() => {
     if (!currentProduct.value) return false;
+    if (!basicInfoFieldsFilled.value) return false;
+    if (serialValidationEnabled.value && !serialValidationResult.value.valid) return false;
     if (editingProductIndex.value >= 0) return true;
-    return basicInfoFieldsFilled.value && isBasicInfoValidated.value;
+    return isBasicInfoValidated.value;
 });
 
 const deepClonePreservingFiles = (val) => {
@@ -362,6 +461,9 @@ const editProduct = (index) => {
 
 const proceedToDefektStep = () => {
     if (!basicInfoFieldsFilled.value) return;
+    if (serialValidationEnabled.value && !serialValidationResult.value.valid) {
+        return;
+    }
     currentProductModel.value = currentProduct.value.basicInfo.model.value;
     currentDefekt.value = initializeNewDefekt(currentProductModel.value);
     isBasicInfoValidated.value = true;
@@ -477,11 +579,17 @@ const goToBack = () => {
                                 />
                             </div>
                         </div>
+                        <p
+                            v-if="serialValidationEnabled && serialValidationMessage && basicInfoFieldsFilled"
+                            class="serial-validation-message"
+                        >
+                            {{ serialValidationMessage }}
+                        </p>
                         <div class="basic-info-actions text-end mt-3">
                             <Button
                                 :type="'primary'"
                                 :text="'Continue'"
-                                :isDisabled="!basicInfoFieldsFilled"
+                                :isDisabled="!basicInfoFieldsFilled || (serialValidationEnabled && !serialValidationResult.valid)"
                                 @click="proceedToDefektStep"
                             />
                         </div>
@@ -645,6 +753,12 @@ const goToBack = () => {
 .modal-body-custom {
     max-height: 60vh;
     overflow-y: auto;
+}
+
+.serial-validation-message {
+    margin-top: 0.75rem;
+    color: #c0392b;
+    font-size: 0.9rem;
 }
 
 .product-summary {
