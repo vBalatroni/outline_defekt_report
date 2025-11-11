@@ -75,12 +75,64 @@
         Quando attivo, il form mostra un riepilogo dettagliato di settimana, giorno, anno e contatore.
       </small>
     </div>
+
+    <div class="card">
+      <h3>Attachments</h3>
+      <p class="muted">
+        Limita dimensione, numero e formati accettati per gli allegati caricati dagli utenti.
+      </p>
+      <div class="form-grid attachments-grid">
+        <div class="form-group">
+          <label>Max files per submission</label>
+          <input
+            type="number"
+            min="1"
+            :value="attachmentsMaxFiles"
+            @input="setAttachmentsNumber('maxFiles', $event.target.value)"
+          />
+        </div>
+        <div class="form-group">
+          <label>Max file size (MB)</label>
+          <input
+            type="number"
+            min="1"
+            :value="attachmentsMaxFileSize"
+            @input="setAttachmentsNumber('maxFileSizeMb', $event.target.value)"
+          />
+        </div>
+        <div class="form-group">
+          <label>Max total size (MB)</label>
+          <input
+            type="number"
+            min="1"
+            :value="attachmentsMaxTotalSize"
+            @input="setAttachmentsNumber('maxTotalSizeMb', $event.target.value)"
+          />
+        </div>
+      </div>
+      <label>Allowed MIME types (one per line)</label>
+      <textarea
+        rows="5"
+        :value="allowedMimeTypesText"
+        @input="setAllowedMimeTypes($event.target.value)"
+      ></textarea>
+      <small class="muted">
+        Esempi: image/jpeg, image/png, video/mp4. È possibile indicare wildcard come image/*.
+      </small>
+    </div>
   </div>
 </template>
 
 <script setup>
 import { computed, ref, watch, onMounted } from 'vue';
 import { useProductStore } from '@/stores/productStore';
+
+const defaultAttachments = {
+  maxFiles: 6,
+  maxFileSizeMb: 15,
+  maxTotalSizeMb: 80,
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'],
+};
 
 const store = useProductStore();
 const isSaving = ref(false);
@@ -142,9 +194,36 @@ const serialDebugToggle = computed({
   },
 });
 
+const attachmentsConfig = computed(() => store.productMapping?.attachmentsConfig || {});
+
+const attachmentsMaxFiles = computed(() => Number(attachmentsConfig.value.maxFiles ?? defaultAttachments.maxFiles));
+const attachmentsMaxFileSize = computed(() => Number(attachmentsConfig.value.maxFileSizeMb ?? defaultAttachments.maxFileSizeMb));
+const attachmentsMaxTotalSize = computed(() => Number(attachmentsConfig.value.maxTotalSizeMb ?? defaultAttachments.maxTotalSizeMb));
+const allowedMimeTypesText = computed(() => (attachmentsConfig.value.allowedMimeTypes || []).join('\n'));
+
+const setAttachmentsNumber = (field, value) => {
+  const num = Math.max(1, Math.floor(Number(value) || 0));
+  updateMapping((mapping) => {
+    mapping.attachmentsConfig = mapping.attachmentsConfig || {};
+    mapping.attachmentsConfig[field] = num;
+  });
+};
+
+const setAllowedMimeTypes = (raw) => {
+  const list = String(raw || '')
+    .split(/\r?\n|,/) // support newline or comma separators
+    .map((item) => item.trim())
+    .filter(Boolean);
+  updateMapping((mapping) => {
+    mapping.attachmentsConfig = mapping.attachmentsConfig || {};
+    mapping.attachmentsConfig.allowedMimeTypes = list.length ? list : [...defaultAttachments.allowedMimeTypes];
+  });
+};
+
 const getSettingsSignature = (mapping) => {
   const emailCfg = mapping?.emailConfig || {};
   const serialCfg = mapping?.validationConfig?.serial || {};
+  const attachmentsCfg = mapping?.attachmentsConfig || {};
   return JSON.stringify({
     email: {
       supplierRecipient: emailCfg.supplierRecipient || '',
@@ -154,6 +233,14 @@ const getSettingsSignature = (mapping) => {
     serial: {
       enabled: !!serialCfg.enabled,
       debugEnabled: !!serialCfg.debugEnabled,
+    },
+    attachments: {
+      maxFiles: Number(attachmentsCfg.maxFiles) || defaultAttachments.maxFiles,
+      maxFileSizeMb: Number(attachmentsCfg.maxFileSizeMb) || defaultAttachments.maxFileSizeMb,
+      maxTotalSizeMb: Number(attachmentsCfg.maxTotalSizeMb) || defaultAttachments.maxTotalSizeMb,
+      allowedMimeTypes: Array.isArray(attachmentsCfg.allowedMimeTypes)
+        ? [...attachmentsCfg.allowedMimeTypes].sort()
+        : [...defaultAttachments.allowedMimeTypes].sort(),
     },
   });
 };
@@ -190,6 +277,20 @@ const saveToServer = async () => {
     mapping.validationConfig.serial = {
       enabled: Boolean(serialCfg.enabled),
       debugEnabled: Boolean(serialCfg.debugEnabled),
+    };
+    const attachmentsCfg = store.productMapping?.attachmentsConfig || {};
+    const normalizeNumber = (value, fallback) => {
+      const num = Number(value);
+      return Number.isFinite(num) && num > 0 ? Math.floor(num) : fallback;
+    };
+    const allowed = Array.isArray(attachmentsCfg.allowedMimeTypes)
+      ? attachmentsCfg.allowedMimeTypes.filter((item) => typeof item === 'string' && item.trim().length)
+      : [];
+    mapping.attachmentsConfig = {
+      maxFiles: normalizeNumber(attachmentsCfg.maxFiles, defaultAttachments.maxFiles),
+      maxFileSizeMb: normalizeNumber(attachmentsCfg.maxFileSizeMb, defaultAttachments.maxFileSizeMb),
+      maxTotalSizeMb: normalizeNumber(attachmentsCfg.maxTotalSizeMb, defaultAttachments.maxTotalSizeMb),
+      allowedMimeTypes: allowed.length ? allowed : [...defaultAttachments.allowedMimeTypes],
     };
 
     const resp = await fetch('/config/import', {
@@ -271,6 +372,15 @@ const reloadFromServer = async () => {
   gap: 0.75rem;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
 }
+.form-grid.attachments-grid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+.form-group input[type='number'] {
+  padding: 0.5rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
+}
 input[type='email'] {
   padding: 0.6rem;
   border: 1px solid #ccc;
@@ -301,5 +411,11 @@ input[type='email'] {
 .btn-secondary {
   background: #6c757d;
   color: #fff;
+}
+textarea {
+  padding: 0.6rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 0.95rem;
 }
 </style>

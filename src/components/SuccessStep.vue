@@ -77,6 +77,14 @@ onMounted(async () => {
             } catch (_) { return null; }
         };
 
+        const sanitizeFilename = (name, fallback) => {
+            const cleaned = String(name || fallback || 'attachment')
+                .replace(/[^a-zA-Z0-9._-]+/g, '_')
+                .replace(/_{2,}/g, '_')
+                .replace(/^_+|_+$/g, '');
+            return cleaned || fallback || 'attachment.bin';
+        };
+ 
         // Collect media files (from savedProducts base64 values) into FormData
         const buildFormData = () => {
             const fd = new FormData();
@@ -100,17 +108,38 @@ onMounted(async () => {
                                 const field = fields[fid];
                                 const val = field?.value;
                                 const baseName = field?.id || 'file';
-                                // If value is a File object, attach directly
-                                if (val && typeof val === 'object' && 'name' in val && 'size' in val) {
-                                    const name = String(val.name || `${baseName}.bin`);
-                                    fd.append('files', val, name);
-                                } else if (typeof val === 'string' && val.startsWith('data:')) {
-                                    const conv = dataUrlToBlob(val);
-                                    if (conv && conv.blob) {
-                                        const ext = (conv.mime.split('/')?.[1] || 'bin').replace(/[^a-zA-Z0-9]/g, '');
-                                        const filename = `product${pIdx + 1}_defekt${dIdx + 1}_${baseName}.${ext}`;
-                                        fd.append('files', conv.blob, filename);
+
+                                const appendFile = (file, fallback) => {
+                                    const safeName = sanitizeFilename(file?.name, fallback);
+                                    fd.append('files', file, safeName);
+                                };
+
+                                const processValue = (value, indexSuffix = '') => {
+                                    if (!value) return;
+                                    if (typeof File !== 'undefined' && value instanceof File) {
+                                        appendFile(value, `${baseName}${indexSuffix}.bin`);
+                                        return;
                                     }
+                                    if (value && typeof value === 'object' && 'name' in value && 'size' in value) {
+                                        appendFile(value, `${baseName}${indexSuffix}.bin`);
+                                        return;
+                                    }
+                                    if (typeof value === 'string' && value.startsWith('data:')) {
+                                        const conv = dataUrlToBlob(value);
+                                        if (conv && conv.blob) {
+                                            const ext = (conv.mime.split('/')?.[1] || 'bin').replace(/[^a-zA-Z0-9]/g, '');
+                                            const filename = `product${pIdx + 1}_defekt${dIdx + 1}_${baseName}${indexSuffix ? `_${indexSuffix}` : ''}.${ext}`;
+                                            fd.append('files', conv.blob, filename);
+                                        }
+                                        return;
+                                    }
+                                };
+
+                                // If value is a File object, attach directly
+                                if (Array.isArray(val)) {
+                                    val.forEach((item, index) => processValue(item, `${index + 1}`));
+                                } else {
+                                    processValue(val);
                                 }
                             });
                         });

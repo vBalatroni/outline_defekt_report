@@ -523,8 +523,11 @@ const formatFieldValue = (field) => {
 
     if (Array.isArray(value)) {
         return value.map((item) => {
+            if (typeof File !== 'undefined' && item instanceof File) {
+                return item.name;
+            }
             if (typeof item === 'object' && item !== null) {
-                return item.label || item.value || JSON.stringify(item);
+                return item.label || item.name || item.value || JSON.stringify(item);
             }
             return item;
         }).join(', ');

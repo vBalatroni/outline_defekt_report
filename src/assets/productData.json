@@ -1026,8 +1026,21 @@
   ],
   "validationConfig": {
     "serial": {
-      "enabled": false
+      "enabled": false,
+      "debugEnabled": false
     }
+  },
+  "attachmentsConfig": {
+    "maxFiles": 6,
+    "maxFileSizeMb": 15,
+    "maxTotalSizeMb": 80,
+    "allowedMimeTypes": [
+      "image/jpeg",
+      "image/png",
+      "image/webp",
+      "video/mp4",
+      "video/quicktime"
+    ]
   },
   "emailConfig": {
     "supplierRecipient": "supplier@example.com",

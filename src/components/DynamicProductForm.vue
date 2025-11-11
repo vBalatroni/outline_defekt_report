@@ -38,15 +38,41 @@
               <input 
                   type="file" 
                   :id="field.id"
-                  accept="image/png,image/jpeg"
+                  :accept="acceptedMimeTypes"
+                  multiple
                   @change="handleFileUpload($event, field.id)"
                   :required="field.required"
                   ref="fileInputs"
                   :data-field="field.id"
                   class="dynamic-field-input"
               />
-              <div v-if="previews[field.id]" class="preview">
-                <img :src="previews[field.id]" alt="preview" />
+              <div
+                v-if="Array.isArray(previews[field.id]) && previews[field.id].length"
+                class="attachments-preview-grid"
+              >
+                <div
+                  v-for="(preview, index) in previews[field.id]"
+                  :key="preview.id"
+                  class="attachment-preview"
+                >
+                  <template v-if="preview.previewType === 'image'">
+                    <img :src="preview.url" :alt="preview.name" />
+                  </template>
+                  <template v-else-if="preview.previewType === 'video'">
+                    <video :src="preview.url" controls muted playsinline></video>
+                  </template>
+                  <div class="attachment-meta">
+                    <span class="attachment-name">{{ preview.name }}</span>
+                    <span class="attachment-size">{{ formatSize(preview.size) }}</span>
+                  </div>
+                  <button
+                    class="attachment-remove"
+                    type="button"
+                    @click="removeAttachment(field.id, index)"
+                  >
+                    ×
+                  </button>
+                </div>
               </div>
           </template>
         </div>
@@ -72,6 +98,98 @@ const formData = ref({});
 const previews = ref({});
 const fileInputs = ref([]);
 
+const attachmentsLimits = computed(() => {
+  const cfg = productStore.productMapping?.attachmentsConfig || {};
+  const toPositiveInt = (value, fallback) => {
+    const num = Number(value);
+    return Number.isFinite(num) && num > 0 ? Math.floor(num) : fallback;
+  };
+  const allowed = Array.isArray(cfg.allowedMimeTypes)
+    ? cfg.allowedMimeTypes.filter((item) => typeof item === 'string' && item.trim().length)
+    : [];
+  const maxFiles = toPositiveInt(cfg.maxFiles, 6);
+  const maxFileSizeMb = toPositiveInt(cfg.maxFileSizeMb, 15);
+  const maxTotalSizeMb = toPositiveInt(cfg.maxTotalSizeMb, 80);
+  return {
+    maxFiles,
+    maxFileSizeBytes: maxFileSizeMb * 1024 * 1024,
+    maxTotalSizeBytes: maxTotalSizeMb * 1024 * 1024,
+    allowedMimeTypes: allowed.length
+      ? allowed
+      : ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'],
+  };
+});
+
+const acceptedMimeTypes = computed(() => {
+  const list = attachmentsLimits.value.allowedMimeTypes;
+  return list.length ? list.join(',') : 'image/*,video/*';
+});
+
+const isMimeAllowed = (mime) => {
+  const allowed = attachmentsLimits.value.allowedMimeTypes;
+  if (!mime) return false;
+  return allowed.some((entry) => {
+    if (entry.endsWith('/*')) {
+      const prefix = entry.slice(0, entry.indexOf('/'));
+      return mime.startsWith(`${prefix}/`);
+    }
+    return mime.toLowerCase() === entry.toLowerCase();
+  });
+};
+
+let previewIdCounter = 0;
+const nextPreviewId = () => `att-${Date.now()}-${previewIdCounter++}`;
+
+const revokePreviewUrls = (list = []) => {
+  list.forEach((item) => {
+    if (item?.previewType === 'video' && item.url) {
+      URL.revokeObjectURL(item.url);
+    }
+  });
+};
+
+const generatePreview = (file) => {
+  const base = {
+    id: nextPreviewId(),
+    name: file.name,
+    size: file.size,
+    mime: file.type,
+  };
+  if (file.type.startsWith('image/')) {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve({ ...base, previewType: 'image', url: reader.result });
+      reader.readAsDataURL(file);
+    });
+  }
+  if (file.type.startsWith('video/')) {
+    const url = URL.createObjectURL(file);
+    return Promise.resolve({ ...base, previewType: 'video', url });
+  }
+  return Promise.resolve({ ...base, previewType: 'file', url: '' });
+};
+
+const buildPreviews = async (fieldId, files) => {
+  revokePreviewUrls(previews.value[fieldId]);
+  if (!files || !files.length) {
+    previews.value[fieldId] = [];
+    return;
+  }
+  const list = await Promise.all(files.map((file) => generatePreview(file)));
+  previews.value[fieldId] = list;
+};
+
+const formatSize = (bytes) => {
+  if (!Number.isFinite(bytes)) return '';
+  if (bytes >= 1024 * 1024) {
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+  if (bytes >= 1024) {
+    return `${Math.round(bytes / 1024)} KB`;
+  }
+  return `${bytes} B`;
+};
+
 watch(() => props.modelValue, (newValue) => {
   if (JSON.stringify(newValue) !== JSON.stringify(formData.value)) {
     formData.value = { ...newValue };
@@ -82,6 +200,9 @@ watch(() => props.modelValue, (newValue) => {
 watch(() => props.modelValue, (val) => {
   const isEmpty = val && Object.keys(val).length === 0;
   if (isEmpty) {
+    Object.keys(previews.value).forEach((key) => {
+      revokePreviewUrls(previews.value[key]);
+    });
     previews.value = {};
     try {
       const inputs = document.querySelectorAll('input[type="file"]');
@@ -99,6 +220,16 @@ const modelFields = computed(() => {
   const fields = productStore.getModelFields(props.productModel);
   return fields.sort((a, b) => (a.order || 0) - (b.order || 0));
 });
+
+const defectSections = computed(() => {
+  return productStore.productMapping?.defectSections || ['symptomInfo', 'technicalInfo', 'serialNumbers', 'versions', 'additionalInfo'];
+});
+
+const defaultFieldSection = computed(() => (
+  Array.isArray(defectSections.value) && defectSections.value.length
+    ? defectSections.value[0]
+    : 'additionalInfo'
+));
 
 const checkCondition = (condition) => {
     const { field: fieldId, operator, value } = condition;
@@ -175,25 +306,60 @@ const handleFieldChange = (changedFieldId) => {
             // The template will automatically re-render and call getOptionsForField,
             // which will then provide the correct new options.
             if (formData.value[field.id] !== undefined) {
-                formData.value[field.id] = '';
+                formData.value[field.id] = field.type === 'file' ? [] : '';
+                if (field.type === 'file') {
+                    previews.value[field.id] = [];
+                }
             }
         }
     }
 };
 
 const handleFileUpload = async (event, fieldId) => {
-    const file = event.target.files && event.target.files[0];
-    if (!file) return;
-    if (!/^image\/(png|jpe?g)$/i.test(file.type)) {
-        alert('Only PNG or JPG images are allowed.');
-        event.target.value = '';
-        return;
+    const files = Array.from(event.target.files || []);
+    event.target.value = '';
+    if (!files.length) return;
+
+    const limits = attachmentsLimits.value;
+    const existing = Array.isArray(formData.value[fieldId]) ? [...formData.value[fieldId]] : [];
+    const existingSize = existing.reduce((sum, file) => sum + (file.size || 0), 0);
+
+    const accepted = [];
+    let totalSize = existingSize;
+    for (const file of files) {
+        if (!isMimeAllowed(file.type)) {
+            alert(`Formato non consentito: ${file.name}`);
+            continue;
+        }
+        if (file.size > limits.maxFileSizeBytes) {
+            alert(`Il file ${file.name} supera il limite di ${formatSize(limits.maxFileSizeBytes)}.`);
+            continue;
+        }
+        if (existing.length + accepted.length >= limits.maxFiles) {
+            alert(`Numero massimo di file (${limits.maxFiles}) raggiunto.`);
+            break;
+        }
+        if (totalSize + file.size > limits.maxTotalSizeBytes) {
+            alert(`Il totale degli allegati supera ${formatSize(limits.maxTotalSizeBytes)}.`);
+            continue;
+        }
+        accepted.push(file);
+        totalSize += file.size;
     }
-    formData.value[fieldId] = file;
-    // preview as data URL
-    const reader = new FileReader();
-    reader.onload = () => { previews.value[fieldId] = reader.result; };
-    reader.readAsDataURL(file);
+
+    if (!accepted.length) return;
+
+    const updated = [...existing, ...accepted];
+    formData.value[fieldId] = updated;
+    await buildPreviews(fieldId, updated);
+};
+
+const removeAttachment = async (fieldId, index) => {
+    const current = Array.isArray(formData.value[fieldId]) ? [...formData.value[fieldId]] : [];
+    if (!current.length) return;
+    current.splice(index, 1);
+    formData.value[fieldId] = current;
+    await buildPreviews(fieldId, current);
 };
 
 const hasOptions = (field) => {
@@ -268,4 +434,55 @@ onMounted(() => {
   object-fit: cover;
   display: inline-block;
 }
+.attachments-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+.attachment-preview {
+  position: relative;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: #fafafa;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+.attachment-preview img,
+.attachment-preview video {
+  width: 100%;
+  border-radius: 6px;
+  object-fit: cover;
+  max-height: 140px;
+}
+.attachment-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  font-size: 0.85rem;
+  color: #1f2937;
+}
+.attachment-size {
+  color: #6b7280;
+  font-size: 0.8rem;
+}
+.attachment-remove {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.field-editor-placeholder {
+
 </style> 

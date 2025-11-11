@@ -26,6 +26,13 @@ const defaultValidationConfig = {
   },
 };
 
+const defaultAttachmentsConfig = {
+  maxFiles: 6,
+  maxFileSizeMb: 15,
+  maxTotalSizeMb: 80,
+  allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'video/mp4', 'video/quicktime'],
+};
+
 const defaultProductMapping = productDataJson;
 
 // Template per i dati generali del form, per poterli resettare facilmente
@@ -124,6 +131,7 @@ export const useProductStore = defineStore('product', () => {
             const incoming = data.content;
             ensureIntroContent(incoming);
             ensureValidationConfig(incoming);
+            ensureAttachmentsConfig(incoming);
             productMapping.value = incoming;
             console.log('Configuration loaded from backend.');
             return;
@@ -137,6 +145,7 @@ export const useProductStore = defineStore('product', () => {
       let currentMapping = JSON.parse(JSON.stringify(defaultProductMapping));
       ensureIntroContent(currentMapping);
       ensureValidationConfig(currentMapping);
+      ensureAttachmentsConfig(currentMapping);
       productMapping.value = currentMapping;
       console.log('Configuration loaded from file.');
 
@@ -235,7 +244,8 @@ export const useProductStore = defineStore('product', () => {
 
   const updateProductMapping = (mapping) => {
     ensureIntroContent(mapping);
-  ensureValidationConfig(mapping);
+    ensureValidationConfig(mapping);
+    ensureAttachmentsConfig(mapping);
     productMapping.value = mapping;
   };
 
@@ -486,4 +496,27 @@ function ensureValidationConfig(mapping) {
           : defaultValidationConfig.serial.debugEnabled,
     },
   };
+}
+
+function ensureAttachmentsConfig(mapping) {
+  if (!mapping) return;
+  const existing = mapping.attachmentsConfig || {};
+  const allowed = Array.isArray(existing.allowedMimeTypes)
+    ? existing.allowedMimeTypes.filter((item) => typeof item === 'string' && item.trim().length)
+    : [];
+  const sanitized = {
+    ...defaultAttachmentsConfig,
+    ...existing,
+    maxFiles: Number.isFinite(Number(existing.maxFiles)) && Number(existing.maxFiles) > 0
+      ? Number(existing.maxFiles)
+      : defaultAttachmentsConfig.maxFiles,
+    maxFileSizeMb: Number.isFinite(Number(existing.maxFileSizeMb)) && Number(existing.maxFileSizeMb) > 0
+      ? Number(existing.maxFileSizeMb)
+      : defaultAttachmentsConfig.maxFileSizeMb,
+    maxTotalSizeMb: Number.isFinite(Number(existing.maxTotalSizeMb)) && Number(existing.maxTotalSizeMb) > 0
+      ? Number(existing.maxTotalSizeMb)
+      : defaultAttachmentsConfig.maxTotalSizeMb,
+    allowedMimeTypes: allowed.length ? allowed : [...defaultAttachmentsConfig.allowedMimeTypes],
+  };
+  mapping.attachmentsConfig = sanitized;
 }
