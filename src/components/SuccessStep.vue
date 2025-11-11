@@ -51,6 +51,8 @@ onMounted(async () => {
     if (savedProducts.length > 0) {
         let supplierHtml = generateSupplierHtml(generalData, savedProducts) || '';
         let customerHtml = generateCustomerHtml(generalData, savedProducts) || '';
+        const contactName = (generalData?.companyData?.contactPerson?.value || '').trim();
+        const companyName = (generalData?.companyData?.companyName?.value || '').trim();
         const fallbackIfEmpty = (str, title) => {
           const safe = String(str || '').trim();
           if (safe.length > 20) return safe;
@@ -84,6 +86,9 @@ onMounted(async () => {
             if (supplierRecipient) fd.append('supplierRecipient', supplierRecipient);
             if (customerRecipient) fd.append('customerRecipient', customerRecipient);
             if (testingRecipient) fd.append('testRecipient', testingRecipient);
+            if (customerRecipient) fd.append('customerEmail', customerRecipient);
+            if (contactName) fd.append('customerContactName', contactName);
+            if (companyName) fd.append('customerCompanyName', companyName);
 
             try {
                 (savedProducts || []).forEach((product, pIdx) => {
@@ -199,7 +204,6 @@ const startAgain = () => {
             <div v-if="emailStatus === 'success'" class="status-box success">
                 <i class="bi bi-check-circle-fill"></i>
                 <p>Your report has been successfully submitted and sent via email.</p>
-                <p class="secondary-text">HTML reports have also been downloaded to your device.</p>
             </div>
             <div v-if="emailStatus === 'error'" class="status-box error">
                 <i class="bi bi-exclamation-triangle-fill"></i>

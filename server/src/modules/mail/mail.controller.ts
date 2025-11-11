@@ -5,6 +5,21 @@ import { IsEmail, IsOptional, IsString } from 'class-validator';
 import { MailService } from './mail.service';
 import { Response } from 'express';
 
+const sanitizeFolderSegment = (value: string | undefined | null, fallback: string) => {
+  const cleaned = String(value ?? '')
+    .replace(/[\\/:*?"<>|]/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return cleaned || fallback;
+};
+
+const buildFolderName = (contact: string, email: string, date: string) => {
+  const namePart = sanitizeFolderSegment(contact, 'Unknown');
+  const emailPart = sanitizeFolderSegment(email, 'unknown');
+  const datePart = sanitizeFolderSegment(date, 'unknown-date');
+  return `${namePart} - ${emailPart} - ${datePart}`;
+};
+
 class SendMailDto {
   @IsString()
   supplierHtml!: string;
@@ -34,6 +49,18 @@ class SendMailDto {
 
   @IsOptional()
   attachments?: { filename: string; content: string; contentType?: string }[];
+
+  @IsOptional()
+  @IsString()
+  customerContactName?: string;
+
+  @IsOptional()
+  @IsString()
+  customerCompanyName?: string;
+
+  @IsOptional()
+  @IsEmail()
+  customerEmail?: string;
 }
 
 @Controller('mail')
@@ -52,13 +79,22 @@ export class MailController {
 
     try {
       // Build a descriptive folder name: <email>-<YYYY-MM-DD_HH-mm>-<submissionId>
-      const senderEmail = body.customerRecipient || body.testRecipient || body.supplierRecipient || '';
       const now = new Date();
       const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-      const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
-      const safeEmail = String(senderEmail || 'unknown').replace(/[^a-zA-Z0-9_.@+-]/g, '_');
-      const idPart = body.submissionId || `${Date.now()}`;
-      const folderName = `${safeEmail}-${ts}-${idPart}`;
+      const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const contactRaw =
+        body.customerContactName ||
+        body.customerCompanyName ||
+        body.customerRecipient ||
+        body.testRecipient ||
+        '';
+      const emailRaw =
+        body.customerEmail ||
+        body.customerRecipient ||
+        body.testRecipient ||
+        body.supplierRecipient ||
+        '';
+      const folderName = buildFolderName(contactRaw, emailRaw, datePart);
       const folder = await this.mail.saveReportsToDrive(body.supplierHtml, body.customerHtml, folderName);
       if (Array.isArray(body.attachments) && body.attachments.length > 0) {
         await this.mail.saveAttachmentsToDrive(folder.id!, body.attachments);
@@ -106,9 +142,13 @@ export class MailController {
       const senderEmail = customerTo || supplierTo || '';
       const now = new Date();
       const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`);
-      const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
-      const safeEmail = String(senderEmail || 'unknown').replace(/[^a-zA-Z0-9_.@+-]/g, '_');
-      const folderName = `${safeEmail}-${ts}-${submissionId}`;
+      const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+      const contactRaw =
+        body.customerContactName ||
+        body.customerCompanyName ||
+        senderEmail;
+      const emailRaw = body.customerEmail || customerTo || supplierTo || senderEmail;
+      const folderName = buildFolderName(contactRaw, emailRaw, datePart);
       const folder = await this.mail.saveReportsToDrive(supplierHtml, customerHtml, folderName);
       if (Array.isArray(files) && files.length > 0) {
         console.log('[send-multipart] received files:', files.map(f => ({ name: f.originalname, size: f.size, mimetype: f.mimetype })));
