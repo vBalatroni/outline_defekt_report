@@ -1315,7 +1315,6 @@ const saveConfigurationToServer = () => {
 const reloadFromServer = async () => {
   if (isReloading.value || isSaving.value) return;
   isReloading.value = true;
-  showReloadIndicator.value = true;
   try {
     const resp = await fetch('/config/latest', { credentials: 'include' });
     if (!resp.ok) throw new Error(`Server responded ${resp.status}`);
@@ -1333,7 +1332,6 @@ const reloadFromServer = async () => {
     showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger' });
   } finally {
     isReloading.value = false;
-    showReloadIndicator.value = false;
   }
 };
 
