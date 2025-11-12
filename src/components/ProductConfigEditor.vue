@@ -18,6 +18,13 @@
         </button>
         <button @click="exportConfiguration" class="admin-btn admin-btn-outline">Export Configuration to JSON</button>
         <button @click="triggerFileImport" class="admin-btn admin-btn-muted">Upload JSON Configuration</button>
+        <input
+          ref="fileInputRef"
+          type="file"
+          accept="application/json"
+          class="hidden-file-input"
+          @change="handleFileImportChange"
+        />
       </div>
     </div>
     

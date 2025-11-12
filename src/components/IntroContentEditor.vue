@@ -1,5 +1,54 @@
 <template>
   <div class="intro-editor">
+    <div class="editor-header">
+      <div class="header-title">
+        <h2>Acceptance Page</h2>
+        <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
+        <span v-if="loadingIndicator" class="admin-reload-indicator">
+          <span class="admin-spinner"></span>
+          Reloading...
+        </span>
+      </div>
+      <div class="header-actions">
+        <button
+          class="admin-btn admin-btn-muted"
+          type="button"
+          @click="resetToDefaults"
+          :disabled="isSaving"
+        >
+          Reset to defaults
+        </button>
+        <button
+          class="admin-btn admin-btn-muted"
+          type="button"
+          @click="reloadFromServer"
+          :disabled="isReloading"
+        >
+          Reload from server
+        </button>
+        <button
+          class="admin-btn admin-btn-primary"
+          type="button"
+          @click="saveIntroContent"
+          :disabled="isSaving || !hasUnsavedChanges"
+        >
+          {{ isSaving ? 'Saving...' : 'Save to Server' }}
+        </button>
+      </div>
+    </div>
+
+    <div class="admin-toast-stack" aria-live="polite" aria-atomic="true">
+      <div
+        v-for="t in toasts"
+        :key="t.id"
+        class="admin-toast"
+        :class="`admin-toast-${t.type || 'info'}`"
+      >
+        <span class="admin-toast-message">{{ t.message }}</span>
+        <button class="admin-toast-close" @click="removeToast(t.id)">×</button>
+      </div>
+    </div>
+
     <div class="editor-card">
       <div class="grid">
         <div class="form-group">
@@ -30,34 +79,12 @@
         ></textarea>
         <small>Scrivi un elemento per riga.</small>
       </div>
-
-      <div class="actions">
-        <Button
-          :type="'secondary'"
-          :text="'Reset to defaults'"
-          :isDisabled="isSaving"
-          :htmlType="'button'"
-          @click="resetToDefaults"
-        />
-        <Button
-          :type="'primary'"
-          :text="isSaving ? 'Saving…' : 'Save to server'"
-          :isDisabled="isSaving"
-          :htmlType="'button'"
-          @click="saveIntroContent"
-        />
-      </div>
-
-      <p v-if="feedback.message" :class="['feedback', feedback.type]">
-        {{ feedback.message }}
-      </p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { reactive, ref, watch, computed } from 'vue';
-import Button from '@/components/Button.vue';
+import { reactive, ref, watch, computed, nextTick } from 'vue';
 import { useProductStore, defaultIntroContent } from '@/stores/productStore';
 
 const store = useProductStore();
@@ -71,51 +98,106 @@ const introForm = reactive({
 
 const bulletText = ref('');
 const isSaving = ref(false);
-const feedback = reactive({ message: '', type: 'info' });
+const isReloading = ref(false);
+const hasUnsavedChanges = ref(false);
+const isSyncing = ref(false);
+const formSnapshot = ref('');
 
+const toasts = ref([]);
+const showToast = ({ message, type = 'info', duration = 4000 }) => {
+  const id = `${Date.now()}_${Math.random().toString(36).slice(2)}`;
+  toasts.value.push({ id, message, type });
+  if (duration) {
+    setTimeout(() => removeToast(id), duration);
+  }
+};
+const removeToast = (id) => {
+  toasts.value = toasts.value.filter((t) => t.id !== id);
+};
+
+const loadingIndicator = computed(() => isReloading.value || store.isLoading);
 const currentIntro = computed(() => store.productMapping?.introContent || defaultIntroContent);
 
-const applyIntroToForm = (source) => {
+const serializeForm = () => {
+  const bullets = bulletText.value
+    .split('\n')
+    .map((line) => line.trim())
+    .filter(Boolean);
+  return JSON.stringify({
+    title: introForm.title.trim(),
+    subtitle: introForm.subtitle.trim(),
+    checkboxLabel: introForm.checkboxLabel.trim(),
+    startButtonLabel: introForm.startButtonLabel.trim(),
+    bulletPoints: bullets,
+  });
+};
+
+const resetDirty = () => {
+  formSnapshot.value = serializeForm();
+  hasUnsavedChanges.value = false;
+};
+
+const applyIntroToForm = (source, { resetSnapshot = true } = {}) => {
+  isSyncing.value = true;
   introForm.title = source.title || '';
   introForm.subtitle = source.subtitle || '';
   introForm.checkboxLabel = source.checkboxLabel || '';
   introForm.startButtonLabel = source.startButtonLabel || '';
   const bullets = Array.isArray(source.bulletPoints) ? source.bulletPoints : defaultIntroContent.bulletPoints;
   bulletText.value = bullets.join('\n');
+  nextTick(() => {
+    if (resetSnapshot) {
+      resetDirty();
+    } else {
+      hasUnsavedChanges.value = serializeForm() !== formSnapshot.value;
+    }
+    isSyncing.value = false;
+  });
 };
 
 watch(currentIntro, (val) => {
-  applyIntroToForm(val || defaultIntroContent);
+  applyIntroToForm(val || defaultIntroContent, { resetSnapshot: true });
 }, { immediate: true, deep: true });
 
-const resetFeedback = () => {
-  feedback.message = '';
-  feedback.type = 'info';
-};
+watch(
+  [
+    () => introForm.title,
+    () => introForm.subtitle,
+    () => introForm.checkboxLabel,
+    () => introForm.startButtonLabel,
+    () => bulletText.value,
+  ],
+  () => {
+    if (isSyncing.value) return;
+    hasUnsavedChanges.value = serializeForm() !== formSnapshot.value;
+  },
+  { deep: true }
+);
 
 const resetToDefaults = () => {
-  applyIntroToForm(defaultIntroContent);
-  resetFeedback();
+  applyIntroToForm(defaultIntroContent, { resetSnapshot: false });
+};
+
+const buildIntroPayload = () => {
+  const introSnapshot = JSON.parse(serializeForm());
+  if (!introSnapshot.bulletPoints.length) {
+    introSnapshot.bulletPoints = [...defaultIntroContent.bulletPoints];
+  }
+  return {
+    title: introSnapshot.title || defaultIntroContent.title,
+    subtitle: introSnapshot.subtitle || defaultIntroContent.subtitle,
+    checkboxLabel: introSnapshot.checkboxLabel || defaultIntroContent.checkboxLabel,
+    startButtonLabel: introSnapshot.startButtonLabel || defaultIntroContent.startButtonLabel,
+    bulletPoints: introSnapshot.bulletPoints,
+  };
 };
 
 const saveIntroContent = async () => {
-  if (isSaving.value) return;
-  resetFeedback();
+  if (isSaving.value || !hasUnsavedChanges.value) return;
   isSaving.value = true;
   try {
     const mapping = JSON.parse(JSON.stringify(store.productMapping || {}));
-    const bulletPoints = bulletText.value
-      .split('\n')
-      .map((line) => line.trim())
-      .filter(Boolean);
-
-    mapping.introContent = {
-      title: introForm.title.trim() || defaultIntroContent.title,
-      subtitle: introForm.subtitle.trim() || defaultIntroContent.subtitle,
-      checkboxLabel: introForm.checkboxLabel.trim() || defaultIntroContent.checkboxLabel,
-      startButtonLabel: introForm.startButtonLabel.trim() || defaultIntroContent.startButtonLabel,
-      bulletPoints: bulletPoints.length ? bulletPoints : defaultIntroContent.bulletPoints,
-    };
+    mapping.introContent = buildIntroPayload();
 
     const response = await fetch('/config/import', {
       method: 'POST',
@@ -123,20 +205,34 @@ const saveIntroContent = async () => {
       body: JSON.stringify(mapping, null, 2),
     });
 
-    const payload = await response.text();
     if (!response.ok) {
+      const payload = await response.text();
       throw new Error(payload || `Server responded with ${response.status}`);
     }
 
-    store.updateProductMapping(mapping);
-    feedback.message = 'Intro content updated successfully.';
-    feedback.type = 'success';
+    await store.loadConfiguration();
+    showToast({ message: 'Acceptance page updated successfully.', type: 'success' });
+    resetDirty();
   } catch (error) {
     console.error(error);
-    feedback.message = error.message || 'Failed to save intro content.';
-    feedback.type = 'error';
+    showToast({ message: error.message || 'Failed to save acceptance page.', type: 'danger', duration: 6000 });
   } finally {
     isSaving.value = false;
+  }
+};
+
+const reloadFromServer = async () => {
+  if (isReloading.value) return;
+  isReloading.value = true;
+  try {
+    await store.loadConfiguration();
+    applyIntroToForm(currentIntro.value || defaultIntroContent);
+    showToast({ message: 'Acceptance page reloaded.', type: 'info' });
+  } catch (error) {
+    console.error(error);
+    showToast({ message: error.message || 'Failed to reload acceptance page.', type: 'danger', duration: 6000 });
+  } finally {
+    isReloading.value = false;
   }
 };
 </script>
@@ -146,6 +242,29 @@ const saveIntroContent = async () => {
   display: flex;
   flex-direction: column;
   gap: 1rem;
+}
+
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.header-title {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+.header-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.unsaved-indicator {
+  color: #f39c12;
+  font-weight: 600;
+  font-size: 0.85rem;
 }
 
 .editor-card {
@@ -200,18 +319,6 @@ const saveIntroContent = async () => {
   display: flex;
   gap: 1rem;
   justify-content: flex-end;
-}
-
-.feedback {
-  font-size: 0.9rem;
-}
-
-.feedback.success {
-  color: #0f5132;
-}
-
-.feedback.error {
-  color: #842029;
 }
 </style>
 
