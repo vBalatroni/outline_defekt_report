@@ -1316,17 +1316,10 @@ const reloadFromServer = async () => {
   if (isReloading.value || isSaving.value) return;
   isReloading.value = true;
   try {
-    const resp = await fetch('/config/latest', { credentials: 'include' });
-    if (!resp.ok) throw new Error(`Server responded ${resp.status}`);
-    const data = await resp.json();
-    if (data && data.content) {
-      ensureIntroContent(data.content);
-      ensureValidationConfig(data.content);
-      productStore.updateProductMapping(data.content);
-      hasUnsavedChanges.value = false;
-      snapshot.value = computeSnapshot(data.content);
-      showToast({ message: 'Configuration reloaded from server.', type: 'info' });
-    }
+    await productStore.loadConfiguration();
+    hasUnsavedChanges.value = false;
+    snapshot.value = computeSnapshot(productStore.productMapping);
+    showToast({ message: 'Configuration reloaded from server.', type: 'info' });
   } catch (e) {
     console.error(e);
     showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger' });
