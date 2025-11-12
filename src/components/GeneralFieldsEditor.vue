@@ -4,6 +4,10 @@
       <div class="header-title">
         <h2>General Fields</h2>
         <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
+        <span v-if="isReloading" class="admin-reload-indicator">
+          <span class="admin-spinner"></span>
+          Reloading...
+        </span>
       </div>
       <div class="header-actions">
         <button
@@ -15,7 +19,7 @@
         </button>
         <button
           class="admin-btn admin-btn-muted"
-          :disabled="isSaving"
+          :disabled="isSaving || isReloading"
           @click="reloadFromServer"
         >
           Reload from server
@@ -132,6 +136,7 @@ const sorted = (fields) => [...(fields || [])].sort((a,b) => (a.order ?? 0) - (b
 const modal = reactive({ visible: false, editing: false, section: '', field: { id: '', label: '', type: 'text', isRequired: false, order: 0 } });
 
 const isSaving = ref(false);
+const isReloading = ref(false);
 const hasUnsavedChanges = ref(false);
 const snapshotRef = ref('');
 
@@ -207,8 +212,8 @@ const saveToServer = async () => {
 };
 
 const reloadFromServer = async () => {
-  if (isSaving.value) return;
-  isSaving.value = true;
+  if (isReloading.value) return;
+  isReloading.value = true;
   try {
     await store.loadConfiguration();
     store.applyGeneralFieldsConfigToForm();
@@ -217,7 +222,7 @@ const reloadFromServer = async () => {
   } catch (e) {
     console.error(e);
   } finally {
-    isSaving.value = false;
+    isReloading.value = false;
   }
 };
 </script>

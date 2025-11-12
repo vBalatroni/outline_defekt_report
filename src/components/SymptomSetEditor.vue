@@ -4,6 +4,10 @@
       <div class="header-title">
         <h2>Symptom Set Editor</h2>
         <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
+        <span v-if="isReloading" class="admin-reload-indicator">
+          <span class="admin-spinner"></span>
+          Reloading...
+        </span>
       </div>
       <div class="header-actions">
         <button
@@ -39,10 +43,15 @@
     </div>
 
     <!-- Toasts -->
-    <div class="toast-container" aria-live="polite" aria-atomic="true">
-      <div v-for="t in toasts" :key="t.id" class="toast-item" :class="`toast-${t.type}`">
-        <span class="toast-message">{{ t.message }}</span>
-        <button class="btn btn-sm btn-link toast-close" @click="removeToast(t.id)">×</button>
+    <div class="admin-toast-stack" aria-live="polite" aria-atomic="true">
+      <div
+        v-for="t in toasts"
+        :key="t.id"
+        class="admin-toast"
+        :class="`admin-toast-${t.type || 'info'}`"
+      >
+        <span class="admin-toast-message">{{ t.message }}</span>
+        <button class="admin-toast-close" @click="removeToast(t.id)">×</button>
       </div>
     </div>
 

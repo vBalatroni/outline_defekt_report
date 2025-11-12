@@ -1,13 +1,19 @@
 <template>
   <div class="product-config-editor">
     <div class="editor-header">
-      <h2>Product Model Field Editor</h2>
+      <div class="header-title">
+        <h2>Product Model Field Editor</h2>
+        <span v-if="isReloading" class="admin-reload-indicator">
+          <span class="admin-spinner"></span>
+          Reloading...
+        </span>
+      </div>
       <div class="header-actions">
         <div v-if="hasUnsavedChanges" class="unsaved-indicator" title="There are unsaved changes">● Unsaved changes</div>
         <button @click="saveConfigurationToServer" class="admin-btn admin-btn-primary" :disabled="isSaving || !hasUnsavedChanges">
             {{ isSaving ? 'Saving...' : 'Save to Server' }}
         </button>
-        <button @click="reloadFromServer" class="admin-btn admin-btn-muted" :disabled="isSaving">
+        <button @click="reloadFromServer" class="admin-btn admin-btn-muted" :disabled="isSaving || isReloading">
             Reload from server
         </button>
         <button @click="exportConfiguration" class="admin-btn admin-btn-outline">Export Configuration to JSON</button>
@@ -24,11 +30,16 @@
     </div>
     
     <!-- Toasts -->
-    <div class="toast-container" aria-live="polite" aria-atomic="true">
-      <div v-for="t in toasts" :key="t.id" class="toast-item" :class="`toast-${t.type}`">
-        <span class="toast-message">{{ t.message }}</span>
+    <div class="admin-toast-stack" aria-live="polite" aria-atomic="true">
+      <div
+        v-for="t in toasts"
+        :key="t.id"
+        class="admin-toast"
+        :class="`admin-toast-${t.type || 'info'}`"
+      >
+        <span class="admin-toast-message">{{ t.message }}</span>
         <button v-if="t.actionText" class="admin-btn admin-btn-link" @click="handleToastAction(t.id)">{{ t.actionText }}</button>
-        <button class="btn btn-sm btn-link toast-close" @click="removeToast(t.id)">×</button>
+        <button class="admin-toast-close" @click="removeToast(t.id)">×</button>
       </div>
     </div>
     <div class="helper-text">
@@ -476,6 +487,7 @@ const router = useRouter();
 
 const showModelEditorModal = ref(false);
 const isSaving = ref(false);
+const isReloading = ref(false);
 const hasUnsavedChanges = ref(false);
 const symptomSearch = ref('');
 const manualOptionDraft = ref('');
@@ -1290,11 +1302,8 @@ const doSaveConfigurationToServer = async () => {
   }
 };
 const saveConfigurationToServer = () => {
-  if (isSaving.value) return;
-  if (!hasUnsavedChanges.value) {
-    showToast({ message: 'No changes to save.', type: 'info' });
-    return;
-  }
+  if (isSaving.value || !hasUnsavedChanges.value) return;
+  isSaving.value = true;
   askConfirmation({
     title: 'Save configuration',
     message: 'This will overwrite the configuration on the server. Continue?',
@@ -1304,22 +1313,25 @@ const saveConfigurationToServer = () => {
 };
 
 const reloadFromServer = async () => {
-  isSaving.value = true;
+  if (isReloading.value || isSaving.value) return;
+  isReloading.value = true;
   try {
-    await productStore.loadConfiguration();
-    // reset filtered state if current selections no longer exist
-    if (!productStore.categories.includes(selectedCategory.value)) {
-      selectedCategory.value = '';
-      selectedModel.value = '';
-      searchQuery.value = '';
+    const resp = await fetch('/config/latest', { credentials: 'include' });
+    if (!resp.ok) throw new Error(`Server responded ${resp.status}`);
+    const data = await resp.json();
+    if (data && data.content) {
+      ensureIntroContent(data.content);
+      ensureValidationConfig(data.content);
+      productStore.updateProductMapping(data.content);
+      hasUnsavedChanges.value = false;
+      snapshot.value = computeSnapshot(data.content);
+      showToast({ message: 'Configuration reloaded from server.', type: 'info' });
     }
-    resetDirty();
-    showToast({ message: 'Configuration reloaded from server.', type: 'info' });
   } catch (e) {
     console.error(e);
-    showToast({ message: 'Failed to reload configuration.', type: 'danger' });
+    showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger' });
   } finally {
-    isSaving.value = false;
+    isReloading.value = false;
   }
 };
 
@@ -1342,6 +1354,11 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
+}
+
+.header-title {
+  display: flex;
+  align-items: center;
 }
 
 .header-actions {
@@ -1532,7 +1549,7 @@ onMounted(() => {
 }
 
 /* Toasts */
-.toast-container {
+.admin-toast-stack {
   position: fixed;
   right: 1rem;
   bottom: 1rem;
@@ -1541,7 +1558,7 @@ onMounted(() => {
   gap: 0.5rem;
   z-index: 1100;
 }
-.toast-item {
+.admin-toast {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -1552,12 +1569,12 @@ onMounted(() => {
   border-radius: 4px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.08);
 }
-.toast-info { border-left-color: #0d6efd; }
-.toast-success { border-left-color: #28a745; }
-.toast-danger { border-left-color: #dc3545; }
-.toast-message { flex: 1; }
-.toast-action { text-decoration: underline; }
-.toast-close { font-size: 1.1rem; line-height: 1; }
+.admin-toast.admin-toast-info { border-left-color: #0d6efd; }
+.admin-toast.admin-toast-success { border-left-color: #28a745; }
+.admin-toast.admin-toast-danger { border-left-color: #dc3545; }
+.admin-toast-message { flex: 1; }
+.admin-toast-action { text-decoration: underline; }
+.admin-toast-close { font-size: 1.1rem; line-height: 1; }
 
 .unsaved-indicator {
   align-self: center;
@@ -2130,6 +2147,27 @@ onMounted(() => {
   font-size: 0.9rem;
   color: #6c757d;
   padding: 0.75rem 0;
+}
+
+.admin-reload-indicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: #6c757d;
+  font-size: 0.85rem;
+}
+
+.admin-spinner {
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid #6c757d;
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
 }
 
 </style>

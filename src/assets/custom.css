@@ -340,4 +340,66 @@ body {
   cursor: not-allowed;
 }
 
+.admin-reload-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  color: #0d6efd;
+}
+
+@keyframes admin-spin {
+  to { transform: rotate(360deg); }
+}
+
+.admin-spinner {
+  width: 14px;
+  height: 14px;
+  border: 2px solid rgba(13,110,253,0.2);
+  border-top-color: #0d6efd;
+  border-radius: 50%;
+  animation: admin-spin 0.6s linear infinite;
+}
+
+.admin-toast-stack {
+  position: fixed;
+  right: 1rem;
+  bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  z-index: 2500;
+}
+
+.admin-toast {
+  display: flex;
+  align-items: start;
+  gap: 0.5rem;
+  min-width: 240px;
+  max-width: 360px;
+  background: #fff;
+  border: 1px solid #e3e5eb;
+  border-left: 4px solid #0d6efd;
+  padding: 0.65rem 0.85rem;
+  border-radius: 6px;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.12);
+  font-size: 0.9rem;
+}
+
+.admin-toast-success { border-left-color: #198754; }
+.admin-toast-danger { border-left-color: #dc3545; }
+.admin-toast-info { border-left-color: #0d6efd; }
+
+.admin-toast-message { flex: 1; color: #24324a; }
+
+.admin-toast-close {
+  background: none;
+  border: none;
+  color: #6c757d;
+  cursor: pointer;
+  font-size: 1.1rem;
+  line-height: 1;
+  padding: 0;
+}
+
 /*# sourceMappingURL=custom.css.map */

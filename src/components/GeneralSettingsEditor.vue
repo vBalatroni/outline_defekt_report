@@ -4,6 +4,10 @@
       <div class="header-title">
         <h2>General Settings</h2>
         <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
+        <span v-if="isReloading" class="admin-reload-indicator">
+          <span class="admin-spinner"></span>
+          Reloading...
+        </span>
       </div>
       <div class="header-actions">
         <button
