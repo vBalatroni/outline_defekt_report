@@ -1,7 +1,28 @@
 <template>
   <div class="general-fields-editor">
+    <div class="editor-header">
+      <div class="header-title">
+        <h2>General Fields</h2>
+        <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
+      </div>
+      <div class="header-actions">
+        <button
+          class="admin-btn admin-btn-primary"
+          :disabled="isSaving || !hasUnsavedChanges"
+          @click="saveToServer"
+        >
+          {{ isSaving ? 'Saving...' : 'Save to Server' }}
+        </button>
+        <button
+          class="admin-btn admin-btn-muted"
+          :disabled="isSaving"
+          @click="reloadFromServer"
+        >
+          Reload from server
+        </button>
+      </div>
+    </div>
     <div class="helper-banner">
-      <h2>General Fields</h2>
       <p class="muted">
         Qui gestisci la scheda iniziale del form (anagrafica, indirizzi). Ogni sezione corrisponde a un blocco della pagina utente.
       </p>
@@ -85,7 +106,7 @@
 </template>
 
 <script setup>
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch, onMounted } from 'vue';
 import { useProductStore } from '@/stores/productStore';
 
 const store = useProductStore();
@@ -109,6 +130,10 @@ const sectionsView = computed(() => {
 const sorted = (fields) => [...(fields || [])].sort((a,b) => (a.order ?? 0) - (b.order ?? 0));
 
 const modal = reactive({ visible: false, editing: false, section: '', field: { id: '', label: '', type: 'text', isRequired: false, order: 0 } });
+
+const isSaving = ref(false);
+const hasUnsavedChanges = ref(false);
+const snapshotRef = ref('');
 
 const openAddField = (sectionKey) => {
   modal.visible = true; modal.editing = false; modal.section = sectionKey;
@@ -138,6 +163,63 @@ const saveField = () => {
   store.applyGeneralFieldsConfigToForm();
   modal.visible = false;
 };
+
+const getConfigSignature = (mapping) => {
+  const general = mapping?.generalFieldsConfig || { sections: {} };
+  return JSON.stringify(general);
+};
+
+const currentSignature = computed(() => getConfigSignature(store.productMapping));
+
+onMounted(() => {
+  snapshotRef.value = currentSignature.value;
+  hasUnsavedChanges.value = false;
+});
+
+watch(currentSignature, (sig) => {
+  hasUnsavedChanges.value = sig !== snapshotRef.value;
+});
+
+const saveToServer = async () => {
+  if (isSaving.value || !hasUnsavedChanges.value) return;
+  isSaving.value = true;
+  try {
+    const mapping = JSON.parse(JSON.stringify(store.productMapping || {}));
+    mapping.generalFieldsConfig = config.value;
+    const resp = await fetch('/config/import', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(mapping, null, 2),
+    });
+    if (!resp.ok) {
+      const txt = await resp.text();
+      throw new Error(`Server responded ${resp.status}: ${txt}`);
+    }
+    await store.loadConfiguration();
+    store.applyGeneralFieldsConfigToForm();
+    snapshotRef.value = currentSignature.value;
+    hasUnsavedChanges.value = false;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    isSaving.value = false;
+  }
+};
+
+const reloadFromServer = async () => {
+  if (isSaving.value) return;
+  isSaving.value = true;
+  try {
+    await store.loadConfiguration();
+    store.applyGeneralFieldsConfigToForm();
+    snapshotRef.value = currentSignature.value;
+    hasUnsavedChanges.value = false;
+  } catch (e) {
+    console.error(e);
+  } finally {
+    isSaving.value = false;
+  }
+};
 </script>
 
 <style scoped>
@@ -150,6 +232,16 @@ const saveField = () => {
   flex-direction: column;
   gap: 1.5rem;
 }
+.editor-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+}
+.header-title { display:flex; align-items:center; gap:0.5rem; }
+.header-actions { display:flex; gap:0.5rem; flex-wrap:wrap; }
+.unsaved-indicator { color:#f39c12; font-weight:600; font-size:0.85rem; }
 .helper-banner {
   display: flex;
   flex-direction: column;
@@ -217,7 +309,6 @@ const saveField = () => {
   display:flex;
   gap:0.4rem;
 }
-/* buttons reuse global admin-btn styles */
 .empty {
   border: 1px dashed #d1d5db;
   border-radius: 6px;

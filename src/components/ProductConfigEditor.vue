@@ -12,6 +12,7 @@
         </button>
         <button @click="exportConfiguration" class="admin-btn admin-btn-outline">Export Configuration to JSON</button>
         <button @click="triggerFileImport" class="admin-btn admin-btn-muted">Upload JSON Configuration</button>
+        <button @click="openCategoryManager" class="admin-btn admin-btn-muted">Manage Categories</button>
         <input
           ref="fileInputRef"
           type="file"
@@ -55,8 +56,7 @@
         <div class="model-list-header">
             <h3>Available Models</h3>
             <div style="display:flex; gap:0.5rem; align-items:center;">
-              <button @click="openCategoryManager" class="admin-btn admin-btn-muted">Manage Categories</button>
-              <button @click="addModel" class="admin-btn admin-btn-primary">Add New Model</button>
+              <button @click="addModel" class="admin-btn admin-btn-primary" :disabled="!categories.length">Add New Model</button>
             </div>
         </div>
         <div v-if="availableModels.length > 0" class="model-list">
