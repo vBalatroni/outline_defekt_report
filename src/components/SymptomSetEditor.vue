@@ -4,7 +4,7 @@
       <div class="header-title">
         <h2>Symptom Set Editor</h2>
         <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
-        <span v-if="isReloading" class="admin-reload-indicator">
+        <span v-if="loadingIndicator" class="admin-reload-indicator">
           <span class="admin-spinner"></span>
           Reloading...
         </span>
@@ -141,6 +141,7 @@ const confirmDialogConfirm = async () => {
 
 const isSaving = ref(false);
 const isReloading = ref(false);
+const loadingIndicator = computed(() => isReloading.value || productStore.isLoading);
 const hasUnsavedChanges = ref(false);
 const snapshotRef = ref('');
 
@@ -198,7 +199,7 @@ const saveToServer = async () => {
 };
 
 const reloadFromServer = async () => {
-  if (isReloading.value) return;
+  if (isSaving.value || isReloading.value) return;
   isReloading.value = true;
   try {
     await productStore.loadConfiguration();

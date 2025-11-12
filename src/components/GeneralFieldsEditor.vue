@@ -4,7 +4,7 @@
       <div class="header-title">
         <h2>General Fields</h2>
         <span v-if="hasUnsavedChanges" class="unsaved-indicator">● Unsaved changes</span>
-        <span v-if="isReloading" class="admin-reload-indicator">
+        <span v-if="loadingIndicator" class="admin-reload-indicator">
           <span class="admin-spinner"></span>
           Reloading...
         </span>
@@ -137,6 +137,7 @@ const modal = reactive({ visible: false, editing: false, section: '', field: { i
 
 const isSaving = ref(false);
 const isReloading = ref(false);
+const loadingIndicator = computed(() => isReloading.value || store.isLoading);
 const hasUnsavedChanges = ref(false);
 const snapshotRef = ref('');
 

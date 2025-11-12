@@ -3,7 +3,7 @@
     <div class="editor-header">
       <div class="header-title">
         <h2>Product Model Field Editor</h2>
-        <span v-if="isReloading" class="admin-reload-indicator">
+        <span v-if="loadingIndicator" class="admin-reload-indicator">
           <span class="admin-spinner"></span>
           Reloading...
         </span>
@@ -18,14 +18,6 @@
         </button>
         <button @click="exportConfiguration" class="admin-btn admin-btn-outline">Export Configuration to JSON</button>
         <button @click="triggerFileImport" class="admin-btn admin-btn-muted">Upload JSON Configuration</button>
-        <button @click="openCategoryManager" class="admin-btn admin-btn-muted">Manage Categories</button>
-        <input
-          ref="fileInputRef"
-          type="file"
-          accept="application/json"
-          class="hidden-file-input"
-          @change="handleFileImportChange"
-        />
       </div>
     </div>
     
@@ -55,6 +47,13 @@
             {{ category }}
           </option>
         </select>
+        <button
+          class="admin-btn admin-btn-muted manage-categories-btn"
+          type="button"
+          @click="openCategoryManager"
+        >
+          Manage Categories
+        </button>
       </div>
 
       <div class="control-group" v-if="selectedCategory">
@@ -488,6 +487,7 @@ const router = useRouter();
 const showModelEditorModal = ref(false);
 const isSaving = ref(false);
 const isReloading = ref(false);
+const loadingIndicator = computed(() => isReloading.value || productStore.isLoading);
 const hasUnsavedChanges = ref(false);
 const symptomSearch = ref('');
 const manualOptionDraft = ref('');
@@ -1315,6 +1315,7 @@ const saveConfigurationToServer = () => {
 const reloadFromServer = async () => {
   if (isReloading.value || isSaving.value) return;
   isReloading.value = true;
+  showReloadIndicator.value = true;
   try {
     const resp = await fetch('/config/latest', { credentials: 'include' });
     if (!resp.ok) throw new Error(`Server responded ${resp.status}`);
@@ -1332,6 +1333,7 @@ const reloadFromServer = async () => {
     showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger' });
   } finally {
     isReloading.value = false;
+    showReloadIndicator.value = false;
   }
 };
 
@@ -2168,6 +2170,11 @@ onMounted(() => {
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+.manage-categories-btn {
+  align-self: flex-start;
+  margin-top: 0.75rem;
 }
 
 </style>
