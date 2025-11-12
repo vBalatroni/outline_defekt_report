@@ -489,6 +489,12 @@ const isSaving = ref(false);
 const isReloading = ref(false);
 const loadingIndicator = computed(() => isReloading.value || productStore.isLoading);
 const hasUnsavedChanges = ref(false);
+const snapshot = ref('');
+const computeSnapshot = (mapping) => JSON.stringify({
+  categories: mapping?.categoryModels,
+  models: mapping?.modelFieldConfigs,
+  symptomSets: mapping?.symptomSets,
+});
 const symptomSearch = ref('');
 const manualOptionDraft = ref('');
 const manualOptions = ref([]);
@@ -544,7 +550,10 @@ const confirmDialogConfirm = async () => {
 
 // Dirty helpers
 const markDirty = () => { hasUnsavedChanges.value = true; };
-const resetDirty = () => { hasUnsavedChanges.value = false; };
+const resetDirty = () => {
+  hasUnsavedChanges.value = false;
+  snapshot.value = computeSnapshot(productStore.productMapping);
+};
 
 // Modal state
 const showFieldModal = ref(false);
