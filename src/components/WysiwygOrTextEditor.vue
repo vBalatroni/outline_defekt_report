@@ -16,7 +16,7 @@
         :class="{ active: mode === 'text' }"
         @click="mode = 'text'"
       >
-        Testo
+        HTML Raw
       </button>
       <button
         type="button"
@@ -43,8 +43,10 @@
         :placeholder="placeholder"
         @input="handleTextUpdate"
         class="text-editor"
-        rows="4"
+        rows="8"
+        spellcheck="false"
       ></textarea>
+      <small class="editor-hint">Inserisci HTML raw. Esempio: &lt;p&gt;Testo&lt;/p&gt; o &lt;ul&gt;&lt;li&gt;Item&lt;/li&gt;&lt;/ul&gt;</small>
     </div>
     
     <div v-else-if="mode === 'split' && allowWysiwyg" class="split-container">
@@ -57,13 +59,14 @@
         />
       </div>
       <div class="split-pane">
-        <div class="pane-header">Testo Raw</div>
+        <div class="pane-header">HTML Raw</div>
         <textarea
           :value="textValue"
           :placeholder="placeholder"
           @input="handleTextUpdate"
           class="text-editor"
-          rows="4"
+          rows="8"
+          spellcheck="false"
         ></textarea>
       </div>
     </div>
@@ -97,28 +100,12 @@ const emit = defineEmits(['update:modelValue']);
 
 const mode = ref(props.allowWysiwyg ? props.defaultMode : 'text');
 
-// Helper per estrarre testo da HTML
-const htmlToText = (html) => {
-  if (!html) return '';
-  const tempDiv = document.createElement('div');
-  tempDiv.innerHTML = html;
-  return tempDiv.textContent || tempDiv.innerText || '';
-};
-
-// Helper per convertire testo in HTML (escape)
-const textToHtml = (text) => {
-  if (!text) return '';
-  const div = document.createElement('div');
-  div.textContent = text;
-  return div.innerHTML;
-};
-
+// Mostra l'HTML raw direttamente
 const textValue = computed({
-  get: () => htmlToText(props.modelValue),
+  get: () => props.modelValue || '',
   set: (val) => {
-    // Quando si modifica il testo, convertilo in HTML semplice
-    const html = val ? `<p>${textToHtml(val)}</p>` : '';
-    emit('update:modelValue', html);
+    // L'utente inserisce HTML raw direttamente
+    emit('update:modelValue', val || '');
   },
 });
 
@@ -127,24 +114,8 @@ const handleUpdate = (html) => {
 };
 
 const handleTextUpdate = (event) => {
-  const text = event.target.value;
-  // Converti il testo in HTML semplice
-  if (!text.trim()) {
-    emit('update:modelValue', '');
-  } else {
-    // Dividi per righe e crea paragrafi o lista
-    const lines = text.split('\n').filter(line => line.trim());
-    if (lines.length === 0) {
-      emit('update:modelValue', '');
-      return;
-    }
-    
-    // Se ci sono più righe, crea una lista, altrimenti un paragrafo
-    const html = lines.length > 1
-      ? `<ul>${lines.map(line => `<li>${textToHtml(line.trim())}</li>`).join('')}</ul>`
-      : `<p>${textToHtml(lines[0])}</p>`;
-    emit('update:modelValue', html);
-  }
+  // L'utente inserisce HTML raw direttamente
+  emit('update:modelValue', event.target.value || '');
 };
 
 watch(() => props.allowWysiwyg, (allow) => {
@@ -240,6 +211,14 @@ watch(() => props.allowWysiwyg, (allow) => {
   outline: none;
   border-color: #0d6efd;
   box-shadow: 0 0 0 0.15rem rgba(13, 110, 253, 0.15);
+}
+
+.editor-hint {
+  display: block;
+  margin-top: 0.5rem;
+  color: #6b7280;
+  font-size: 0.75rem;
+  font-style: italic;
 }
 
 @media (max-width: 768px) {
