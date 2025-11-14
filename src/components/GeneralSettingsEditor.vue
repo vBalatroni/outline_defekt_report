@@ -124,6 +124,58 @@
         Esempi: image/jpeg, image/png, video/mp4. È possibile indicare wildcard come image/*.
       </small>
     </div>
+
+    <div class="card">
+      <h3>Acceptance Page Editor Mode</h3>
+      <p class="muted">
+        Configura quali campi della pagina di accettazione utilizzano l'editor WYSIWYG e quali solo testo semplice.
+      </p>
+      <div class="form-grid">
+        <label class="checkbox-inline">
+          <input
+            type="checkbox"
+            :checked="introEditorConfig.title"
+            @change="setIntroEditorMode('title', $event.target.checked)"
+          />
+          Title - WYSIWYG
+        </label>
+        <label class="checkbox-inline">
+          <input
+            type="checkbox"
+            :checked="introEditorConfig.subtitle"
+            @change="setIntroEditorMode('subtitle', $event.target.checked)"
+          />
+          Subtitle - WYSIWYG
+        </label>
+        <label class="checkbox-inline">
+          <input
+            type="checkbox"
+            :checked="introEditorConfig.checkboxLabel"
+            @change="setIntroEditorMode('checkboxLabel', $event.target.checked)"
+          />
+          Checkbox Label - WYSIWYG
+        </label>
+        <label class="checkbox-inline">
+          <input
+            type="checkbox"
+            :checked="introEditorConfig.startButtonLabel"
+            @change="setIntroEditorMode('startButtonLabel', $event.target.checked)"
+          />
+          Button Label - WYSIWYG
+        </label>
+        <label class="checkbox-inline">
+          <input
+            type="checkbox"
+            :checked="introEditorConfig.bulletPoints"
+            @change="setIntroEditorMode('bulletPoints', $event.target.checked)"
+          />
+          Checklist Items - WYSIWYG
+        </label>
+      </div>
+      <small class="muted">
+        Quando deselezionato, il campo utilizzerà solo l'editor di testo semplice.
+      </small>
+    </div>
   </div>
 </template>
 
@@ -206,6 +258,32 @@ const attachmentsMaxFileSize = computed(() => Number(attachmentsConfig.value.max
 const attachmentsMaxTotalSize = computed(() => Number(attachmentsConfig.value.maxTotalSizeMb ?? defaultAttachments.maxTotalSizeMb));
 const allowedMimeTypesText = computed(() => (attachmentsConfig.value.allowedMimeTypes || []).join('\n'));
 
+const defaultIntroEditorConfig = {
+  title: true,
+  subtitle: true,
+  checkboxLabel: true,
+  startButtonLabel: true,
+  bulletPoints: true,
+};
+
+const introEditorConfig = computed(() => {
+  const config = store.productMapping?.introEditorConfig || {};
+  return {
+    title: config.title !== undefined ? config.title : defaultIntroEditorConfig.title,
+    subtitle: config.subtitle !== undefined ? config.subtitle : defaultIntroEditorConfig.subtitle,
+    checkboxLabel: config.checkboxLabel !== undefined ? config.checkboxLabel : defaultIntroEditorConfig.checkboxLabel,
+    startButtonLabel: config.startButtonLabel !== undefined ? config.startButtonLabel : defaultIntroEditorConfig.startButtonLabel,
+    bulletPoints: config.bulletPoints !== undefined ? config.bulletPoints : defaultIntroEditorConfig.bulletPoints,
+  };
+});
+
+const setIntroEditorMode = (field, enabled) => {
+  updateMapping((mapping) => {
+    mapping.introEditorConfig = mapping.introEditorConfig || {};
+    mapping.introEditorConfig[field] = Boolean(enabled);
+  });
+};
+
 const setAttachmentsNumber = (field, value) => {
   const num = Math.max(1, Math.floor(Number(value) || 0));
   updateMapping((mapping) => {
@@ -229,6 +307,7 @@ const getSettingsSignature = (mapping) => {
   const emailCfg = mapping?.emailConfig || {};
   const serialCfg = mapping?.validationConfig?.serial || {};
   const attachmentsCfg = mapping?.attachmentsConfig || {};
+  const introEditorCfg = mapping?.introEditorConfig || {};
   return JSON.stringify({
     email: {
       supplierRecipient: emailCfg.supplierRecipient || '',
@@ -246,6 +325,13 @@ const getSettingsSignature = (mapping) => {
       allowedMimeTypes: Array.isArray(attachmentsCfg.allowedMimeTypes)
         ? [...attachmentsCfg.allowedMimeTypes].sort()
         : [...defaultAttachments.allowedMimeTypes].sort(),
+    },
+    introEditor: {
+      title: introEditorCfg.title !== undefined ? introEditorCfg.title : defaultIntroEditorConfig.title,
+      subtitle: introEditorCfg.subtitle !== undefined ? introEditorCfg.subtitle : defaultIntroEditorConfig.subtitle,
+      checkboxLabel: introEditorCfg.checkboxLabel !== undefined ? introEditorCfg.checkboxLabel : defaultIntroEditorConfig.checkboxLabel,
+      startButtonLabel: introEditorCfg.startButtonLabel !== undefined ? introEditorCfg.startButtonLabel : defaultIntroEditorConfig.startButtonLabel,
+      bulletPoints: introEditorCfg.bulletPoints !== undefined ? introEditorCfg.bulletPoints : defaultIntroEditorConfig.bulletPoints,
     },
   });
 };
@@ -296,6 +382,16 @@ const saveToServer = async () => {
       maxFileSizeMb: normalizeNumber(attachmentsCfg.maxFileSizeMb, defaultAttachments.maxFileSizeMb),
       maxTotalSizeMb: normalizeNumber(attachmentsCfg.maxTotalSizeMb, defaultAttachments.maxTotalSizeMb),
       allowedMimeTypes: allowed.length ? allowed : [...defaultAttachments.allowedMimeTypes],
+    };
+    
+    // Salva la configurazione dell'editor intro
+    const introEditorCfg = store.productMapping?.introEditorConfig || {};
+    mapping.introEditorConfig = {
+      title: introEditorCfg.title !== undefined ? Boolean(introEditorCfg.title) : defaultIntroEditorConfig.title,
+      subtitle: introEditorCfg.subtitle !== undefined ? Boolean(introEditorCfg.subtitle) : defaultIntroEditorConfig.subtitle,
+      checkboxLabel: introEditorCfg.checkboxLabel !== undefined ? Boolean(introEditorCfg.checkboxLabel) : defaultIntroEditorConfig.checkboxLabel,
+      startButtonLabel: introEditorCfg.startButtonLabel !== undefined ? Boolean(introEditorCfg.startButtonLabel) : defaultIntroEditorConfig.startButtonLabel,
+      bulletPoints: introEditorCfg.bulletPoints !== undefined ? Boolean(introEditorCfg.bulletPoints) : defaultIntroEditorConfig.bulletPoints,
     };
 
     const resp = await fetch('/config/import', {

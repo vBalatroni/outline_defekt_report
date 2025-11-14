@@ -53,33 +53,37 @@
       <div class="grid">
         <div class="form-group">
           <label for="intro-title">Title</label>
-          <WysiwygEditor
+          <WysiwygOrTextEditor
             id="intro-title"
             v-model="introForm.title"
+            :allow-wysiwyg="editorConfig.title"
             placeholder="Inserisci il titolo..."
           />
         </div>
         <div class="form-group">
           <label for="intro-subtitle">Subtitle</label>
-          <WysiwygEditor
+          <WysiwygOrTextEditor
             id="intro-subtitle"
             v-model="introForm.subtitle"
+            :allow-wysiwyg="editorConfig.subtitle"
             placeholder="Inserisci il sottotitolo..."
           />
         </div>
         <div class="form-group">
           <label for="intro-checkbox">Checkbox label</label>
-          <WysiwygEditor
+          <WysiwygOrTextEditor
             id="intro-checkbox"
             v-model="introForm.checkboxLabel"
+            :allow-wysiwyg="editorConfig.checkboxLabel"
             placeholder="Inserisci l'etichetta della checkbox..."
           />
         </div>
         <div class="form-group">
           <label for="intro-button">Primary button label</label>
-          <WysiwygEditor
+          <WysiwygOrTextEditor
             id="intro-button"
             v-model="introForm.startButtonLabel"
+            :allow-wysiwyg="editorConfig.startButtonLabel"
             placeholder="Inserisci l'etichetta del pulsante..."
           />
         </div>
@@ -87,12 +91,13 @@
 
       <div class="form-group">
         <label for="intro-bullets">Checklist items</label>
-        <WysiwygEditor
+        <WysiwygOrTextEditor
           id="intro-bullets"
           v-model="bulletText"
+          :allow-wysiwyg="editorConfig.bulletPoints"
           placeholder="Inserisci gli elementi della checklist..."
         />
-        <small>Puoi formattare il testo e creare liste.</small>
+        <small>Puoi formattare il testo e creare liste. Usa il toggle per vedere WYSIWYG, testo o entrambi.</small>
       </div>
     </div>
   </div>
@@ -101,9 +106,28 @@
 <script setup>
 import { reactive, ref, watch, computed, nextTick } from 'vue';
 import { useProductStore, defaultIntroContent } from '@/stores/productStore';
-import WysiwygEditor from '@/components/WysiwygEditor.vue';
+import WysiwygOrTextEditor from '@/components/WysiwygOrTextEditor.vue';
 
 const store = useProductStore();
+
+const defaultEditorConfig = {
+  title: true,
+  subtitle: true,
+  checkboxLabel: true,
+  startButtonLabel: true,
+  bulletPoints: true,
+};
+
+const editorConfig = computed(() => {
+  const config = store.productMapping?.introEditorConfig || {};
+  return {
+    title: config.title !== undefined ? config.title : defaultEditorConfig.title,
+    subtitle: config.subtitle !== undefined ? config.subtitle : defaultEditorConfig.subtitle,
+    checkboxLabel: config.checkboxLabel !== undefined ? config.checkboxLabel : defaultEditorConfig.checkboxLabel,
+    startButtonLabel: config.startButtonLabel !== undefined ? config.startButtonLabel : defaultEditorConfig.startButtonLabel,
+    bulletPoints: config.bulletPoints !== undefined ? config.bulletPoints : defaultEditorConfig.bulletPoints,
+  };
+});
 
 const introForm = reactive({
   title: '',
