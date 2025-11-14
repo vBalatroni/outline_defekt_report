@@ -24,6 +24,9 @@
           <li :class="{ active: activeTab === 'wiki' }" @click="activeTab = 'wiki'">
             <span>Wiki</span>
           </li>
+          <li :class="{ active: activeTab === 'css' }" @click="activeTab = 'css'">
+            <span>Custom CSS</span>
+          </li>
         </ul>
       </aside>
       <main class="content">
@@ -40,6 +43,8 @@
                 ? 'General Settings'
                 : activeTab === 'symptoms'
                 ? 'Symptom Sets'
+                : activeTab === 'css'
+                ? 'Custom CSS'
                 : 'Wiki'
             }}
           </h2>
@@ -50,6 +55,7 @@
           <IntroContentEditor v-else-if="activeTab === 'intro'" />
           <GeneralSettingsEditor v-else-if="activeTab === 'settings'" />
           <SymptomSetEditor v-else-if="activeTab === 'symptoms'" />
+          <CustomCssEditor v-else-if="activeTab === 'css'" />
           <WikiPage v-else />
         </section>
       </main>
@@ -65,12 +71,13 @@ import SymptomSetEditor from '@/components/SymptomSetEditor.vue';
 import GeneralFieldsEditor from '@/components/GeneralFieldsEditor.vue';
 import GeneralSettingsEditor from '@/components/GeneralSettingsEditor.vue';
 import IntroContentEditor from '@/components/IntroContentEditor.vue';
+import CustomCssEditor from '@/components/CustomCssEditor.vue';
 import WikiPage from '@/components/WikiPage.vue';
 import { useProductStore } from '@/stores/productStore';
 
 const route = useRoute();
 const router = useRouter();
-const validTabs = ['models', 'general', 'intro', 'settings', 'symptoms', 'wiki'];
+const validTabs = ['models', 'general', 'intro', 'settings', 'symptoms', 'css', 'wiki'];
 const normalizeTab = (tab) => {
   if (tab === 'email') return 'settings';
   if (tab === 'guide') return 'wiki';

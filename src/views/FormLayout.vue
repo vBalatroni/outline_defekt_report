@@ -1,5 +1,6 @@
 <template>
   <div class="form-layout">
+    <CustomCssInjector />
     <router-view />
   </div>
 </template>
@@ -7,6 +8,7 @@
 <script setup>
 import { onMounted, provide } from 'vue';
 import { useProductStore } from '@/stores/productStore';
+import CustomCssInjector from '@/components/CustomCssInjector.vue';
 
 const store = useProductStore();
 
