@@ -23,55 +23,50 @@ const sectionTitles = {
 const showProductModal = ref(false);
 const selectedProduct = ref(null);
 
+// Helper to get sections and fields from a defect
+const getDefektSections = (defekt) => {
+    if (!defekt || typeof defekt !== 'object') return [];
+    return Object.keys(defekt).map(sectionName => ({
+        name: sectionName,
+        fields: Object.keys(defekt[sectionName] || {}).map(fieldKey => ({
+            key: fieldKey,
+            ...defekt[sectionName][fieldKey]
+        })).filter(field => field && field.value !== null && field.value !== undefined && field.value !== '')
+    })).filter(section => section.fields.length > 0);
+};
+
 const openProductDetails = (product) => {
-    selectedProduct.value = product;
+    // Convert Proxy to plain object to avoid reactivity issues
+    selectedProduct.value = JSON.parse(JSON.stringify(product));
     console.log('=== PRODUCT DETAILS DEBUG ===');
-    console.log('Selected product:', JSON.parse(JSON.stringify(product)));
-    console.log('Defekts:', product.defekts);
-    console.log('Defekts length:', product.defekts?.length);
+    console.log('Selected product (raw):', selectedProduct.value);
+    console.log('Defekts:', selectedProduct.value.defekts);
+    console.log('Defekts length:', selectedProduct.value.defekts?.length);
     
-    if (product.defekts && product.defekts.length > 0) {
-        product.defekts.forEach((defekt, index) => {
+    if (selectedProduct.value.defekts && selectedProduct.value.defekts.length > 0) {
+        selectedProduct.value.defekts.forEach((defekt, index) => {
             console.log(`\n--- Defekt ${index + 1} ---`);
             console.log('Defekt:', defekt);
-            console.log('Defekt type:', typeof defekt);
             console.log('Defekt keys:', Object.keys(defekt || {}));
             
-            if (defekt && typeof defekt === 'object') {
-                Object.keys(defekt).forEach(sectionName => {
-                    const section = defekt[sectionName];
-                    console.log(`\n  Section "${sectionName}":`, section);
-                    console.log(`  Section type:`, typeof section);
-                    console.log(`  Is Array:`, Array.isArray(section));
-                    
-                    if (section) {
-                        if (Array.isArray(section)) {
-                            console.log(`  Array length:`, section.length);
-                            section.forEach((field, fieldIndex) => {
-                                console.log(`    Field ${fieldIndex}:`, field);
-                                if (field) {
-                                    console.log(`      - id:`, field.id);
-                                    console.log(`      - label:`, field.label);
-                                    console.log(`      - value:`, field.value);
-                                    console.log(`      - has value:`, !!field.value);
-                                }
-                            });
-                        } else if (typeof section === 'object') {
-                            console.log(`  Object keys:`, Object.keys(section));
-                            Object.keys(section).forEach(fieldKey => {
-                                const field = section[fieldKey];
-                                console.log(`    Field "${fieldKey}":`, field);
-                                if (field) {
-                                    console.log(`      - id:`, field.id);
-                                    console.log(`      - label:`, field.label);
-                                    console.log(`      - value:`, field.value);
-                                    console.log(`      - has value:`, !!field.value);
-                                }
-                            });
+            Object.keys(defekt || {}).forEach(sectionName => {
+                const section = defekt[sectionName];
+                console.log(`\n  Section "${sectionName}":`, section);
+                console.log(`  Section keys:`, Object.keys(section || {}));
+                
+                if (section) {
+                    Object.keys(section).forEach(fieldKey => {
+                        const field = section[fieldKey];
+                        console.log(`    Field "${fieldKey}":`, field);
+                        if (field) {
+                            console.log(`      - id:`, field.id);
+                            console.log(`      - label:`, field.label);
+                            console.log(`      - value:`, field.value);
+                            console.log(`      - has value:`, !!field.value);
                         }
-                    }
-                });
-            }
+                    });
+                }
+            });
         });
     }
     console.log('=== END DEBUG ===\n');
@@ -215,9 +210,9 @@ const goToBack = () => {
                                 <div class="defekts-grid">
                                     <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
                                         <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
-                                        <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section">
-                                            <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value">
-                                                <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
+                                        <div v-for="section in getDefektSections(defekt)" :key="section.name" class="defekt-section">
+                                            <div v-for="field in section.fields" :key="field.key" class="defekt-field">
+                                                <span class="defekt-field-label">{{ field.label || field.key }}:</span>
                                                 <div class="defekt-field-value">
                                                     <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
                                                         <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
