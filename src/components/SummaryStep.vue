@@ -25,6 +25,20 @@ const selectedProduct = ref(null);
 
 const openProductDetails = (product) => {
     selectedProduct.value = product;
+    console.log('Selected product:', product);
+    console.log('Defekts:', product.defekts);
+    if (product.defekts && product.defekts.length > 0) {
+        console.log('First defekt:', product.defekts[0]);
+        if (product.defekts[0]) {
+            console.log('First defekt keys:', Object.keys(product.defekts[0]));
+            Object.keys(product.defekts[0]).forEach(sectionName => {
+                console.log(`Section ${sectionName}:`, product.defekts[0][sectionName]);
+                if (product.defekts[0][sectionName]) {
+                    console.log(`Section ${sectionName} keys:`, Object.keys(product.defekts[0][sectionName]));
+                }
+            });
+        }
+    }
     showProductModal.value = true;
 };
 
@@ -167,7 +181,7 @@ const goToBack = () => {
                                         <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
                                         <template v-if="defekt && typeof defekt === 'object'">
                                             <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section && typeof section === 'object'">
-                                                <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value !== null && field.value !== undefined && field.value !== ''">
+                                                <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value !== null && field.value !== undefined && field.value !== '' && field.value !== false">
                                                     <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
                                                     <div class="defekt-field-value">
                                                         <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
@@ -183,6 +197,9 @@ const goToBack = () => {
                                                 </div>
                                             </div>
                                         </template>
+                                        <div v-else class="defekt-empty">
+                                            <p class="text-muted">No details available</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
