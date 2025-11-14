@@ -215,44 +215,21 @@ const goToBack = () => {
                                 <div class="defekts-grid">
                                     <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
                                         <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
-                                        <template v-if="defekt">
-                                            <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section">
-                                                <template v-if="Array.isArray(section)">
-                                                    <div v-for="(field, fieldIndex) in section" :key="fieldIndex" class="defekt-field" v-if="field && field.value">
-                                                        <span class="defekt-field-label">{{ field.label || 'Field' }}:</span>
-                                                        <div class="defekt-field-value">
-                                                            <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                                <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                            </template>
-                                                            <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                                <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                            </template>
-                                                            <template v-else>
-                                                                <span>{{ formatFieldValue(field) }}</span>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-                                                </template>
-                                                <template v-else>
-                                                    <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value">
-                                                        <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
-                                                        <div class="defekt-field-value">
-                                                            <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                                <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                            </template>
-                                                            <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                                <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                            </template>
-                                                            <template v-else>
-                                                                <span>{{ formatFieldValue(field) }}</span>
-                                                            </template>
-                                                        </div>
-                                                    </div>
-                                                </template>
+                                        <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section">
+                                            <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value">
+                                                <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
+                                                <div class="defekt-field-value">
+                                                    <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                        <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                    </template>
+                                                    <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                        <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                    </template>
+                                                    <template v-else>
+                                                        <span>{{ formatFieldValue(field) }}</span>
+                                                    </template>
+                                                </div>
                                             </div>
-                                        </template>
-                                        <div v-else class="defekt-empty">
-                                            <p class="text-muted">Defect data is empty or invalid</p>
                                         </div>
                                     </div>
                                 </div>
