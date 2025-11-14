@@ -181,8 +181,8 @@ const goToBack = () => {
                                         <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
                                         <template v-if="defekt && typeof defekt === 'object'">
                                             <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section && typeof section === 'object'">
-                                                <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value !== null && field.value !== undefined && field.value !== '' && field.value !== false">
-                                                    <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
+                                                <div v-for="field in section" :key="field && field.id ? field.id : sectionName + '-' + Math.random()" class="defekt-field" v-if="field && field.value !== null && field.value !== undefined && field.value !== '' && field.value !== false">
+                                                    <span class="defekt-field-label">{{ field.label || 'Field' }}:</span>
                                                     <div class="defekt-field-value">
                                                         <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
                                                             <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
