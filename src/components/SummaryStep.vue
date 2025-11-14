@@ -120,7 +120,7 @@ const goToBack = () => {
             </div>
 
             <!-- Navigation Buttons -->
-            <div class="button-group mx-auto justify-content-between">
+            <div class="button-group">
                 <Button :type="'secondary'" :text="'Back'" @click="goToBack" />
                 <Button :type="'primary'" :text="'Submit'" @click="goToNext" />
             </div>

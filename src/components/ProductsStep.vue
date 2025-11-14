@@ -578,7 +578,7 @@ const goToBack = () => {
                     </div>
                 </div>
             </div>
-            <div class="button-group mx-auto justify-content-between">
+            <div class="button-group">
                 <Button :type="'secondary'" :text="'Back'" :isDisabled="false" @click="goToBack"></Button>
                 <Button :type="'primary'" :text="'Next'" :isDisabled="!canProceedToNextStep" @click="goToNext"></Button>
             </div>

@@ -88,7 +88,7 @@ const goToBack = () => {
                     </div>
                 </div>
             </div>
-            <div class="button-group mx-auto justify-content-between mb-5">
+            <div class="button-group">
                 <Button :type="'secondary'" :text="'Back'" :isDisabled="false" @click="goToBack"></Button>
                 <Button :type="'primary'" :text="'Next'" :isDisabled="!allRequiredFieldsFilled" @click="goToNext"></Button>
             </div>
