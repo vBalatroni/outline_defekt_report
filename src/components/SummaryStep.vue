@@ -162,26 +162,28 @@ const goToBack = () => {
                             <!-- Defects -->
                             <div v-if="selectedProduct && selectedProduct.defekts && selectedProduct.defekts.length > 0" class="product-details-section">
                                 <h4 class="details-section-title">Defects ({{ selectedProduct.defekts.length }})</h4>
-                                <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
-                                    <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
-                                    <template v-if="defekt && typeof defekt === 'object'">
-                                        <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section && Array.isArray(section)">
-                                            <div v-for="field in section" :key="field && field.id ? field.id : sectionName + '-' + Math.random()" class="defekt-field" v-if="field && field.value">
-                                                <span class="defekt-field-label">{{ field.label || 'Field' }}:</span>
-                                                <div class="defekt-field-value">
-                                                    <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                        <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                    </template>
-                                                    <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                        <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                    </template>
-                                                    <template v-else>
-                                                        <span>{{ formatFieldValue(field) }}</span>
-                                                    </template>
+                                <div class="defekts-grid">
+                                    <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
+                                        <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
+                                        <template v-if="defekt && typeof defekt === 'object'">
+                                            <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section && typeof section === 'object'">
+                                                <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value !== null && field.value !== undefined && field.value !== ''">
+                                                    <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
+                                                    <div class="defekt-field-value">
+                                                        <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                            <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                        </template>
+                                                        <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                            <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                        </template>
+                                                        <template v-else>
+                                                            <span>{{ formatFieldValue(field) }}</span>
+                                                        </template>
+                                                    </div>
                                                 </div>
                                             </div>
-                                        </div>
-                                    </template>
+                                        </template>
+                                    </div>
                                 </div>
                             </div>
                             <div v-else-if="selectedProduct" class="product-details-section">
