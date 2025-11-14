@@ -1,5 +1,5 @@
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
 import SectionHeader from './StepHeader.vue';
@@ -13,7 +13,6 @@ const router = useRouter();
 const generalData = computed(() => store.formState.generalData);
 const savedProducts = computed(() => store.formState.savedProducts);
 
-
 const sectionTitles = {
     companyData: 'Company Information',
     freightForwarderData: 'Freight Forwarder',
@@ -21,22 +20,57 @@ const sectionTitles = {
     otherReturnAddress: 'Return Address'
 };
 
+const showProductModal = ref(false);
+const selectedProduct = ref(null);
+
+const openProductDetails = (product) => {
+    selectedProduct.value = product;
+    showProductModal.value = true;
+};
+
+const closeProductModal = () => {
+    showProductModal.value = false;
+    selectedProduct.value = null;
+};
+
+const formatFieldValue = (field) => {
+    if (!field) return '';
+    const value = field.value;
+    if (value === null || value === undefined || value === '') return '';
+
+    if (typeof File !== 'undefined' && value instanceof File) {
+        return value.name;
+    }
+
+    if (Array.isArray(value)) {
+        return value.map((item) => {
+            if (typeof File !== 'undefined' && item instanceof File) {
+                return item.name;
+            }
+            if (typeof item === 'object' && item !== null) {
+                return item.label || item.name || item.value || JSON.stringify(item);
+            }
+            return item;
+        }).join(', ');
+    }
+
+    if (typeof value === 'object') {
+        return value.label || value.value || JSON.stringify(value);
+    }
+
+    return value;
+};
+
 const editProduct = (index) => {
-    // For now, just navigate back to the products step.
-    // A more advanced implementation might pass the product index as a param.
     router.push({ name: 'step-products' });
-    // We could also set an 'editingProductIndex' in the store here.
 };
 
 const deleteProduct = (index) => {
-    // This function must now operate on the local data from localStorage
     savedProducts.value.splice(index, 1);
-    // And update localStorage to persist the change
     localStorage.setItem('defekt_report_data', JSON.stringify(savedProducts.value));
 };
 
 const goToNext = () => {
-    // This will be the final submission logic later. For now, just navigate.
     router.push({ name: 'step-success' });
 };
 
@@ -72,49 +106,85 @@ const goToBack = () => {
             <div v-if="savedProducts.length > 0" class="saved-products mb-5">
                 <div class="product-list">
                     <div v-for="(product, index) in savedProducts" :key="index" class="product-card">
-                        <div class="product-actions me-3">
-                            <i @click="editProduct(index)" class="bi bi-pencil"></i>
-                            <i @click="deleteProduct(index)" class="bi bi-trash"></i>
+                        <div class="product-actions">
+                            <i @click="openProductDetails(product)" class="bi bi-eye" title="View details"></i>
+                            <i @click="editProduct(index)" class="bi bi-pencil" title="Edit"></i>
+                            <i @click="deleteProduct(index)" class="bi bi-trash" title="Delete"></i>
                         </div>
                         <div class="product-info">
-                            <!-- Read the model name from the top-level property we saved -->
-                            <h4>{{ product.modelName || 'N/A' }}</h4>
-                            
-                            <!-- Basic Info - rendered dynamically for safety -->
-                            <div v-if="product.basicInfo">
-                                <p v-if="product.basicInfo.serialNumber && product.basicInfo.serialNumber.value">
-                                    Serial Number: {{ product.basicInfo.serialNumber.value }}
-                                </p>
-                                <p v-if="product.basicInfo.category && product.basicInfo.category.value">
-                                    Category: {{ product.basicInfo.category.value }}
-                                </p>
+                            <h4>{{ product.basicInfo?.model?.value || product.modelName || 'N/A' }}</h4>
+                            <p v-if="product.basicInfo?.serialNumber?.value">
+                                Serial Number: {{ product.basicInfo.serialNumber.value }}
+                            </p>
+                            <p v-if="product.basicInfo?.category?.value">
+                                Category: {{ product.basicInfo.category.value }}
+                            </p>
+                            <p v-if="product.defekts?.length" class="defects-count">
+                                <strong>Defects: {{ product.defekts.length }}</strong>
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Details Modal -->
+            <div v-if="showProductModal && selectedProduct" class="modal custom-modal d-block" tabindex="-1" @click.self="closeProductModal">
+                <div class="modal-dialog modal-dialog-scrollable">
+                    <div class="modal-content">
+                        <div class="modal-header-custom">
+                            <h3 class="section-header mb-0">Product Details</h3>
+                            <button type="button" class="btn-close" @click="closeProductModal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body-custom">
+                            <!-- Basic Info -->
+                            <div class="product-details-section">
+                                <h4 class="details-section-title">Basic Information</h4>
+                                <div class="details-grid">
+                                    <div class="detail-item" v-if="selectedProduct.basicInfo?.model?.value">
+                                        <span class="detail-label">Model</span>
+                                        <span class="detail-value">{{ selectedProduct.basicInfo.model.value }}</span>
+                                    </div>
+                                    <div class="detail-item" v-if="selectedProduct.basicInfo?.serialNumber?.value">
+                                        <span class="detail-label">Serial Number</span>
+                                        <span class="detail-value">{{ selectedProduct.basicInfo.serialNumber.value }}</span>
+                                    </div>
+                                    <div class="detail-item" v-if="selectedProduct.basicInfo?.category?.value">
+                                        <span class="detail-label">Category</span>
+                                        <span class="detail-value">{{ selectedProduct.basicInfo.category.value }}</span>
+                                    </div>
+                                </div>
                             </div>
-                            
-                            <!-- Defects Summary -->
-                            <div v-if="product.defekts?.length" class="defects-summary">
-                                <p><strong>Defects:</strong></p>
-                                <div class="defekt-details" v-for="(defekt, dIndex) in product.defekts" :key="dIndex">
-                                    <h5 class="defekt-summary-header">Defect {{ dIndex + 1 }}</h5>
-                                    <div v-for="(section, sectionName) in defekt" :key="sectionName">
-                                        <div v-for="field in section" :key="field.id">
-                                            <div class="defekt-summary-item" v-if="field.value">
-                                                <strong class="summary-field-label">{{ field.label }}:</strong>
+
+                            <!-- Defects -->
+                            <div v-if="selectedProduct.defekts?.length" class="product-details-section">
+                                <h4 class="details-section-title">Defects ({{ selectedProduct.defekts.length }})</h4>
+                                <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
+                                    <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
+                                    <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section">
+                                        <div v-for="field in section" :key="field.id" class="defekt-field" v-if="field.value">
+                                            <span class="defekt-field-label">{{ field.label }}:</span>
+                                            <div class="defekt-field-value">
                                                 <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                    <img :src="field.preview || field.value" :alt="field.label" class="summary-image-preview" />
+                                                    <img :src="field.preview || field.value" :alt="field.label" class="detail-image-preview" />
+                                                </template>
+                                                <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                    <img :src="field.preview" :alt="field.label" class="detail-image-preview" />
                                                 </template>
                                                 <template v-else>
-                                                    <span v-if="field && typeof field.value === 'object' && field.preview" class="summary-field-value">
-                                                      <img :src="field.preview" :alt="field.label" class="summary-image-preview" />
-                                                    </span>
-                                                    <span v-else class="summary-field-value">{{ typeof field.value === 'object' ? '' : field.value }}</span>
+                                                    <span>{{ formatFieldValue(field) }}</span>
                                                 </template>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
+                            <div v-else class="product-details-section">
+                                <p class="text-muted">No defects added for this product.</p>
+                            </div>
                         </div>
-                        
+                        <div class="modal-footer-custom">
+                            <Button :type="'primary'" :text="'Close'" @click="closeProductModal" />
+                        </div>
                     </div>
                 </div>
             </div>
