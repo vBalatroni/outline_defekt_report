@@ -471,12 +471,12 @@ onMounted(async () => {
     productMapping: productStore.productMapping
   });
   
-  // Test the getCategoryVisibleFields method
-  if (productStore.categories && productStore.categories.length > 0) {
-    const testCategory = productStore.categories[0];
-    console.log(`Testing getCategoryVisibleFields for "${testCategory}":`, 
-      productStore.getCategoryVisibleFields(testCategory));
-  }
+  // Test the getCategoryVisibleFields method - commented out as function doesn't exist in store
+  // if (productStore.categories && productStore.categories.length > 0) {
+  //   const testCategory = productStore.categories[0];
+  //   console.log(`Testing getCategoryVisibleFields for "${testCategory}":`, 
+  //     productStore.getCategoryVisibleFields(testCategory));
+  // }
 });
 </script>
 
