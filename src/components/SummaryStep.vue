@@ -23,16 +23,42 @@ const sectionTitles = {
 const showProductModal = ref(false);
 const selectedProduct = ref(null);
 
-// Helper to get sections and fields from a defect
+// Helper to get sections and fields from a defect - convert to plain object first
 const getDefektSections = (defekt) => {
-    if (!defekt || typeof defekt !== 'object') return [];
-    return Object.keys(defekt).map(sectionName => ({
-        name: sectionName,
-        fields: Object.keys(defekt[sectionName] || {}).map(fieldKey => ({
-            key: fieldKey,
-            ...defekt[sectionName][fieldKey]
-        })).filter(field => field && field.value !== null && field.value !== undefined && field.value !== '')
-    })).filter(section => section.fields.length > 0);
+    if (!defekt) return [];
+    // Convert Proxy to plain object
+    const plainDefekt = JSON.parse(JSON.stringify(defekt));
+    if (typeof plainDefekt !== 'object') return [];
+    
+    const sections = [];
+    Object.keys(plainDefekt).forEach(sectionName => {
+        const section = plainDefekt[sectionName];
+        if (!section || typeof section !== 'object') return;
+        
+        const fields = [];
+        Object.keys(section).forEach(fieldKey => {
+            const field = section[fieldKey];
+            if (field && field.value !== null && field.value !== undefined && field.value !== '') {
+                fields.push({
+                    key: fieldKey,
+                    id: field.id || fieldKey,
+                    label: field.label || fieldKey,
+                    value: field.value,
+                    preview: field.preview
+                });
+            }
+        });
+        
+        if (fields.length > 0) {
+            sections.push({
+                name: sectionName,
+                fields: fields
+            });
+        }
+    });
+    
+    console.log('getDefektSections result:', sections);
+    return sections;
 };
 
 const openProductDetails = (product) => {
@@ -208,25 +234,29 @@ const goToBack = () => {
                             <div v-if="selectedProduct && selectedProduct.defekts && selectedProduct.defekts.length > 0" class="product-details-section">
                                 <h4 class="details-section-title">Defects ({{ selectedProduct.defekts.length }})</h4>
                                 <div class="defekts-grid">
-                                    <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
-                                        <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
-                                        <div v-for="section in getDefektSections(defekt)" :key="section.name" class="defekt-section">
-                                            <div v-for="field in section.fields" :key="field.key" class="defekt-field">
-                                                <span class="defekt-field-label">{{ field.label || field.key }}:</span>
-                                                <div class="defekt-field-value">
-                                                    <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                        <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                    </template>
-                                                    <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                        <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                    </template>
-                                                    <template v-else>
-                                                        <span>{{ formatFieldValue(field) }}</span>
-                                                    </template>
+                                    <template v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex">
+                                        <div class="defekt-detail-card">
+                                            <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
+                                            <template v-for="section in getDefektSections(defekt)" :key="section.name">
+                                                <div class="defekt-section">
+                                                    <div v-for="field in section.fields" :key="field.key" class="defekt-field">
+                                                        <span class="defekt-field-label">{{ field.label || field.key }}:</span>
+                                                        <div class="defekt-field-value">
+                                                            <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                                <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            </template>
+                                                            <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                                <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            </template>
+                                                            <template v-else>
+                                                                <span>{{ formatFieldValue(field) }}</span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
                                                 </div>
-                                            </div>
+                                            </template>
                                         </div>
-                                    </div>
+                                    </template>
                                 </div>
                             </div>
                             <div v-else-if="selectedProduct" class="product-details-section">
