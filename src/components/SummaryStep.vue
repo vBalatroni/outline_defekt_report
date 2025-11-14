@@ -137,18 +137,22 @@ const goToBack = () => {
                         </div>
                         <div class="modal-body-custom">
                             <!-- Basic Info -->
-                            <div class="product-details-section">
+                            <div class="product-details-section" v-if="selectedProduct">
                                 <h4 class="details-section-title">Basic Information</h4>
                                 <div class="details-grid">
-                                    <div class="detail-item" v-if="selectedProduct.basicInfo?.model?.value">
+                                    <div class="detail-item" v-if="selectedProduct.basicInfo && selectedProduct.basicInfo.model && selectedProduct.basicInfo.model.value">
                                         <span class="detail-label">Model</span>
                                         <span class="detail-value">{{ selectedProduct.basicInfo.model.value }}</span>
                                     </div>
-                                    <div class="detail-item" v-if="selectedProduct.basicInfo?.serialNumber?.value">
+                                    <div class="detail-item" v-else-if="selectedProduct.modelName">
+                                        <span class="detail-label">Model</span>
+                                        <span class="detail-value">{{ selectedProduct.modelName }}</span>
+                                    </div>
+                                    <div class="detail-item" v-if="selectedProduct.basicInfo && selectedProduct.basicInfo.serialNumber && selectedProduct.basicInfo.serialNumber.value">
                                         <span class="detail-label">Serial Number</span>
                                         <span class="detail-value">{{ selectedProduct.basicInfo.serialNumber.value }}</span>
                                     </div>
-                                    <div class="detail-item" v-if="selectedProduct.basicInfo?.category?.value">
+                                    <div class="detail-item" v-if="selectedProduct.basicInfo && selectedProduct.basicInfo.category && selectedProduct.basicInfo.category.value">
                                         <span class="detail-label">Category</span>
                                         <span class="detail-value">{{ selectedProduct.basicInfo.category.value }}</span>
                                     </div>
@@ -156,29 +160,31 @@ const goToBack = () => {
                             </div>
 
                             <!-- Defects -->
-                            <div v-if="selectedProduct.defekts?.length" class="product-details-section">
+                            <div v-if="selectedProduct && selectedProduct.defekts && selectedProduct.defekts.length > 0" class="product-details-section">
                                 <h4 class="details-section-title">Defects ({{ selectedProduct.defekts.length }})</h4>
                                 <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
                                     <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
-                                    <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section">
-                                        <div v-for="field in section" :key="field.id" class="defekt-field" v-if="field.value">
-                                            <span class="defekt-field-label">{{ field.label }}:</span>
-                                            <div class="defekt-field-value">
-                                                <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                    <img :src="field.preview || field.value" :alt="field.label" class="detail-image-preview" />
-                                                </template>
-                                                <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                    <img :src="field.preview" :alt="field.label" class="detail-image-preview" />
-                                                </template>
-                                                <template v-else>
-                                                    <span>{{ formatFieldValue(field) }}</span>
-                                                </template>
+                                    <template v-if="defekt && typeof defekt === 'object'">
+                                        <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section && Array.isArray(section)">
+                                            <div v-for="field in section" :key="field && field.id ? field.id : sectionName + '-' + Math.random()" class="defekt-field" v-if="field && field.value">
+                                                <span class="defekt-field-label">{{ field.label || 'Field' }}:</span>
+                                                <div class="defekt-field-value">
+                                                    <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                        <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                    </template>
+                                                    <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                        <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                    </template>
+                                                    <template v-else>
+                                                        <span>{{ formatFieldValue(field) }}</span>
+                                                    </template>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    </template>
                                 </div>
                             </div>
-                            <div v-else class="product-details-section">
+                            <div v-else-if="selectedProduct" class="product-details-section">
                                 <p class="text-muted">No defects added for this product.</p>
                             </div>
                         </div>

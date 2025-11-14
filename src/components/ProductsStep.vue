@@ -596,9 +596,6 @@ const goToBack = () => {
                         @click="saveData"
                     ></Button>
                 </div>
-                <div class="modal-header-custom">
-                    <SectionHeader title="Report" />
-                </div>
                 <div class="modal-body-custom">
                     <template v-if="!isBasicInfoValidated && editingProductIndex === -1">
                         <h3 class="section-header">Product</h3>
