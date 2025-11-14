@@ -14,8 +14,8 @@ const props = defineProps({
 </script>
 <template>
     <div class="step-header">
-        <h2 v-if="title" class="step-title">{{ title }}</h2>
+        <h2 v-if="title" class="step-title" v-html="title"></h2>
         <Divider> </Divider>
-        <p v-if="subtitle" class="step-subtitle">{{ subtitle }}</p>
+        <p v-if="subtitle" class="step-subtitle" v-html="subtitle"></p>
     </div>
 </template>

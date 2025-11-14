@@ -35,6 +35,41 @@ const nextStep = () => {
     store.startSession();
     router.push({ name: 'step-general-data' });
 };
+
+// Helper per estrarre testo da HTML per il pulsante
+const getButtonText = () => {
+    const html = introContent.value.startButtonLabel || '';
+    if (!html) return '';
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = html;
+    return tempDiv.textContent || tempDiv.innerText || '';
+};
+
+// Helper per renderizzare i bullet points come HTML
+const renderBulletPoints = () => {
+    const bullets = introContent.value.bulletPoints || [];
+    if (bullets.length === 0) return '';
+    
+    // Se i bullet points sono già HTML (contengono tag), usa direttamente
+    // Altrimenti crea una lista HTML
+    const items = bullets.map(bullet => {
+        // Se contiene tag HTML, usa direttamente
+        if (typeof bullet === 'string' && (bullet.includes('<') || bullet.includes('&lt;'))) {
+            return `<li>${bullet}</li>`;
+        }
+        // Altrimenti escape e usa come testo
+        return `<li>${escapeHtml(bullet)}</li>`;
+    }).join('');
+    
+    return `<ul class="step-list mt-0">${items}</ul>`;
+};
+
+// Helper per escape HTML (solo se necessario)
+const escapeHtml = (text) => {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+};
 </script>
 
 <template>
@@ -42,16 +77,14 @@ const nextStep = () => {
         <div class="confirmation-wrapper">
             <StepHeader :title="introContent.title" :subtitle="introContent.subtitle"/>
             <div class="step-body px-2 py-4">
-                <ul class="step-list mt-0">
-                    <li v-for="(bullet, index) in introContent.bulletPoints" :key="index">{{ bullet }}</li>
-                </ul>
+                <div class="step-list mt-0" v-html="renderBulletPoints()"></div>
                 <div class="form-check custom-checkbox d-flex">
                     <input v-model="isConfirmed" type="checkbox" class="form-check-input" id="confirmCheck" />
-                    <label class="form-check-label" for="confirmCheck">{{ introContent.checkboxLabel }}</label>
+                    <label class="form-check-label" for="confirmCheck" v-html="introContent.checkboxLabel"></label>
                 </div>
                 <div class="button-group mt-4">
                     <!-- <Button :type="'secondary'" :text="'Cancel'" :isDisabled="false" ></Button> -->
-                    <Button :type="'primary'" :text="introContent.startButtonLabel" :isDisabled="!isConfirmed" @click="nextStep"></Button>
+                    <Button :type="'primary'" :text="getButtonText()" :isDisabled="!isConfirmed" @click="nextStep"></Button>
                 </div>
             </div>
             <Divider/>

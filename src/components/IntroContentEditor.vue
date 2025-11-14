@@ -53,31 +53,46 @@
       <div class="grid">
         <div class="form-group">
           <label for="intro-title">Title</label>
-          <input id="intro-title" v-model="introForm.title" type="text" />
+          <WysiwygEditor
+            id="intro-title"
+            v-model="introForm.title"
+            placeholder="Inserisci il titolo..."
+          />
         </div>
         <div class="form-group">
           <label for="intro-subtitle">Subtitle</label>
-          <input id="intro-subtitle" v-model="introForm.subtitle" type="text" />
+          <WysiwygEditor
+            id="intro-subtitle"
+            v-model="introForm.subtitle"
+            placeholder="Inserisci il sottotitolo..."
+          />
         </div>
         <div class="form-group">
           <label for="intro-checkbox">Checkbox label</label>
-          <input id="intro-checkbox" v-model="introForm.checkboxLabel" type="text" />
+          <WysiwygEditor
+            id="intro-checkbox"
+            v-model="introForm.checkboxLabel"
+            placeholder="Inserisci l'etichetta della checkbox..."
+          />
         </div>
         <div class="form-group">
           <label for="intro-button">Primary button label</label>
-          <input id="intro-button" v-model="introForm.startButtonLabel" type="text" />
+          <WysiwygEditor
+            id="intro-button"
+            v-model="introForm.startButtonLabel"
+            placeholder="Inserisci l'etichetta del pulsante..."
+          />
         </div>
       </div>
 
       <div class="form-group">
         <label for="intro-bullets">Checklist items</label>
-        <textarea
+        <WysiwygEditor
           id="intro-bullets"
           v-model="bulletText"
-          rows="6"
-          placeholder="One item per line"
-        ></textarea>
-        <small>Scrivi un elemento per riga.</small>
+          placeholder="Inserisci gli elementi della checklist..."
+        />
+        <small>Puoi formattare il testo e creare liste.</small>
       </div>
     </div>
   </div>
@@ -86,6 +101,7 @@
 <script setup>
 import { reactive, ref, watch, computed, nextTick } from 'vue';
 import { useProductStore, defaultIntroContent } from '@/stores/productStore';
+import WysiwygEditor from '@/components/WysiwygEditor.vue';
 
 const store = useProductStore();
 
@@ -118,16 +134,59 @@ const removeToast = (id) => {
 const loadingIndicator = computed(() => isReloading.value || store.isLoading);
 const currentIntro = computed(() => store.productMapping?.introContent || defaultIntroContent);
 
-const serializeForm = () => {
-  const bullets = bulletText.value
+// Funzione helper per estrarre testo da HTML o gestire liste HTML
+const extractBulletPoints = (html) => {
+  if (!html || !html.trim()) return [];
+  
+  // Crea un elemento temporaneo per parsare l'HTML
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  
+  // Cerca liste (ul/ol)
+  const lists = tempDiv.querySelectorAll('ul, ol');
+  if (lists.length > 0) {
+    const items = [];
+    lists.forEach(list => {
+      list.querySelectorAll('li').forEach(li => {
+        const text = li.textContent.trim();
+        if (text) items.push(text);
+      });
+    });
+    if (items.length > 0) return items;
+  }
+  
+  // Se non ci sono liste, cerca paragrafi o div
+  const paragraphs = tempDiv.querySelectorAll('p, div');
+  if (paragraphs.length > 0) {
+    const items = paragraphs
+      .map(p => p.textContent.trim())
+      .filter(Boolean);
+    if (items.length > 0) return items;
+  }
+  
+  // Fallback: estrai tutto il testo e dividi per newline
+  const text = tempDiv.textContent || tempDiv.innerText || '';
+  return text
     .split('\n')
-    .map((line) => line.trim())
+    .map(line => line.trim())
     .filter(Boolean);
+};
+
+// Funzione helper per rimuovere tag HTML e ottenere testo pulito per confronti
+const stripHtml = (html) => {
+  if (!html) return '';
+  const tempDiv = document.createElement('div');
+  tempDiv.innerHTML = html;
+  return tempDiv.textContent || tempDiv.innerText || '';
+};
+
+const serializeForm = () => {
+  const bullets = extractBulletPoints(bulletText.value);
   return JSON.stringify({
-    title: introForm.title.trim(),
-    subtitle: introForm.subtitle.trim(),
-    checkboxLabel: introForm.checkboxLabel.trim(),
-    startButtonLabel: introForm.startButtonLabel.trim(),
+    title: introForm.title || '',
+    subtitle: introForm.subtitle || '',
+    checkboxLabel: introForm.checkboxLabel || '',
+    startButtonLabel: introForm.startButtonLabel || '',
     bulletPoints: bullets,
   });
 };
@@ -137,14 +196,33 @@ const resetDirty = () => {
   hasUnsavedChanges.value = false;
 };
 
+// Funzione helper per convertire array di stringhe in HTML lista
+const convertBulletsToHtml = (bullets) => {
+  if (!Array.isArray(bullets) || bullets.length === 0) return '';
+  // Crea una lista HTML non ordinata
+  const items = bullets.map(bullet => {
+    // Se il bullet è già HTML, usalo direttamente, altrimenti escape
+    if (typeof bullet === 'string' && (bullet.includes('<') || bullet.includes('&lt;'))) {
+      return `<li>${bullet}</li>`;
+    }
+    // Escape HTML per sicurezza
+    const div = document.createElement('div');
+    div.textContent = bullet;
+    return `<li>${div.innerHTML}</li>`;
+  }).join('');
+  return `<ul>${items}</ul>`;
+};
+
 const applyIntroToForm = (source, { resetSnapshot = true } = {}) => {
   isSyncing.value = true;
+  // Mantieni HTML se presente, altrimenti usa testo semplice
   introForm.title = source.title || '';
   introForm.subtitle = source.subtitle || '';
   introForm.checkboxLabel = source.checkboxLabel || '';
   introForm.startButtonLabel = source.startButtonLabel || '';
   const bullets = Array.isArray(source.bulletPoints) ? source.bulletPoints : defaultIntroContent.bulletPoints;
-  bulletText.value = bullets.join('\n');
+  // Converti array in HTML lista
+  bulletText.value = convertBulletsToHtml(bullets);
   nextTick(() => {
     if (resetSnapshot) {
       resetDirty();
