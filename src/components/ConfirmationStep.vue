@@ -76,18 +76,16 @@ const escapeHtml = (text) => {
     <div class="confirmation-step">
         <div class="confirmation-wrapper">
             <StepHeader :title="introContent.title" :subtitle="introContent.subtitle"/>
-            <div class="step-body px-2 py-4">
-                <div class="step-list mt-0" v-html="renderBulletPoints()"></div>
+            <div class="step-body">
+                <div class="step-list" v-html="renderBulletPoints()"></div>
                 <div class="form-check custom-checkbox d-flex">
                     <input v-model="isConfirmed" type="checkbox" class="form-check-input" id="confirmCheck" />
                     <label class="form-check-label" for="confirmCheck" v-html="introContent.checkboxLabel"></label>
                 </div>
-                <div class="button-group mt-4">
-                    <!-- <Button :type="'secondary'" :text="'Cancel'" :isDisabled="false" ></Button> -->
+                <div class="button-group">
                     <Button :type="'primary'" :text="getButtonText()" :isDisabled="!isConfirmed" @click="nextStep"></Button>
                 </div>
             </div>
-            <Divider/>
         </div>
     </div>
 </template>
