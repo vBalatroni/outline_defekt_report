@@ -94,8 +94,6 @@
 <script setup>
 import { useEditor, EditorContent } from '@tiptap/vue-3';
 import StarterKit from '@tiptap/starter-kit';
-import TextStyle from '@tiptap/extension-text-style';
-import Color from '@tiptap/extension-color';
 import { watch, onBeforeUnmount, ref } from 'vue';
 
 const props = defineProps({
@@ -116,8 +114,6 @@ const isFocused = ref(false);
 const editor = useEditor({
   extensions: [
     StarterKit,
-    TextStyle,
-    Color,
   ],
   content: props.modelValue,
   placeholder: props.placeholder,
