@@ -25,20 +25,56 @@ const selectedProduct = ref(null);
 
 const openProductDetails = (product) => {
     selectedProduct.value = product;
-    console.log('Selected product:', product);
+    console.log('=== PRODUCT DETAILS DEBUG ===');
+    console.log('Selected product:', JSON.parse(JSON.stringify(product)));
     console.log('Defekts:', product.defekts);
+    console.log('Defekts length:', product.defekts?.length);
+    
     if (product.defekts && product.defekts.length > 0) {
-        console.log('First defekt:', product.defekts[0]);
-        if (product.defekts[0]) {
-            console.log('First defekt keys:', Object.keys(product.defekts[0]));
-            Object.keys(product.defekts[0]).forEach(sectionName => {
-                console.log(`Section ${sectionName}:`, product.defekts[0][sectionName]);
-                if (product.defekts[0][sectionName]) {
-                    console.log(`Section ${sectionName} keys:`, Object.keys(product.defekts[0][sectionName]));
-                }
-            });
-        }
+        product.defekts.forEach((defekt, index) => {
+            console.log(`\n--- Defekt ${index + 1} ---`);
+            console.log('Defekt:', defekt);
+            console.log('Defekt type:', typeof defekt);
+            console.log('Defekt keys:', Object.keys(defekt || {}));
+            
+            if (defekt && typeof defekt === 'object') {
+                Object.keys(defekt).forEach(sectionName => {
+                    const section = defekt[sectionName];
+                    console.log(`\n  Section "${sectionName}":`, section);
+                    console.log(`  Section type:`, typeof section);
+                    console.log(`  Is Array:`, Array.isArray(section));
+                    
+                    if (section) {
+                        if (Array.isArray(section)) {
+                            console.log(`  Array length:`, section.length);
+                            section.forEach((field, fieldIndex) => {
+                                console.log(`    Field ${fieldIndex}:`, field);
+                                if (field) {
+                                    console.log(`      - id:`, field.id);
+                                    console.log(`      - label:`, field.label);
+                                    console.log(`      - value:`, field.value);
+                                    console.log(`      - has value:`, !!field.value);
+                                }
+                            });
+                        } else if (typeof section === 'object') {
+                            console.log(`  Object keys:`, Object.keys(section));
+                            Object.keys(section).forEach(fieldKey => {
+                                const field = section[fieldKey];
+                                console.log(`    Field "${fieldKey}":`, field);
+                                if (field) {
+                                    console.log(`      - id:`, field.id);
+                                    console.log(`      - label:`, field.label);
+                                    console.log(`      - value:`, field.value);
+                                    console.log(`      - has value:`, !!field.value);
+                                }
+                            });
+                        }
+                    }
+                });
+            }
+        });
     }
+    console.log('=== END DEBUG ===\n');
     showProductModal.value = true;
 };
 
@@ -179,21 +215,44 @@ const goToBack = () => {
                                 <div class="defekts-grid">
                                     <div v-for="(defekt, dIndex) in selectedProduct.defekts" :key="dIndex" class="defekt-detail-card">
                                         <h5 class="defekt-detail-header">Defect {{ dIndex + 1 }}</h5>
-                                        <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section">
-                                            <div v-for="field in section" :key="field && field.id ? field.id : sectionName + '-' + Math.random()" class="defekt-field" v-if="field && field.value">
-                                                <span class="defekt-field-label">{{ field.label || 'Field' }}:</span>
-                                                <div class="defekt-field-value">
-                                                    <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                        <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                    </template>
-                                                    <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                        <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                    </template>
-                                                    <template v-else>
-                                                        <span>{{ formatFieldValue(field) }}</span>
-                                                    </template>
-                                                </div>
+                                        <template v-if="defekt">
+                                            <div v-for="(section, sectionName) in defekt" :key="sectionName" class="defekt-section" v-if="section">
+                                                <template v-if="Array.isArray(section)">
+                                                    <div v-for="(field, fieldIndex) in section" :key="fieldIndex" class="defekt-field" v-if="field && field.value">
+                                                        <span class="defekt-field-label">{{ field.label || 'Field' }}:</span>
+                                                        <div class="defekt-field-value">
+                                                            <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                                <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            </template>
+                                                            <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                                <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            </template>
+                                                            <template v-else>
+                                                                <span>{{ formatFieldValue(field) }}</span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
+                                                <template v-else>
+                                                    <div v-for="(field, fieldKey) in section" :key="fieldKey" class="defekt-field" v-if="field && field.value">
+                                                        <span class="defekt-field-label">{{ field.label || fieldKey }}:</span>
+                                                        <div class="defekt-field-value">
+                                                            <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
+                                                                <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            </template>
+                                                            <template v-else-if="field && typeof field.value === 'object' && field.preview">
+                                                                <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            </template>
+                                                            <template v-else>
+                                                                <span>{{ formatFieldValue(field) }}</span>
+                                                            </template>
+                                                        </div>
+                                                    </div>
+                                                </template>
                                             </div>
+                                        </template>
+                                        <div v-else class="defekt-empty">
+                                            <p class="text-muted">Defect data is empty or invalid</p>
                                         </div>
                                     </div>
                                 </div>
