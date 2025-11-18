@@ -404,20 +404,57 @@ const openNewProductModal = () => {
 
 const canAddDefekt = computed(() => {
     if (!currentDefekt.value || !currentProduct.value?.basicInfo.category.value) return false;
+    
+    // Check dynamicDefektData which contains the actual user input
+    const dynamicData = dynamicDefektData.value || {};
+    
+    // If no data at all, return false
+    if (Object.keys(dynamicData).length === 0) {
+        return false;
+    }
+    
+    let hasAnyValue = false;
+    let hasRequiredFields = true;
 
-    // Check each section in the visible fields
+    // Check each section in the template structure
     for (const sectionKey in currentDefekt.value) {
         const fields = currentDefekt.value[sectionKey];
         for (const fieldKey of Object.keys(fields)) {
             const field = currentDefekt.value[sectionKey][fieldKey];
-            if (field.isRequired && !field.value) {
-                console.log(`Required field not filled: ${sectionKey}.${fieldKey}`);
-                return false;
+            const fieldValue = dynamicData[fieldKey]; // Get value from dynamicDefektData
+            
+            // Check required fields
+            if (field.isRequired) {
+                if (!fieldValue || fieldValue === null || fieldValue === undefined || fieldValue === '') {
+                    hasRequiredFields = false;
+                }
+            }
+            
+            // Check if field has any value (for non-required fields, at least one must be filled)
+            if (fieldValue !== null && fieldValue !== undefined && fieldValue !== '') {
+                // Handle File objects
+                if (typeof File !== 'undefined' && fieldValue instanceof File) {
+                    hasAnyValue = true;
+                } else if (Array.isArray(fieldValue) && fieldValue.length > 0) {
+                    hasAnyValue = true;
+                } else if (typeof fieldValue === 'string' && fieldValue.trim() !== '') {
+                    hasAnyValue = true;
+                } else if (typeof fieldValue === 'object' && fieldValue !== null) {
+                    hasAnyValue = true;
+                }
             }
         }
     }
-    return true;
+    
+    // All required fields must be filled AND at least one field must have a value
+    return hasRequiredFields && hasAnyValue;
 });
+
+// Add debug watch for dynamicDefektData to track when fields are filled
+watch(() => dynamicDefektData.value, (newData) => {
+    console.log('Dynamic Defekt Data changed:', newData);
+    console.log('Can add defekt:', canAddDefekt.value);
+}, { deep: true });
 
 // Add debug watch for required fields
 watch(() => currentDefekt.value, () => {
@@ -428,7 +465,8 @@ watch(() => currentDefekt.value, () => {
             Object.keys(fields).forEach(fieldKey => {
                 const field = currentDefekt.value[sectionKey][fieldKey];
                 if (field.isRequired) {
-                    console.log(`${sectionKey}.${fieldKey}: ${field.value ? 'filled' : 'empty'}`);
+                    const fieldValue = dynamicDefektData.value[fieldKey];
+                    console.log(`${sectionKey}.${fieldKey}: ${fieldValue ? 'filled' : 'empty'}`);
                 }
             });
         }
@@ -675,6 +713,7 @@ const goToBack = () => {
                                 <Button 
                                     :type="'primary'" 
                                     :text="editingDefektIndex >= 0 ? 'Update Defect' : 'Add Defect'" 
+                                    :isDisabled="!canAddDefekt"
                                     @click="addDefekt"
                                 />
                             </div>

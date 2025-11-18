@@ -7,6 +7,9 @@ import Button from './Button.vue';
 import Divider from './Divider.vue';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
+// Expose File for template
+const FileConstructor = typeof File !== 'undefined' ? File : null;
+
 const store = useProductStore();
 const router = useRouter();
 
@@ -23,11 +26,31 @@ const sectionTitles = {
 const showProductModal = ref(false);
 const selectedProduct = ref(null);
 
-// Helper to get sections and fields from a defect - convert to plain object first
+// Helper to get sections and fields from a defect - preserve images properly
 const getDefektSections = (defekt) => {
     if (!defekt) return [];
-    // Convert Proxy to plain object
-    const plainDefekt = JSON.parse(JSON.stringify(defekt));
+    
+    // Deep clone preserving File objects and preview strings
+    const plainDefekt = {};
+    Object.keys(defekt).forEach(sectionName => {
+        const section = defekt[sectionName];
+        if (!section || typeof section !== 'object') return;
+        
+        plainDefekt[sectionName] = {};
+        Object.keys(section).forEach(fieldKey => {
+            const field = section[fieldKey];
+            if (field) {
+                // Preserve the field structure, especially preview for images
+                plainDefekt[sectionName][fieldKey] = {
+                    id: field.id || fieldKey,
+                    label: field.label || fieldKey,
+                    value: field.value,
+                    preview: field.preview || null
+                };
+            }
+        });
+    });
+    
     if (typeof plainDefekt !== 'object') return [];
     
     const sections = [];
@@ -38,7 +61,8 @@ const getDefektSections = (defekt) => {
         const fields = [];
         Object.keys(section).forEach(fieldKey => {
             const field = section[fieldKey];
-            if (field && field.value !== null && field.value !== undefined && field.value !== '') {
+            // Include field if it has a value OR a preview (for images)
+            if (field && (field.value !== null && field.value !== undefined && field.value !== '') || field.preview) {
                 fields.push({
                     key: fieldKey,
                     id: field.id || fieldKey,
@@ -62,8 +86,37 @@ const getDefektSections = (defekt) => {
 };
 
 const openProductDetails = (product) => {
-    // Convert Proxy to plain object to avoid reactivity issues
-    selectedProduct.value = JSON.parse(JSON.stringify(product));
+    // Deep clone preserving preview strings for images
+    const cloneProduct = (prod) => {
+        const cloned = {};
+        Object.keys(prod).forEach(key => {
+            if (key === 'defekts' && Array.isArray(prod[key])) {
+                cloned[key] = prod[key].map(defekt => {
+                    const clonedDefekt = {};
+                    Object.keys(defekt).forEach(sectionName => {
+                        const section = defekt[sectionName];
+                        clonedDefekt[sectionName] = {};
+                        Object.keys(section).forEach(fieldKey => {
+                            const field = section[fieldKey];
+                            // Preserve the entire field object including preview
+                            clonedDefekt[sectionName][fieldKey] = {
+                                id: field.id,
+                                label: field.label,
+                                value: field.value,
+                                preview: field.preview || null
+                            };
+                        });
+                    });
+                    return clonedDefekt;
+                });
+            } else {
+                cloned[key] = prod[key];
+            }
+        });
+        return cloned;
+    };
+    
+    selectedProduct.value = cloneProduct(product);
     console.log('=== PRODUCT DETAILS DEBUG ===');
     console.log('Selected product (raw):', selectedProduct.value);
     console.log('Defekts:', selectedProduct.value.defekts);
@@ -88,6 +141,7 @@ const openProductDetails = (product) => {
                             console.log(`      - id:`, field.id);
                             console.log(`      - label:`, field.label);
                             console.log(`      - value:`, field.value);
+                            console.log(`      - preview:`, field.preview);
                             console.log(`      - has value:`, !!field.value);
                         }
                     });
@@ -104,32 +158,135 @@ const closeProductModal = () => {
     selectedProduct.value = null;
 };
 
+// Helper to check if a value is a File instance
+const isFile = (value) => {
+    return FileConstructor && value instanceof FileConstructor;
+};
+
+// Helper to get preview data from a field (similar to DynamicProductForm)
+const getFieldPreviews = (field) => {
+    if (!field) return [];
+    
+    const previews = [];
+    
+    // Check if field has a preview property
+    if (field.preview) {
+        if (typeof field.preview === 'string') {
+            // String preview (data URL)
+            if (field.preview.startsWith('data:image')) {
+                previews.push({ previewType: 'image', url: field.preview, name: field.label || 'Image' });
+            } else if (field.preview.startsWith('data:video')) {
+                previews.push({ previewType: 'video', url: field.preview, name: field.label || 'Video' });
+            }
+        } else if (typeof field.preview === 'object' && field.preview.url) {
+            // Object preview (like in DynamicProductForm)
+            previews.push(field.preview);
+        }
+    }
+    
+    // Check if value is a File or array of Files
+    const value = field.value;
+    if (isFile(value)) {
+        if (value.type.startsWith('image/')) {
+            previews.push({ 
+                previewType: 'image', 
+                url: URL.createObjectURL(value), 
+                name: value.name,
+                size: value.size 
+            });
+        } else if (value.type.startsWith('video/')) {
+            previews.push({ 
+                previewType: 'video', 
+                url: URL.createObjectURL(value), 
+                name: value.name,
+                size: value.size 
+            });
+        }
+    } else if (Array.isArray(value) && value.length > 0) {
+        value.forEach(item => {
+            if (isFile(item)) {
+                if (item.type.startsWith('image/')) {
+                    previews.push({ 
+                        previewType: 'image', 
+                        url: URL.createObjectURL(item), 
+                        name: item.name,
+                        size: item.size 
+                    });
+                } else if (item.type.startsWith('video/')) {
+                    previews.push({ 
+                        previewType: 'video', 
+                        url: URL.createObjectURL(item), 
+                        name: item.name,
+                        size: item.size 
+                    });
+                }
+            } else if (typeof item === 'string' && (item.startsWith('data:image') || item.startsWith('data:video'))) {
+                if (item.startsWith('data:image')) {
+                    previews.push({ previewType: 'image', url: item, name: field.label || 'Image' });
+                } else {
+                    previews.push({ previewType: 'video', url: item, name: field.label || 'Video' });
+                }
+            } else if (item && item.preview) {
+                previews.push(item);
+            }
+        });
+    } else if (typeof value === 'string' && (value.startsWith('data:image') || value.startsWith('data:video'))) {
+        if (value.startsWith('data:image')) {
+            previews.push({ previewType: 'image', url: value, name: field.label || 'Image' });
+        } else {
+            previews.push({ previewType: 'video', url: value, name: field.label || 'Video' });
+        }
+    }
+    
+    return previews;
+};
+
 const formatFieldValue = (field) => {
     if (!field) return '';
+    
+    // If there's a preview, don't show the value as text
+    const previews = getFieldPreviews(field);
+    if (previews.length > 0) {
+        return '';
+    }
+    
     const value = field.value;
     if (value === null || value === undefined || value === '') return '';
 
-    if (typeof File !== 'undefined' && value instanceof File) {
+    if (isFile(value)) {
         return value.name;
     }
 
     if (Array.isArray(value)) {
         return value.map((item) => {
-            if (typeof File !== 'undefined' && item instanceof File) {
+            if (isFile(item)) {
                 return item.name;
             }
             if (typeof item === 'object' && item !== null) {
-                return item.label || item.name || item.value || JSON.stringify(item);
+                return item.label || item.name || item.value || '';
             }
             return item;
-        }).join(', ');
+        }).filter(item => item !== '').join(', ');
     }
 
     if (typeof value === 'object' && value !== null) {
-        return value.label || value.value || JSON.stringify(value);
+        if (Object.keys(value).length === 0) {
+            return '';
+        }
+        return value.label || value.value || '';
     }
 
     return String(value);
+};
+
+// Format file size (same as DynamicProductForm)
+const formatSize = (bytes) => {
+    if (!Number.isFinite(bytes)) return '';
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${(bytes / Math.pow(k, i)).toFixed(1)} ${sizes[i]}`;
 };
 
 const editProduct = (index) => {
@@ -242,12 +399,28 @@ const goToBack = () => {
                                                     <div v-for="field in section.fields" :key="field.key" class="defekt-field">
                                                         <span class="defekt-field-label">{{ field.label || field.key }}:</span>
                                                         <div class="defekt-field-value">
-                                                            <template v-if="field.preview || (typeof field.value === 'string' && field.value.startsWith('data:image'))">
-                                                                <img :src="field.preview || field.value" :alt="field.label || 'Image'" class="detail-image-preview" />
+                                                            <!-- Use the same preview system as DynamicProductForm -->
+                                                            <template v-if="getFieldPreviews(field).length > 0">
+                                                                <div class="attachments-preview-grid">
+                                                                    <div
+                                                                        v-for="(preview, idx) in getFieldPreviews(field)"
+                                                                        :key="idx"
+                                                                        class="attachment-preview"
+                                                                    >
+                                                                        <template v-if="preview.previewType === 'image'">
+                                                                            <img :src="preview.url" :alt="preview.name || field.label" class="detail-image-preview" />
+                                                                        </template>
+                                                                        <template v-else-if="preview.previewType === 'video'">
+                                                                            <video :src="preview.url" controls muted playsinline class="detail-image-preview"></video>
+                                                                        </template>
+                                                                        <div v-if="preview.name || preview.size" class="attachment-meta">
+                                                                            <span v-if="preview.name" class="attachment-name">{{ preview.name }}</span>
+                                                                            <span v-if="preview.size" class="attachment-size">{{ formatSize(preview.size) }}</span>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
                                                             </template>
-                                                            <template v-else-if="field && typeof field.value === 'object' && field.preview">
-                                                                <img :src="field.preview" :alt="field.label || 'Image'" class="detail-image-preview" />
-                                                            </template>
+                                                            <!-- Default: show text value -->
                                                             <template v-else>
                                                                 <span>{{ formatFieldValue(field) }}</span>
                                                             </template>
