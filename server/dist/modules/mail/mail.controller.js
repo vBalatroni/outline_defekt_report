@@ -18,6 +18,19 @@ const platform_express_1 = require("@nestjs/platform-express");
 const multer = require("multer");
 const class_validator_1 = require("class-validator");
 const mail_service_1 = require("./mail.service");
+const sanitizeFolderSegment = (value, fallback) => {
+    const cleaned = String(value !== null && value !== void 0 ? value : '')
+        .replace(/[\\/:*?"<>|]/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
+    return cleaned || fallback;
+};
+const buildFolderName = (contact, email, date) => {
+    const namePart = sanitizeFolderSegment(contact, 'Unknown');
+    const emailPart = sanitizeFolderSegment(email, 'unknown');
+    const datePart = sanitizeFolderSegment(date, 'unknown-date');
+    return `${namePart} - ${emailPart} - ${datePart}`;
+};
 class SendMailDto {
 }
 __decorate([
@@ -57,6 +70,21 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], SendMailDto.prototype, "attachments", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SendMailDto.prototype, "customerContactName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], SendMailDto.prototype, "customerCompanyName", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsEmail)(),
+    __metadata("design:type", String)
+], SendMailDto.prototype, "customerEmail", void 0);
 let MailController = class MailController {
     constructor(mail) {
         this.mail = mail;
@@ -69,13 +97,20 @@ let MailController = class MailController {
             throw new common_1.HttpException('Missing recipients', common_1.HttpStatus.BAD_REQUEST);
         }
         try {
-            const senderEmail = body.customerRecipient || body.testRecipient || body.supplierRecipient || '';
             const now = new Date();
             const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-            const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
-            const safeEmail = String(senderEmail || 'unknown').replace(/[^a-zA-Z0-9_.@+-]/g, '_');
-            const idPart = body.submissionId || `${Date.now()}`;
-            const folderName = `${safeEmail}-${ts}-${idPart}`;
+            const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+            const contactRaw = body.customerContactName ||
+                body.customerCompanyName ||
+                body.customerRecipient ||
+                body.testRecipient ||
+                '';
+            const emailRaw = body.customerEmail ||
+                body.customerRecipient ||
+                body.testRecipient ||
+                body.supplierRecipient ||
+                '';
+            const folderName = buildFolderName(contactRaw, emailRaw, datePart);
             const folder = await this.mail.saveReportsToDrive(body.supplierHtml, body.customerHtml, folderName);
             if (Array.isArray(body.attachments) && body.attachments.length > 0) {
                 await this.mail.saveAttachmentsToDrive(folder.id, body.attachments);
@@ -113,9 +148,12 @@ let MailController = class MailController {
             const senderEmail = customerTo || supplierTo || '';
             const now = new Date();
             const pad = (n) => (n < 10 ? `0${n}` : `${n}`);
-            const ts = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}_${pad(now.getHours())}-${pad(now.getMinutes())}`;
-            const safeEmail = String(senderEmail || 'unknown').replace(/[^a-zA-Z0-9_.@+-]/g, '_');
-            const folderName = `${safeEmail}-${ts}-${submissionId}`;
+            const datePart = `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+            const contactRaw = body.customerContactName ||
+                body.customerCompanyName ||
+                senderEmail;
+            const emailRaw = body.customerEmail || customerTo || supplierTo || senderEmail;
+            const folderName = buildFolderName(contactRaw, emailRaw, datePart);
             const folder = await this.mail.saveReportsToDrive(supplierHtml, customerHtml, folderName);
             if (Array.isArray(files) && files.length > 0) {
                 console.log('[send-multipart] received files:', files.map(f => ({ name: f.originalname, size: f.size, mimetype: f.mimetype })));
@@ -143,8 +181,24 @@ let MailController = class MailController {
         }
     }
     async auth(res) {
-        const url = this.mail.generateGoogleAuthUrl();
-        return res.redirect(url);
+        try {
+            if (!process.env.GOOGLE_CLIENT_ID || !process.env.GOOGLE_CLIENT_SECRET) {
+                return res.status(400).json({
+                    error: 'OAuth2 not configured',
+                    message: 'GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET must be set in environment variables'
+                });
+            }
+            const url = this.mail.generateGoogleAuthUrl();
+            console.log('[OAuth2] Redirecting to Google:', url);
+            return res.redirect(url);
+        }
+        catch (error) {
+            console.error('[OAuth2] Error generating auth URL:', error);
+            return res.status(500).json({
+                error: 'Failed to generate OAuth2 URL',
+                message: error.message || 'Unknown error'
+            });
+        }
     }
     async oauthCallback(code) {
         if (!code) {

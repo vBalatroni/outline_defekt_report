@@ -560,7 +560,6 @@ const goToBack = () => {
             <div class="modal-button my-5 mx-auto text-center">
                 <Button @click="openNewProductModal" :type="'primary'" :text="'Add product'"></Button>
             </div>
-            <Divider/>
             <div v-if="savedProducts.length > 0" class="saved-products mb-5">
                 <h3 class="section-header mb-4">Saved Products</h3>
                 <div class="product-list">
@@ -640,8 +639,8 @@ const goToBack = () => {
                         <!-- Product Summary Section -->
                         <div class="product-summary mb-4">
                             <div class="product-summary-header">
-                                <h3 class="section-header mb-0">Product Overview</h3>
                                 <button class="link-button" type="button" @click="editBasicInfo">Change product</button>
+                                <h3 class="section-header mb-0 product-overview">Product Overview</h3>
                             </div>
                             <div class="product-info-box">
                                 <div class="product-info-grid">

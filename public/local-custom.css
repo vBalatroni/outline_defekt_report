@@ -1,0 +1,1144 @@
+/* 
+ * ============================================
+ * CSS LOCALE PER SVILUPPO
+ * ============================================
+ * 
+ * Questo file viene letto AUTOMATICAMENTE in fase di sviluppo locale.
+ * Modifica questo file per testare le modifiche CSS senza dover salvare sul backend.
+ * 
+ * IMPORTANTE:
+ * - In sviluppo: questo file ha la PRIORITÀ sul CSS salvato nel backend
+ * - In produzione: viene IGNORATO, viene usato solo il CSS dal backend
+ * 
+ * WORKFLOW:
+ * 1. Modifica questo file (public/local-custom.css)
+ * 2. Ricarica la pagina per vedere le modifiche
+ * 3. Quando sei soddisfatto, copia il contenuto nella tab "Custom CSS" 
+ *    dell'editor di configurazione (admin/config-editor) e salva
+ * 
+ * ============================================
+ */
+/* Import font moderno simile a Outline */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Reset e base styling - Stile help page */
+body {
+  background-color: #ffffff !important;
+}
+
+.form-layout,
+.container {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  letter-spacing: -0.01em;
+  color: #1a1a1a;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 2.5rem 2rem !important;
+
+}
+
+/* Uniformare larghezza e padding tra tutte le pagine */
+.form-layout {
+  max-width: 1200px !important;
+  padding: 0 2rem !important;
+}
+
+@media screen and (max-width: 768px) {
+  .form-layout,
+  .container {
+    padding: 1rem 1rem !important;
+  }
+}
+
+/* Step Header - Stile help page - Spaziature ridotte */
+.step-header {
+  margin-bottom: 2.5rem !important;
+  padding-bottom: 0 !important;
+}
+
+.step-header-top {
+  display: flex !important;
+  align-items: center !important;
+  gap: 1.5rem !important;
+  justify-content: space-between;
+  margin-bottom: 1rem !important;
+
+}
+
+.step-logo {
+  flex-shrink: 0 !important;
+  object-fit: contain !important;
+}
+
+
+
+.step-header .divider {
+  margin-top: 1.5rem !important;
+  margin-bottom: 0 !important;
+}
+
+/* Step Title - Stile Outline help page */
+.step-title {
+  text-align: end !important;
+  font-weight: 400 !important;
+  font-size: 4rem !important;
+  line-height: 1.1 !important;
+  letter-spacing: -0.04em !important;
+  color: #000 !important;
+  margin: 0 !important;
+  text-transform: none !important;
+  font-style: normal !important;
+}
+
+/* Step Subtitle - Stile help page */
+.step-subtitle {
+  font-weight: 300 !important;
+  font-size: 1.25rem !important;
+  line-height: 1.6 !important;
+  color: #666 !important;
+  margin: 0 !important;
+  margin-top: 1rem !important;
+  max-width: 700px !important;
+}
+
+/* Section Header - Stile help page - Spaziature ridotte - Titoli più grandi */
+.section-header {
+  font-weight: 400 !important;
+  font-size: 2.5rem !important;
+  letter-spacing: -0.03em !important;
+  color: #000 !important;
+  margin-top: 2.5rem !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.product-overview {
+    margin-top: 0 !important;
+}
+
+/* Step List - Stile help page, più pulito - Spaziature ridotte */
+.step-list {
+  list-style: none !important;
+  padding-left: 0 !important;
+  margin: 2rem 0 !important;
+  max-width: 800px !important;
+}
+
+.step-list li {
+  font-size: 1.125rem !important;
+  line-height: 2 !important;
+  color: #333 !important;
+  padding: 1rem 0 !important;
+  padding-left: 2rem !important;
+  position: relative !important;
+  transition: color 0.2s ease !important;
+  font-weight: 300 !important;
+}
+
+.step-list li::before {
+  content: '—' !important;
+  position: absolute !important;
+  left: 0 !important;
+  color: #000 !important;
+  font-weight: 400 !important;
+  font-size: 1rem !important;
+  top: 1rem !important;
+}
+
+.step-list li:hover {
+  color: #000 !important;
+}
+
+/* Buttons - Stile help page, più sottile */
+.button {
+  font-family: 'Inter', sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 0.875rem !important;
+  letter-spacing: 0.1em !important;
+  text-transform: uppercase !important;
+  padding: 16px 40px !important;
+  border-radius: 0 !important;
+  transition: all 0.25s ease !important;
+  border: 1px solid !important;
+  cursor: pointer !important;
+  position: relative !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+.button.primary-button {
+  background-color: #000 !important;
+  color: #fff !important;
+  border-color: #000 !important;
+}
+
+.button.primary-button:hover:not(.disabled) {
+  background-color: #333 !important;
+  border-color: #333 !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.button.secondary-button {
+  background-color: transparent !important;
+  color: #000 !important;
+  border-color: #000 !important;
+}
+
+.button.secondary-button:hover:not(.disabled) {
+  background-color: #000 !important;
+  color: #fff !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+.button.disabled {
+  opacity: 0.4 !important;
+  cursor: not-allowed !important;
+}
+
+/* Button Group - Stile help page - Back a sinistra, Next a destra */
+.button-group {
+  margin-top: 2.5rem !important;
+  margin-bottom: 1.5rem !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: center !important;
+  gap: 1.5rem !important;
+  flex-wrap: wrap !important;
+  padding-top: 1.5rem !important;
+  border-top: 1px solid #e0e0e0 !important;
+  width: 100% !important;
+}
+
+/* Quando c'è un solo pulsante (come in confirmation step), allinealo a destra */
+.confirmation-step .button-group {
+  justify-content: flex-end !important;
+}
+
+@media screen and (max-width: 768px) {
+  .button-group {
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+  
+  .button {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+}
+
+/* Input Fields - Stile help page, più pulito */
+.input-field input,
+.input-field select,
+.input-field textarea {
+  font-family: 'Inter', sans-serif !important;
+  font-size: 1rem !important;
+  font-weight: 300 !important;
+  padding: 14px 18px !important;
+  border: 1px solid #d0d0d0 !important;
+  border-radius: 0 !important;
+  background-color: #fff !important;
+  color: #1a1a1a !important;
+  transition: all 0.2s ease !important;
+  width: 100% !important;
+  appearance: none !important;
+}
+
+.input-field input:focus,
+.input-field select:focus,
+.input-field textarea:focus {
+  outline: none !important;
+  border-color: #000 !important;
+  box-shadow: none !important;
+}
+
+.input-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 9L1 4h10z'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: right 16px center !important;
+  padding-right: 40px !important;
+}
+
+.input-field label {
+  font-weight: 400 !important;
+  font-size: 0.875rem !important;
+  color: #666 !important;
+  margin-bottom: 0.75rem !important;
+  display: block !important;
+  letter-spacing: 0.01em !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+}
+
+/* Checkbox - Stile help page - Spaziature ridotte */
+.custom-checkbox {
+  margin: 1.5rem 0 !important;
+}
+
+.custom-checkbox .form-check-input {
+  width: 20px !important;
+  height: 20px !important;
+  border: 1px solid #000 !important;
+  border-radius: 0 !important;
+  cursor: pointer !important;
+  transition: all 0.2s ease !important;
+  margin-right: 1rem !important;
+  margin-top: 0.25rem !important;
+  flex-shrink: 0 !important;
+}
+
+.custom-checkbox .form-check-input:checked {
+  background-color: #000 !important;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='white' d='M8.5 2.5L4 7L1.5 4.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") !important;
+  background-repeat: no-repeat !important;
+  background-position: center !important;
+}
+
+.custom-checkbox .form-check-label {
+  font-size: 1rem !important;
+  font-weight: 300 !important;
+  color: #333 !important;
+  cursor: pointer !important;
+  line-height: 1.6 !important;
+  flex: 1 !important;
+}
+
+/* Divider - Linea elegante stile help - Spaziature ridotte */
+.divider {
+  width: 100% !important;
+  height: 1px !important;
+  background-color: #e0e0e0 !important;
+  margin: 2rem 0 !important;
+  border: none !important;
+}
+
+/* Tutti gli step - Layout uniforme con spaziature ridotte e larghezza uniforme */
+.confirmation-step,
+.general-data-step,
+.products-step,
+.summary-step {
+  min-height: auto !important;
+  display: block !important;
+}
+
+.confirmation-wrapper,
+.general-data-wrapper,
+.products-wrapper,
+.summary-wrapper {
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+
+}
+
+.step-body {
+  max-width: 1200px !important;
+}
+
+/* Uniformare header tra tutte le pagine */
+.step-header {
+  max-width: 1200px !important;
+}
+
+@media screen and (max-width: 768px) {
+  .confirmation-wrapper,
+  .general-data-wrapper,
+  .products-wrapper,
+  .summary-wrapper,
+  .step-header {
+    /* padding: 0 1rem !important; */
+  }
+}
+
+/* Progress Bar - Stile moderno */
+.progress.progress-custom {
+  height: 3px !important;
+  background-color: #e8e8e8 !important;
+  border-radius: 0 !important;
+  overflow: hidden !important;
+}
+
+.progress.progress-custom .progress-bar {
+  background-color: #000 !important;
+  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;
+  height: 100% !important;
+}
+
+/* Modal - Stile uniformato senza background grigi */
+.custom-modal .modal-content {
+  border-radius: 0 !important;
+  border: none !important;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;
+  background-color: #fff !important;
+}
+
+.custom-modal .modal-dialog {
+  max-width: 1100px !important;
+}
+
+.modal-button {
+  margin: 1.5rem 0 !important;
+  text-align: center !important;
+}
+
+.buttons-section {
+  display: flex !important;
+  justify-content: space-between !important;
+  gap: 1rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+.modal-header-custom {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.modal-header-custom .btn-close {
+  background: none !important;
+  border: none !important;
+  font-size: 1.5rem !important;
+  cursor: pointer !important;
+  color: #666 !important;
+  padding: 0 !important;
+  width: auto !important;
+  height: auto !important;
+  opacity: 1 !important;
+}
+
+.modal-header-custom .btn-close:hover {
+  color: #000 !important;
+}
+
+.modal-body-custom {
+  max-height: 70vh !important;
+  overflow-y: auto !important;
+  padding-right: 1.5rem !important;
+}
+
+/* Centrare contenuto modale aggiunta prodotti */
+.products-step .modal-body-custom {
+  max-width: 900px !important;
+  margin: 0 auto !important;
+  padding: 1.5rem 2rem !important;
+}
+
+.modal-footer-custom {
+  display: flex !important;
+  justify-content: flex-end !important;
+  padding-top: 1.5rem !important;
+  border-top: 1px solid #e0e0e0 !important;
+  margin-top: 1.5rem !important;
+}
+
+/* Product Details Modal Styles */
+.product-details-section {
+  margin-bottom: 2.5rem !important;
+}
+
+.details-section-title {
+  font-size: 1.5rem !important;
+  font-weight: 400 !important;
+  color: #000 !important;
+  margin-bottom: 1.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.details-grid {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+  gap: 1.5rem !important;
+}
+
+.detail-item {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+}
+
+.detail-label {
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: #666 !important;
+  font-weight: 400 !important;
+}
+
+.detail-value {
+  font-size: 1rem !important;
+  color: #000 !important;
+  font-weight: 400 !important;
+}
+
+/* Defekts Grid - 3 colonne */
+.defekts-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.5rem !important;
+  margin-top: 1.5rem !important;
+}
+
+@media screen and (max-width: 1024px) {
+  .defekts-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .defekts-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.defekt-detail-card {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 0 !important;
+  padding: 1.5rem !important;
+  background-color: #f9f9f9 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  min-height: 200px !important;
+}
+
+.defekt-detail-card h5 {
+  margin-top: 0 !important;
+}
+
+.defekt-detail-header {
+  font-size: 1.125rem !important;
+  font-weight: 500 !important;
+  color: #000 !important;
+  margin-bottom: 1rem !important;
+  padding-bottom: 0.75rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.defekt-section {
+  margin-bottom: 1.25rem !important;
+  padding-bottom: 1.25rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.defekt-section:last-child {
+  border-bottom: none !important;
+  margin-bottom: 0 !important;
+  padding-bottom: 0 !important;
+}
+
+.defekt-field {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  margin-bottom: 0.75rem !important;
+}
+
+.defekt-field:last-child {
+  margin-bottom: 0 !important;
+}
+
+.defekt-empty {
+  padding: 1rem !important;
+  text-align: center !important;
+  color: #999 !important;
+}
+
+.defekt-field-label {
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: #666 !important;
+  font-weight: 400 !important;
+}
+
+.defekt-field-value {
+  font-size: 1rem !important;
+  color: #000 !important;
+  font-weight: 400 !important;
+}
+
+.detail-image-preview {
+  max-width: 300px !important;
+  max-height: 300px !important;
+  border-radius: 0 !important;
+  border: 1px solid #e0e0e0 !important;
+  margin-top: 0.5rem !important;
+  object-fit: cover !important;
+}
+
+/* Product Overview nel modale - Uniformato senza background grigio */
+.product-summary {
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin-bottom: 2rem !important;
+  background: transparent !important;
+}
+
+.product-summary-header {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  margin-bottom: 1.5rem !important;
+  gap: 1rem !important;
+}
+
+.product-info-box {
+  background-color: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+.product-info-grid {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.5rem !important;
+}
+
+@media screen and (max-width: 768px) {
+  .product-info-grid {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.product-info-item {
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  border-radius: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.5rem !important;
+  padding-bottom: 1rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.info-label {
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  font-weight: 400 !important;
+  color: #666 !important;
+}
+
+.info-value {
+  font-size: 1rem !important;
+  font-weight: 400 !important;
+  color: #000 !important;
+}
+
+.link-button {
+  background: none !important;
+  border: none !important;
+  text-decoration: underline !important;
+  padding: 0 !important;
+  font-size: 0.875rem !important;
+  cursor: pointer !important;
+  font-weight: 400 !important;
+  color: #000 !important;
+}
+
+.link-button:hover {
+  text-decoration: underline !important;
+}
+
+/* Defect Form nel modale - Uniformato */
+.defect-form {
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  margin-bottom: 2rem !important;
+  background-color: transparent !important;
+}
+
+/* Report Summary nel modale - Uniformato */
+.report-summary {
+  padding: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  background-color: transparent !important;
+  margin-top: 2rem !important;
+}
+
+.defekt-card {
+  display: flex !important;
+  justify-content: space-between !important;
+  align-items: flex-start !important;
+  padding: 1.25rem !important;
+  width: 50%;
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 0 !important;
+  margin-bottom: 1rem !important;
+  background-color: #f5f5f5 !important;
+  gap: 1rem !important;
+}
+
+.defekt-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+}
+
+.defekt-actions i {
+  font-size: 1.25rem !important;
+  color: #666 !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+}
+
+.defekt-actions i:hover {
+  color: #000 !important;
+}
+
+.defekt-info {
+  flex: 1 !important;
+}
+
+.summary-field {
+  margin-bottom: 1rem !important;
+}
+
+.summary-field-label {
+  display: block !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: #666 !important;
+  font-weight: 400 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.summary-field-value {
+  font-size: 1rem !important;
+  color: #000 !important;
+  font-weight: 400 !important;
+}
+
+.summary-image-preview {
+  max-width: 150px !important;
+  max-height: 150px !important;
+  border-radius: 0 !important;
+  border: 1px solid #e0e0e0 !important;
+  margin-top: 0.5rem !important;
+  object-fit: cover !important;
+}
+
+/* Products Step - Rimuovere background grigio arrotondato */
+.products-step {
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+}
+
+/* Product Cards - Stile moderno uniforme con background grigio chiaro */
+.product-card {
+  border: 1px solid #e0e0e0 !important;
+  border-radius: 0 !important;
+  padding: 1.25rem !important;
+  margin-bottom: 1rem !important;
+  transition: all 0.2s ease !important;
+  background-color: #f5f5f5 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+}
+
+.product-card:hover {
+  border-color: #000 !important;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;
+}
+
+.product-actions {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0.75rem !important;
+  margin-right: 0 !important;
+}
+
+.product-actions i {
+  font-size: 1.25rem !important;
+  color: #666 !important;
+  cursor: pointer !important;
+  transition: color 0.2s ease !important;
+}
+
+.product-actions i:hover {
+  color: #000 !important;
+}
+
+.product-info {
+  flex: 1 !important;
+}
+
+.product-info h4 {
+  font-weight: 500 !important;
+  font-size: 1.125rem !important;
+  margin-bottom: 0.5rem !important;
+  color: #000 !important;
+}
+
+.product-info p {
+  font-size: 0.9rem !important;
+  color: #666 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.product-list {
+  margin-bottom: 1.5rem !important;
+}
+
+.saved-products {
+  margin-bottom: 2rem !important;
+  background-color: transparent !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+}
+
+.saved-products .section-header {
+  margin-top: 0 !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Summary Step - Ridurre bordi e uniformare layout */
+.summary-step .section-header {
+  font-size: 2.5rem !important;
+  margin-top: 0 !important;
+}
+
+/* Products in Summary e Products Step - Layout griglia a colonne */
+.summary-step .product-list,
+.products-step .product-list {
+  display: grid !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  gap: 1.5rem !important;
+  margin-bottom: 2rem !important;
+}
+
+@media screen and (max-width: 1024px) {
+  .summary-step .product-list,
+  .products-step .product-list {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .summary-step .product-list,
+  .products-step .product-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+.summary-step .product-card,
+.products-step .product-card {
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 1rem !important;
+  min-height: auto !important;
+}
+
+.summary-step .product-info,
+.products-step .product-info {
+  flex: 1 !important;
+}
+
+.summary-step .product-info h4,
+.products-step .product-info h4 {
+  font-size: 1.125rem !important;
+  margin-bottom: 0.5rem !important;
+  font-weight: 500 !important;
+  color: #000 !important;
+}
+
+.summary-step .product-info p,
+.products-step .product-info p {
+  font-size: 0.9rem !important;
+  margin-bottom: 0.25rem !important;
+  color: #666 !important;
+}
+
+.summary-step .defects-count {
+  margin-top: 0.5rem !important;
+  font-size: 0.9rem !important;
+}
+
+.summary-step .defects-count strong {
+  color: #000 !important;
+  font-weight: 500 !important;
+}
+
+@media screen and (max-width: 1024px) {
+  .summary-step .product-list,
+  .products-step .product-list {
+    grid-template-columns: 1fr !important;
+  }
+}
+
+/* Info Card per Summary Step - Meno bordi, layout più pulito */
+.recap-general-info {
+  margin-bottom: 2rem !important;
+  display: flex !important;
+  gap: 2rem !important;
+  flex-direction: column !important;
+  
+
+}
+
+.single-info-card {
+    justify-content: space-between;
+    display: flex !important;
+    flex-direction: row !important;
+  width: 100%;
+}
+
+@media screen and (max-width: 768px) {
+  .single-info-card {
+    flex-direction: column !important;
+  }
+  .info-card {
+    width: 100% !important;
+  }
+  .info-item {
+    max-width: 49% !important;
+    width: 47% !important;
+  }
+}
+.single-info-card {
+  width: 100%;
+}
+.info-card {
+    width: 60%;
+  display: flex !important;
+  flex-wrap: wrap;
+  gap: 1rem;
+  border: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin-bottom: 0 !important;
+  background-color: transparent !important;
+  padding-bottom: 1.5rem !important;
+}
+
+.info-item {
+  max-width: 32%;
+  margin-bottom: 0.75rem !important;
+  font-size: 1rem !important;
+  line-height: 1.6 !important;
+  color: #333 !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: none !important;
+}
+
+.info-item strong {
+  font-weight: 900 !important;
+  color: #000 !important;
+  margin-right: 0.5rem !important;
+  display: block !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  margin-bottom: 0.25rem !important;
+}
+
+/* Defekt Summary in Summary Step - Stile uniformato come Saved Products */
+.summary-step .saved-products {
+  margin-top: 2rem !important;
+}
+
+.summary-step .product-card {
+  background-color: #f5f5f5 !important;
+  border: 1px solid #e0e0e0 !important;
+}
+
+.summary-step .defects-summary {
+  margin-top: 1.5rem !important;
+  padding-top: 1.5rem !important;
+  border-top: 1px solid #e0e0e0 !important;
+}
+
+.summary-step .defekt-details {
+  margin-top: 1rem !important;
+  padding-left: 0 !important;
+  border-left: none !important;
+  padding-top: 1rem !important;
+  border-top: 1px solid #e0e0e0 !important;
+}
+
+.defekt-summary-header {
+  font-weight: 500 !important;
+  font-size: 1.125rem !important;
+  margin-bottom: 1rem !important;
+  color: #000 !important;
+  padding-bottom: 0.5rem !important;
+  border-bottom: 1px solid #e0e0e0 !important;
+}
+
+.defekt-summary-item {
+  font-size: 0.95rem !important;
+  color: #333 !important;
+  margin-bottom: 0.75rem !important;
+  line-height: 1.6 !important;
+  padding-bottom: 0.5rem !important;
+}
+
+.summary-step .summary-field-label {
+  display: block !important;
+  font-size: 0.75rem !important;
+  text-transform: uppercase !important;
+  letter-spacing: 0.1em !important;
+  color: #666 !important;
+  font-weight: 400 !important;
+  margin-bottom: 0.25rem !important;
+}
+
+.summary-step .summary-field-value {
+  font-size: 1rem !important;
+  color: #000 !important;
+  font-weight: 400 !important;
+}
+
+/* Input List - Layout migliorato */
+.input-list {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  gap: 1.5rem !important;
+  margin-bottom: 1.5rem !important;
+}
+
+/* Input Wrapper - Base */
+.input-wrapper {
+  margin-bottom: 1.25rem !important;
+}
+
+/* Mobile (< 768px) - 1 colonna */
+@media screen and (max-width: 767px) {
+  .input-wrapper {
+    flex: 0 0 100% !important;
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+}
+
+/* Tablet (768px - 1024px) - 2 colonna */
+@media screen and (min-width: 768px) and (max-width: 1024px) {
+  .input-wrapper {
+    flex: 0 0 48% !important;
+    max-width: 48% !important;
+    width: 48% !important;
+  }
+}
+
+/* Desktop (> 1024px) - 3 colonne massimo */
+@media screen and (min-width: 1025px) {
+  .input-wrapper {
+    flex: 0 0 calc(33.333% - 1rem) !important;
+    max-width: calc(33.333% - 1rem) !important;
+    width: calc(33.333% - 1rem) !important;
+  }
+  
+  /* Override Bootstrap col-md-4 se presente */
+  .input-wrapper.col-md-4 {
+    flex: 0 0 calc(33.333% - 1rem) !important;
+    max-width: calc(33.333% - 1rem) !important;
+    width: calc(33.333% - 1rem) !important;
+  }
+}
+
+/* Rimuoviamo duplicati - già definiti sopra */
+
+/* Success Step - Spaziature ridotte */
+.success-step {
+  text-align: center !important;
+}
+
+/* Responsive improvements - Stile help page */
+@media screen and (max-width: 768px) {
+  .step-title {
+    font-size: 2rem !important;
+    
+  }
+  
+  .step-subtitle {
+    font-size: 1.125rem !important;
+  }
+  
+  .section-header {
+    font-size: 2rem !important;
+    margin-top: 2rem !important;
+  }
+  
+  
+  
+  .input-wrapper {
+    width: 100% !important;
+  }
+  
+  .confirmation-wrapper,
+  .general-data-wrapper,
+  .products-wrapper,
+  .summary-wrapper {
+    /* padding: 0 0.5rem !important; */
+  }
+  
+  .step-body {
+    padding: 1rem 0 !important;
+  }
+  
+  .confirmation-step,
+  .products-step,
+  .summary-step {
+  }
+  
+  .step-logo {
+    width: 200px !important;
+  }
+  
+  .step-header-top {
+    gap: 1rem !important;
+  }
+}
+
+/* Animazioni sottili - più discrete */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.confirmation-step,
+.general-data-step,
+.products-step,
+.summary-step {
+  animation: fadeIn 0.5s ease-out !important;
+}
+
+/* Focus states migliorati */
+*:focus-visible {
+  outline: 2px solid #000 !important;
+  outline-offset: 2px !important;
+}
+
+/* Scrollbar personalizzata (opzionale) */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #000;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #333;
+}

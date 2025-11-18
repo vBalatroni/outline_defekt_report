@@ -1,1033 +1,40 @@
 {
+  "customCss": "/* \n * CSS ispirato al design di Outline.it /help\n * Applica questo CSS nella tab \"Custom CSS\" dell'editor di configurazione\n * Basato su: https://outline.it/help/\n */\n\n/* Import font moderno simile a Outline */\n@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');\n\n/* Reset e base styling - Stile help page */\nbody {\n  background-color: #ffffff !important;\n}\n\n.form-layout,\n.container {\n  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;\n  letter-spacing: -0.01em;\n  color: #1a1a1a;\n  max-width: 1200px !important;\n  margin: 0 auto !important;\n  padding: 0 2rem !important;\n}\n\n/* Uniformare larghezza e padding tra tutte le pagine */\n.form-layout {\n  max-width: 1200px !important;\n  padding: 0 2rem !important;\n}\n\n@media screen and (max-width: 768px) {\n  .form-layout,\n  .container {\n    padding: 0 1rem !important;\n  }\n}\n\n/* Step Header - Stile help page - Spaziature ridotte */\n.step-header {\n  margin-bottom: 2.5rem !important;\n  padding-bottom: 0 !important;\n}\n\n.step-header-top {\n  display: flex !important;\n  align-items: flex-start !important;\n  gap: 1.5rem !important;\n  margin-bottom: 1rem !important;\n}\n\n.step-logo {\n  width: 48px !important;\n  height: 48px !important;\n  flex-shrink: 0 !important;\n  object-fit: contain !important;\n}\n\n.step-header-content {\n  flex: 1 !important;\n}\n\n.step-header .divider {\n  margin-top: 1.5rem !important;\n  margin-bottom: 0 !important;\n}\n\n/* Step Title - Stile Outline help page */\n.step-title {\n  font-weight: 400 !important;\n  font-size: 4rem !important;\n  line-height: 1.1 !important;\n  letter-spacing: -0.04em !important;\n  color: #000 !important;\n  margin: 0 !important;\n  margin-bottom: 1rem !important;\n  text-transform: none !important;\n  font-style: normal !important;\n}\n\n/* Step Subtitle - Stile help page */\n.step-subtitle {\n  font-weight: 300 !important;\n  font-size: 1.25rem !important;\n  line-height: 1.6 !important;\n  color: #666 !important;\n  margin: 0 !important;\n  margin-top: 1rem !important;\n  max-width: 700px !important;\n}\n\n/* Section Header - Stile help page - Spaziature ridotte - Titoli più grandi */\n.section-header {\n  font-weight: 400 !important;\n  font-size: 2.5rem !important;\n  letter-spacing: -0.03em !important;\n  color: #000 !important;\n  margin-top: 2.5rem !important;\n  margin-bottom: 1.5rem !important;\n  padding-bottom: 0.5rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n/* Step List - Stile help page, più pulito - Spaziature ridotte */\n.step-list {\n  list-style: none !important;\n  padding-left: 0 !important;\n  margin: 2rem 0 !important;\n  max-width: 800px !important;\n}\n\n.step-list li {\n  font-size: 1.125rem !important;\n  line-height: 2 !important;\n  color: #333 !important;\n  padding: 1rem 0 !important;\n  padding-left: 2rem !important;\n  position: relative !important;\n  transition: color 0.2s ease !important;\n  font-weight: 300 !important;\n}\n\n.step-list li::before {\n  content: '—' !important;\n  position: absolute !important;\n  left: 0 !important;\n  color: #000 !important;\n  font-weight: 400 !important;\n  font-size: 1rem !important;\n  top: 1rem !important;\n}\n\n.step-list li:hover {\n  color: #000 !important;\n}\n\n/* Buttons - Stile help page, più sottile */\n.button {\n  font-family: 'Inter', sans-serif !important;\n  font-weight: 400 !important;\n  font-size: 0.875rem !important;\n  letter-spacing: 0.1em !important;\n  text-transform: uppercase !important;\n  padding: 16px 40px !important;\n  border-radius: 0 !important;\n  transition: all 0.25s ease !important;\n  border: 1px solid !important;\n  cursor: pointer !important;\n  position: relative !important;\n  overflow: hidden !important;\n  background: transparent !important;\n}\n\n.button.primary-button {\n  background-color: #000 !important;\n  color: #fff !important;\n  border-color: #000 !important;\n}\n\n.button.primary-button:hover:not(.disabled) {\n  background-color: #333 !important;\n  border-color: #333 !important;\n  transform: none !important;\n  box-shadow: none !important;\n}\n\n.button.secondary-button {\n  background-color: transparent !important;\n  color: #000 !important;\n  border-color: #000 !important;\n}\n\n.button.secondary-button:hover:not(.disabled) {\n  background-color: #000 !important;\n  color: #fff !important;\n  transform: none !important;\n  box-shadow: none !important;\n}\n\n.button.disabled {\n  opacity: 0.4 !important;\n  cursor: not-allowed !important;\n}\n\n/* Button Group - Stile help page - Back a sinistra, Next a destra */\n.button-group {\n  margin-top: 2.5rem !important;\n  margin-bottom: 1.5rem !important;\n  display: flex !important;\n  justify-content: space-between !important;\n  align-items: center !important;\n  gap: 1.5rem !important;\n  flex-wrap: wrap !important;\n  padding-top: 1.5rem !important;\n  border-top: 1px solid #e0e0e0 !important;\n  width: 100% !important;\n}\n\n/* Quando c'è un solo pulsante (come in confirmation step), allinealo a destra */\n.confirmation-step .button-group {\n  justify-content: flex-end !important;\n}\n\n@media screen and (max-width: 768px) {\n  .button-group {\n    flex-direction: column !important;\n    gap: 1rem !important;\n  }\n  \n  .button {\n    width: 100% !important;\n    max-width: 100% !important;\n  }\n}\n\n/* Input Fields - Stile help page, più pulito */\n.input-field input,\n.input-field select,\n.input-field textarea {\n  font-family: 'Inter', sans-serif !important;\n  font-size: 1rem !important;\n  font-weight: 300 !important;\n  padding: 14px 18px !important;\n  border: 1px solid #d0d0d0 !important;\n  border-radius: 0 !important;\n  background-color: #fff !important;\n  color: #1a1a1a !important;\n  transition: all 0.2s ease !important;\n  width: 100% !important;\n  appearance: none !important;\n}\n\n.input-field input:focus,\n.input-field select:focus,\n.input-field textarea:focus {\n  outline: none !important;\n  border-color: #000 !important;\n  box-shadow: none !important;\n}\n\n.input-field select {\n  background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%23000' d='M6 9L1 4h10z'/%3E%3C/svg%3E\") !important;\n  background-repeat: no-repeat !important;\n  background-position: right 16px center !important;\n  padding-right: 40px !important;\n}\n\n.input-field label {\n  font-weight: 400 !important;\n  font-size: 0.875rem !important;\n  color: #666 !important;\n  margin-bottom: 0.75rem !important;\n  display: block !important;\n  letter-spacing: 0.01em !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n}\n\n/* Checkbox - Stile help page - Spaziature ridotte */\n.custom-checkbox {\n  margin: 1.5rem 0 !important;\n  padding: 1rem 0 !important;\n}\n\n.custom-checkbox .form-check-input {\n  width: 20px !important;\n  height: 20px !important;\n  border: 1px solid #000 !important;\n  border-radius: 0 !important;\n  cursor: pointer !important;\n  transition: all 0.2s ease !important;\n  margin-right: 1rem !important;\n  margin-top: 0.25rem !important;\n  flex-shrink: 0 !important;\n}\n\n.custom-checkbox .form-check-input:checked {\n  background-color: #000 !important;\n  background-image: url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='10' viewBox='0 0 10 10'%3E%3Cpath fill='white' d='M8.5 2.5L4 7L1.5 4.5' stroke='white' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E\") !important;\n  background-repeat: no-repeat !important;\n  background-position: center !important;\n}\n\n.custom-checkbox .form-check-label {\n  font-size: 1rem !important;\n  font-weight: 300 !important;\n  color: #333 !important;\n  cursor: pointer !important;\n  line-height: 1.6 !important;\n  flex: 1 !important;\n}\n\n/* Divider - Linea elegante stile help - Spaziature ridotte */\n.divider {\n  width: 100% !important;\n  height: 1px !important;\n  background-color: #e0e0e0 !important;\n  margin: 2rem 0 !important;\n  border: none !important;\n}\n\n/* Tutti gli step - Layout uniforme con spaziature ridotte e larghezza uniforme */\n.confirmation-step,\n.general-data-step,\n.products-step,\n.summary-step {\n  padding: 2.5rem 0 !important;\n  min-height: auto !important;\n  display: block !important;\n}\n\n.confirmation-wrapper,\n.general-data-wrapper,\n.products-wrapper,\n.summary-wrapper {\n  max-width: 1200px !important;\n  margin: 0 auto !important;\n  padding: 0 2rem !important;\n}\n\n.step-body {\n  padding: 1.5rem 0 !important;\n  max-width: 700px !important;\n}\n\n/* Uniformare header tra tutte le pagine */\n.step-header {\n  max-width: 1200px !important;\n  margin: 0 auto 2.5rem auto !important;\n  padding: 0 2rem !important;\n}\n\n@media screen and (max-width: 768px) {\n  .confirmation-wrapper,\n  .general-data-wrapper,\n  .products-wrapper,\n  .summary-wrapper,\n  .step-header {\n    padding: 0 1rem !important;\n  }\n}\n\n/* Progress Bar - Stile moderno */\n.progress.progress-custom {\n  height: 3px !important;\n  background-color: #e8e8e8 !important;\n  border-radius: 0 !important;\n  overflow: hidden !important;\n}\n\n.progress.progress-custom .progress-bar {\n  background-color: #000 !important;\n  transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1) !important;\n  height: 100% !important;\n}\n\n/* Modal - Stile uniformato senza background grigi */\n.custom-modal .modal-content {\n  border-radius: 0 !important;\n  border: none !important;\n  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3) !important;\n  background-color: #fff !important;\n}\n\n.custom-modal .modal-dialog {\n  max-width: 1100px !important;\n}\n\n.modal-button {\n  margin: 1.5rem 0 !important;\n  text-align: center !important;\n}\n\n.buttons-section {\n  display: flex !important;\n  justify-content: space-between !important;\n  gap: 1rem !important;\n  margin-bottom: 1.5rem !important;\n}\n\n.modal-header-custom {\n  display: flex !important;\n  justify-content: space-between !important;\n  align-items: flex-start !important;\n  margin-bottom: 1.5rem !important;\n  padding-bottom: 1rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n.modal-header-custom .btn-close {\n  background: none !important;\n  border: none !important;\n  font-size: 1.5rem !important;\n  cursor: pointer !important;\n  color: #666 !important;\n  padding: 0 !important;\n  width: auto !important;\n  height: auto !important;\n  opacity: 1 !important;\n}\n\n.modal-header-custom .btn-close:hover {\n  color: #000 !important;\n}\n\n.modal-body-custom {\n  max-height: 70vh !important;\n  overflow-y: auto !important;\n  padding: 1.5rem 0 !important;\n}\n\n/* Centrare contenuto modale aggiunta prodotti */\n.products-step .modal-body-custom {\n  max-width: 900px !important;\n  margin: 0 auto !important;\n  padding: 1.5rem 2rem !important;\n}\n\n.modal-footer-custom {\n  display: flex !important;\n  justify-content: flex-end !important;\n  padding-top: 1.5rem !important;\n  border-top: 1px solid #e0e0e0 !important;\n  margin-top: 1.5rem !important;\n}\n\n/* Product Details Modal Styles */\n.product-details-section {\n  margin-bottom: 2.5rem !important;\n}\n\n.details-section-title {\n  font-size: 1.5rem !important;\n  font-weight: 400 !important;\n  color: #000 !important;\n  margin-bottom: 1.5rem !important;\n  padding-bottom: 0.5rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n.details-grid {\n  display: grid !important;\n  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;\n  gap: 1.5rem !important;\n}\n\n.detail-item {\n  display: flex !important;\n  flex-direction: column !important;\n  gap: 0.5rem !important;\n}\n\n.detail-label {\n  font-size: 0.75rem !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n  color: #666 !important;\n  font-weight: 400 !important;\n}\n\n.detail-value {\n  font-size: 1rem !important;\n  color: #000 !important;\n  font-weight: 400 !important;\n}\n\n/* Defekts Grid - 3 colonne */\n.defekts-grid {\n  display: grid !important;\n  grid-template-columns: repeat(3, 1fr) !important;\n  gap: 1.5rem !important;\n  margin-top: 1.5rem !important;\n}\n\n@media screen and (max-width: 1024px) {\n  .defekts-grid {\n    grid-template-columns: repeat(2, 1fr) !important;\n  }\n}\n\n@media screen and (max-width: 768px) {\n  .defekts-grid {\n    grid-template-columns: 1fr !important;\n  }\n}\n\n.defekt-detail-card {\n  border: 1px solid #e0e0e0 !important;\n  border-radius: 0 !important;\n  padding: 1.5rem !important;\n  background-color: #f9f9f9 !important;\n  display: flex !important;\n  flex-direction: column !important;\n  min-height: 200px !important;\n}\n\n.defekt-detail-card h5 {\n  margin-top: 0 !important;\n}\n\n.defekt-detail-header {\n  font-size: 1.125rem !important;\n  font-weight: 500 !important;\n  color: #000 !important;\n  margin-bottom: 1rem !important;\n  padding-bottom: 0.75rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n.defekt-section {\n  margin-bottom: 1.25rem !important;\n  padding-bottom: 1.25rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n.defekt-section:last-child {\n  border-bottom: none !important;\n  margin-bottom: 0 !important;\n  padding-bottom: 0 !important;\n}\n\n.defekt-field {\n  display: flex !important;\n  flex-direction: column !important;\n  gap: 0.5rem !important;\n  margin-bottom: 0.75rem !important;\n}\n\n.defekt-field:last-child {\n  margin-bottom: 0 !important;\n}\n\n.defekt-empty {\n  padding: 1rem !important;\n  text-align: center !important;\n  color: #999 !important;\n}\n\n.defekt-field-label {\n  font-size: 0.75rem !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n  color: #666 !important;\n  font-weight: 400 !important;\n}\n\n.defekt-field-value {\n  font-size: 1rem !important;\n  color: #000 !important;\n  font-weight: 400 !important;\n}\n\n.detail-image-preview {\n  max-width: 300px !important;\n  max-height: 300px !important;\n  border-radius: 0 !important;\n  border: 1px solid #e0e0e0 !important;\n  margin-top: 0.5rem !important;\n  object-fit: cover !important;\n}\n\n/* Product Overview nel modale - Uniformato senza background grigio */\n.product-summary {\n  padding: 0 !important;\n  border: none !important;\n  border-radius: 0 !important;\n  margin-bottom: 2rem !important;\n  background: transparent !important;\n}\n\n.product-summary-header {\n  display: flex !important;\n  justify-content: space-between !important;\n  align-items: flex-start !important;\n  margin-bottom: 1.5rem !important;\n  gap: 1rem !important;\n}\n\n.product-info-box {\n  background-color: transparent !important;\n  border: none !important;\n  border-radius: 0 !important;\n  padding: 0 !important;\n  margin: 0 !important;\n}\n\n.product-info-grid {\n  display: grid !important;\n  grid-template-columns: repeat(3, 1fr) !important;\n  gap: 1.5rem !important;\n}\n\n@media screen and (max-width: 768px) {\n  .product-info-grid {\n    grid-template-columns: 1fr !important;\n  }\n}\n\n.product-info-item {\n  padding: 0 !important;\n  background: transparent !important;\n  border: none !important;\n  border-radius: 0 !important;\n  display: flex !important;\n  flex-direction: column !important;\n  gap: 0.5rem !important;\n  padding-bottom: 1rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n.info-label {\n  font-size: 0.75rem !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n  font-weight: 400 !important;\n  color: #666 !important;\n}\n\n.info-value {\n  font-size: 1rem !important;\n  font-weight: 400 !important;\n  color: #000 !important;\n}\n\n.link-button {\n  background: none !important;\n  border: none !important;\n  text-decoration: underline !important;\n  padding: 0 !important;\n  font-size: 0.875rem !important;\n  cursor: pointer !important;\n  font-weight: 400 !important;\n  color: #000 !important;\n}\n\n.link-button:hover {\n  text-decoration: underline !important;\n}\n\n/* Defect Form nel modale - Uniformato */\n.defect-form {\n  padding: 0 !important;\n  border: none !important;\n  border-radius: 0 !important;\n  margin-bottom: 2rem !important;\n  background-color: transparent !important;\n}\n\n/* Report Summary nel modale - Uniformato */\n.report-summary {\n  padding: 0 !important;\n  border: none !important;\n  border-radius: 0 !important;\n  background-color: transparent !important;\n  margin-top: 2rem !important;\n}\n\n.defekt-card {\n  display: flex !important;\n  justify-content: space-between !important;\n  align-items: flex-start !important;\n  padding: 1.25rem !important;\n  border: 1px solid #e0e0e0 !important;\n  border-radius: 0 !important;\n  margin-bottom: 1rem !important;\n  background-color: #f5f5f5 !important;\n  gap: 1rem !important;\n}\n\n.defekt-actions {\n  display: flex !important;\n  flex-direction: column !important;\n  gap: 0.75rem !important;\n}\n\n.defekt-actions i {\n  font-size: 1.25rem !important;\n  color: #666 !important;\n  cursor: pointer !important;\n  transition: color 0.2s ease !important;\n}\n\n.defekt-actions i:hover {\n  color: #000 !important;\n}\n\n.defekt-info {\n  flex: 1 !important;\n}\n\n.summary-field {\n  margin-bottom: 1rem !important;\n}\n\n.summary-field-label {\n  display: block !important;\n  font-size: 0.75rem !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n  color: #666 !important;\n  font-weight: 400 !important;\n  margin-bottom: 0.25rem !important;\n}\n\n.summary-field-value {\n  font-size: 1rem !important;\n  color: #000 !important;\n  font-weight: 400 !important;\n}\n\n.summary-image-preview {\n  max-width: 150px !important;\n  max-height: 150px !important;\n  border-radius: 0 !important;\n  border: 1px solid #e0e0e0 !important;\n  margin-top: 0.5rem !important;\n  object-fit: cover !important;\n}\n\n/* Products Step - Rimuovere background grigio arrotondato */\n.products-step {\n  background-color: transparent !important;\n  padding: 0 !important;\n  border-radius: 0 !important;\n  box-shadow: none !important;\n}\n\n/* Product Cards - Stile moderno uniforme con background grigio chiaro */\n.product-card {\n  border: 1px solid #e0e0e0 !important;\n  border-radius: 0 !important;\n  padding: 1.25rem !important;\n  margin-bottom: 1rem !important;\n  transition: all 0.2s ease !important;\n  background-color: #f5f5f5 !important;\n  display: flex !important;\n  align-items: flex-start !important;\n  gap: 1rem !important;\n}\n\n.product-card:hover {\n  border-color: #000 !important;\n  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06) !important;\n}\n\n.product-actions {\n  display: flex !important;\n  flex-direction: column !important;\n  gap: 0.75rem !important;\n  margin-right: 0 !important;\n}\n\n.product-actions i {\n  font-size: 1.25rem !important;\n  color: #666 !important;\n  cursor: pointer !important;\n  transition: color 0.2s ease !important;\n}\n\n.product-actions i:hover {\n  color: #000 !important;\n}\n\n.product-info {\n  flex: 1 !important;\n}\n\n.product-info h4 {\n  font-weight: 500 !important;\n  font-size: 1.125rem !important;\n  margin-bottom: 0.5rem !important;\n  color: #000 !important;\n}\n\n.product-info p {\n  font-size: 0.9rem !important;\n  color: #666 !important;\n  margin-bottom: 0.25rem !important;\n}\n\n.product-list {\n  margin-bottom: 1.5rem !important;\n}\n\n.saved-products {\n  margin-bottom: 2rem !important;\n  background-color: transparent !important;\n  padding: 0 !important;\n  border-radius: 0 !important;\n}\n\n.saved-products .section-header {\n  margin-top: 0 !important;\n  margin-bottom: 1.5rem !important;\n}\n\n/* Summary Step - Ridurre bordi e uniformare layout */\n.summary-step .section-header {\n  font-size: 2.5rem !important;\n  margin-top: 0 !important;\n}\n\n/* Products in Summary e Products Step - Layout griglia a colonne */\n.summary-step .product-list,\n.products-step .product-list {\n  display: grid !important;\n  grid-template-columns: repeat(3, 1fr) !important;\n  gap: 1.5rem !important;\n  margin-bottom: 2rem !important;\n}\n\n@media screen and (max-width: 1024px) {\n  .summary-step .product-list,\n  .products-step .product-list {\n    grid-template-columns: repeat(2, 1fr) !important;\n  }\n}\n\n@media screen and (max-width: 768px) {\n  .summary-step .product-list,\n  .products-step .product-list {\n    grid-template-columns: 1fr !important;\n  }\n}\n\n.summary-step .product-card,\n.products-step .product-card {\n  display: flex !important;\n  align-items: flex-start !important;\n  gap: 1rem !important;\n  min-height: auto !important;\n}\n\n.summary-step .product-info,\n.products-step .product-info {\n  flex: 1 !important;\n}\n\n.summary-step .product-info h4,\n.products-step .product-info h4 {\n  font-size: 1.125rem !important;\n  margin-bottom: 0.5rem !important;\n  font-weight: 500 !important;\n  color: #000 !important;\n}\n\n.summary-step .product-info p,\n.products-step .product-info p {\n  font-size: 0.9rem !important;\n  margin-bottom: 0.25rem !important;\n  color: #666 !important;\n}\n\n.summary-step .defects-count {\n  margin-top: 0.5rem !important;\n  font-size: 0.9rem !important;\n}\n\n.summary-step .defects-count strong {\n  color: #000 !important;\n  font-weight: 500 !important;\n}\n\n@media screen and (max-width: 1024px) {\n  .summary-step .product-list,\n  .products-step .product-list {\n    grid-template-columns: 1fr !important;\n  }\n}\n\n/* Info Card per Summary Step - Meno bordi, layout più pulito */\n.recap-general-info {\n  margin-bottom: 2rem !important;\n  display: grid !important;\n  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)) !important;\n  gap: 2rem !important;\n}\n\n.info-card {\n  border: none !important;\n  border-radius: 0 !important;\n  padding: 0 !important;\n  margin-bottom: 0 !important;\n  background-color: transparent !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n  padding-bottom: 1.5rem !important;\n}\n\n.info-item {\n  margin-bottom: 0.75rem !important;\n  font-size: 1rem !important;\n  line-height: 1.6 !important;\n  color: #333 !important;\n  padding-bottom: 0.5rem !important;\n  border-bottom: none !important;\n}\n\n.info-item strong {\n  font-weight: 500 !important;\n  color: #000 !important;\n  margin-right: 0.5rem !important;\n  display: block !important;\n  font-size: 0.75rem !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n  margin-bottom: 0.25rem !important;\n}\n\n/* Defekt Summary in Summary Step - Stile uniformato come Saved Products */\n.summary-step .saved-products {\n  margin-top: 2rem !important;\n}\n\n.summary-step .product-card {\n  background-color: #f5f5f5 !important;\n  border: 1px solid #e0e0e0 !important;\n}\n\n.summary-step .defects-summary {\n  margin-top: 1.5rem !important;\n  padding-top: 1.5rem !important;\n  border-top: 1px solid #e0e0e0 !important;\n}\n\n.summary-step .defekt-details {\n  margin-top: 1rem !important;\n  padding-left: 0 !important;\n  border-left: none !important;\n  padding-top: 1rem !important;\n  border-top: 1px solid #e0e0e0 !important;\n}\n\n.defekt-summary-header {\n  font-weight: 500 !important;\n  font-size: 1.125rem !important;\n  margin-bottom: 1rem !important;\n  color: #000 !important;\n  padding-bottom: 0.5rem !important;\n  border-bottom: 1px solid #e0e0e0 !important;\n}\n\n.defekt-summary-item {\n  font-size: 0.95rem !important;\n  color: #333 !important;\n  margin-bottom: 0.75rem !important;\n  line-height: 1.6 !important;\n  padding-bottom: 0.5rem !important;\n}\n\n.summary-step .summary-field-label {\n  display: block !important;\n  font-size: 0.75rem !important;\n  text-transform: uppercase !important;\n  letter-spacing: 0.1em !important;\n  color: #666 !important;\n  font-weight: 400 !important;\n  margin-bottom: 0.25rem !important;\n}\n\n.summary-step .summary-field-value {\n  font-size: 1rem !important;\n  color: #000 !important;\n  font-weight: 400 !important;\n}\n\n/* Input List - Layout migliorato - 3 input per riga in desktop */\n.input-list {\n  display: flex !important;\n  flex-wrap: wrap !important;\n  gap: 1.5rem !important;\n  margin-bottom: 1.5rem !important;\n}\n\n/* Forza 3 colonne in desktop, override Bootstrap */\n.input-wrapper.col-md-4 {\n  flex: 0 0 calc(33.333% - 1rem) !important;\n  max-width: calc(33.333% - 1rem) !important;\n  width: calc(33.333% - 1rem) !important;\n}\n\n.input-wrapper {\n  margin-bottom: 1.25rem !important;\n}\n\n@media screen and (min-width: 769px) {\n  .input-wrapper.col-md-4 {\n    flex: 0 0 calc(33.333% - 1rem) !important;\n    max-width: calc(33.333% - 1rem) !important;\n    width: calc(33.333% - 1rem) !important;\n  }\n}\n\n@media screen and (max-width: 768px) {\n  .input-wrapper {\n    flex: 0 0 100% !important;\n    max-width: 100% !important;\n    width: 100% !important;\n  }\n}\n\n/* Rimuoviamo duplicati - già definiti sopra */\n\n/* Success Step - Spaziature ridotte */\n.success-step {\n  text-align: center !important;\n  padding: 2.5rem 0 !important;\n}\n\n/* Responsive improvements - Stile help page */\n@media screen and (max-width: 768px) {\n  .step-title {\n    font-size: 2.5rem !important;\n  }\n  \n  .step-subtitle {\n    font-size: 1.125rem !important;\n  }\n  \n  .section-header {\n    font-size: 2rem !important;\n    margin-top: 2rem !important;\n  }\n  \n  .input-list {\n    flex-direction: column !important;\n  }\n  \n  .input-wrapper {\n    width: 100% !important;\n  }\n  \n  .confirmation-wrapper,\n  .general-data-wrapper,\n  .products-wrapper,\n  .summary-wrapper {\n    padding: 0 0.5rem !important;\n  }\n  \n  .step-body {\n    padding: 1rem 0 !important;\n  }\n  \n  .confirmation-step,\n  .general-data-step,\n  .products-step,\n  .summary-step {\n    padding: 1.5rem 0 !important;\n  }\n  \n  .step-logo {\n    width: 40px !important;\n    height: 40px !important;\n  }\n  \n  .step-header-top {\n    gap: 1rem !important;\n  }\n}\n\n/* Animazioni sottili - più discrete */\n@keyframes fadeIn {\n  from {\n    opacity: 0;\n  }\n  to {\n    opacity: 1;\n  }\n}\n\n.confirmation-step,\n.general-data-step,\n.products-step,\n.summary-step {\n  animation: fadeIn 0.5s ease-out !important;\n}\n\n/* Focus states migliorati */\n*:focus-visible {\n  outline: 2px solid #000 !important;\n  outline-offset: 2px !important;\n}\n\n/* Scrollbar personalizzata (opzionale) */\n::-webkit-scrollbar {\n  width: 8px;\n  height: 8px;\n}\n\n::-webkit-scrollbar-track {\n  background: #f1f1f1;\n}\n\n::-webkit-scrollbar-thumb {\n  background: #000;\n}\n\n::-webkit-scrollbar-thumb:hover {\n  background: #333;\n}",
+  "categories": [
+    "Active Speakers",
+    "Passive Speakers",
+    "Measurement Systems",
+    "Processors",
+    "Rack Amplifiers"
+  ],
+  "emailConfig": {
+    "testingRecipient": null,
+    "supplierRecipient": "lucabotturi@outline.it",
+    "downloadHtmlReports": false
+  },
+  "symptomSets": {},
   "introContent": {
-    "title": "Before starting",
-    "subtitle": "Have you completed all the necessary checks before filling out the Defekt Report?",
+    "title": "Defect Report Form",
+    "subtitle": "Before completing the defect report form, please ensure you have carefully read the Outline Warranty Policy.",
     "bulletPoints": [
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit.",
-      "Pellentesque et tortor congue, congue libero at, interdum ex.",
-      "Mauris faucibus ipsum in feugiat feugiat.",
-      "Aenean sit amet velit cursus, suscipit mi ut, aliquet sapien.",
-      "Aliquam eleifend nulla pulvinar, feugiat sem id, pretium turpis."
+      "<a href=\"https://outline.it/wp-content/uploads/2024/07/outli_warranty_terms_and_conditions_it_en_2511_v0400.pdf\"> Outline Warranty Policy </a>"
     ],
-    "checkboxLabel": "I confirm that the required checks have been completed.",
+    "checkboxLabel": "I have read and understood the Outline Warranty Policy.",
     "startButtonLabel": "Start"
   },
-  "categories": [
-    "Active Speaker",
-    "Passive Speaker",
-    "Processor",
-    "Rack Amplifier",
-    "Measurement System"
-  ],
   "categoryModels": {
-    "Rack Amplifier": [
-      "D4_3K",
-      "DPA_1002",
-      "DPA_1004",
-      "GTA_Otto",
-      "GTA_Quattro",
-      "L3000_",
-      "L3000E",
-      "LF_300",
-      "LF_400",
-      "LF_500",
-      "LF_550",
-      "LF_600",
-      "LF_700",
-      "LF_800",
-      "M2800_4",
-      "M5000_4",
-      "T_Eleven",
-      "T_Eleven_DSP",
-      "T_Five",
-      "T_Five_DSP",
-      "T_Nine",
-      "T_Nine_DSP",
-      "T_Seven",
-      "T_Seven_DSP",
-      "T2.5",
-      "T4.5",
-      "T6.5",
-      "TTM12K4",
-      "TTM12K4_D",
-      "TTM8K4",
-      "TTM8K4_D"
+    "Processors": [],
+    "Active Speakers": [
+      "Test"
     ],
-    "Active Speaker": [
-      "DVS_10P_SP",
-      "DVS_115_SW_iSP",
-      "DVS_118_SW_iSP",
-      "DVS_12P_iSP",
-      "DVS_15P_iSP",
-      "DVS_8P_SP",
-      "FLYSUB_15_iSP",
-      "HARD115_SP",
-      "HARD212_SP",
-      "HARD212NET_SP",
-      "HARD45_SP",
-      "iSM_112",
-      "iSM_115",
-      "iSM_212",
-      "Ki_10SP",
-      "Ki_12SP",
-      "MICRA2_SP",
-      "miniCOM.P.A.S.S._iSP",
-      "Monaco_215_CX_SP",
-      "SUB_110SP",
-      "SUB_118SP",
-      "V10_KIT",
-      "V15_KIT",
-      "V24_BGM_KIT",
-      "V6.5_KIT",
-      "V8CX_KIT",
-      "Dupe",
-      "DVS_115_SW_iSP_copy"
-    ],
-    "Passive Speaker": [
-      "AI_41",
-      "AI_81",
-      "ARENA_215_CX",
-      "AS_6",
-      "BUTTERFLY_CDH_483",
-      "Charlie_4",
-      "DBS_18_2",
-      "EIDOS_108S",
-      "EIDOS_215S",
-      "EIDOS_265LA",
-      "FLYSUB_15",
-      "GTO",
-      "GTO_C12",
-      "GTO_DF",
-      "GTO_LOW",
-      "GTO_SUB",
-      "HARD212",
-      "Ki_10",
-      "Ki_12",
-      "LAB_21_HS",
-      "LIPF_082",
-      "MANTAS",
-      "MANTAS_28",
-      "MICRA_R",
-      "MICRA2",
-      "MONACO_215_CX",
-      "MOVIE_B_215",
-      "MOVIE_FX_101",
-      "MOVIE_H_102",
-      "MOVIE_MV1CX",
-      "MOVIE_MV2CX",
-      "MOVIE_S_118",
-      "MOVIE_S_218",
-      "OMNIA",
-      "SCALA_100_30",
-      "SCALA_90",
-      "STADIA_100_10_LA",
-      "STADIA_100_20_LA",
-      "STADIA_100_30_LA",
-      "STADIA_28",
-      "STSUB_215",
-      "SUB_110",
-      "SUB_118",
-      "SUB_218",
-      "SUPERFLY",
-      "VEGAS_10",
-      "VEGAS_12",
-      "VEGAS_12CX",
-      "VEGAS_15",
-      "VEGAS_15CX",
-      "VEGAS_24",
-      "VEGAS_4",
-      "VEGAS_6.5",
-      "VEGAS_8CX"
-    ],
-    "Processor": [
-      "Genius_24",
-      "Genius_26",
-      "Genius_M_412",
-      "iP_24",
-      "iP_24_v2",
-      "Newton_16",
-      "Newton_16_4",
-      "Newton_16_8"
-    ],
-    "Measurement System": [
-      "ET250_3D",
-      "ET250R2_3D",
-      "ET50_3D",
-      "FASTQC_LS",
-      "GSA",
-      "GSR",
-      "NG1_",
-      "SPL_Control_Plus"
-    ]
+    "Rack Amplifiers": [],
+    "Passive Speakers": [],
+    "Measurement Systems": []
   },
-  "symptomSets": {
-    "audio_1": {
-      "label": "Audio",
-      "symptoms": [
-        "Audio channel on protection",
-        "Audio level problem",
-        "Balance problem",
-        "Crosstalk",
-        "Distorted audio",
-        "Excessive audio level",
-        "Hiss",
-        "Hum",
-        "No audio",
-        "No muting",
-        "No or poor bass",
-        "No or poor treble",
-        "Noisy audio",
-        "Offset voltage too high",
-        "Poor frequency response",
-        "Pop or click noise",
-        "Scratching noise"
-      ]
-    },
-    "power_1": {
-      "label": "Power",
-      "symptoms": [
-        "Can't power up",
-        "Keep restarting",
-        "Power up but doesn't work",
-        "Start up too slow",
-        "Switches off by itself"
-      ]
-    },
-    "cabinet_1": {
-      "label": "Cabinet",
-      "symptoms": [
-        "Accessories_broken_or_missing",
-        "Damaged plug/connectors",
-        "Grille broken",
-        "Loose parts inside",
-        "Moving parts",
-        "Painting defect",
-        "Vibration noise",
-        "Wrong color"
-      ]
-    },
-    "connections_1": {
-      "label": "Connections",
-      "symptoms": [
-        "Analog IN",
-        "Analog OUT",
-        "All Analog",
-        "AES/EBU IN",
-        "AES/EBU OUT",
-        "All AES/EBU",
-        "MADI IN",
-        "MADI OUT",
-        "All MADI",
-        "Ethernet Ports",
-        "Other"
-      ]
-    },
-    "amplifier_1": {
-      "label": "Amplifier",
-      "symptoms": [
-        "Damaged plug/connectors",
-        "Faulty button",
-        "Missing button",
-        "Missing knob"
-      ]
-    },
-    "mechanics_1": {
-      "label": "Mechanics",
-      "symptoms": [
-        "Damage plug/connectors",
-        "Excessive fan speed",
-        "Fan noise",
-        "Faulty button",
-        "Mechanical damage",
-        "Parts loose inside",
-        "Phisical Damage",
-        "Scratching noise",
-        "Vibration noise"
-      ]
-    },
-    "speaker_1": {
-      "label": "Speaker",
-      "symptoms": [
-        "Broken speaker"
-      ]
-    },
-    "control_software_1": {
-      "label": "Control_Software",
-      "symptoms": [
-        "Can't discover unit on Software",
-        "Can't import unit on Workspace",
-        "Other Problem (please specify on note)",
-        "Remain busy on worksheet",
-        "Reset Problem"
-      ]
-    },
-    "firmware_1": {
-      "label": "Firmware",
-      "symptoms": [
-        "Can't update firmware",
-        "Problem after firmware update"
-      ]
-    },
-    "dante_1": {
-      "label": "Dante",
-      "symptoms": [
-        "Can't discover unit on Dante",
-        "Connection issues",
-        "Sync problems"
-      ]
-    },
-    "display_1": {
-      "label": "Display",
-      "symptoms": [
-        "No display",
-        "Wrong display",
-        "Display flickering"
-      ]
-    },
-    "dsp_1": {
-      "label": "DSP",
-      "symptoms": [
-        "No processing",
-        "Wrong settings",
-        "Processing errors"
-      ]
-    },
-    "in_out_1": {
-      "label": "In_Out",
-      "symptoms": [
-        "Input not working",
-        "Output not working",
-        "Wrong routing"
-      ]
-    },
-    "hardware_1": {
-      "label": "Hardware",
-      "symptoms": [
-        "Physical damage",
-        "Missing parts",
-        "Assembly issues"
-      ]
-    },
-    "electronics_1": {
-      "label": "Electronics",
-      "symptoms": [
-        "Circuit problems",
-        "Component failure",
-        "Electrical issues"
-      ]
-    },
-    "mechanical_issue_1": {
-      "label": "Mechanical_Issue",
-      "symptoms": [
-        "Moving parts stuck",
-        "Mechanical noise",
-        "Assembly problems"
-      ]
-    },
-    "armonia_1": {
-      "label": "Armonia",
-      "symptoms": [
-        "Software issues",
-        "Configuration problems",
-        "Integration issues"
-      ]
-    },
-    "audio": {
-      "label": "Audio",
-      "symptoms": [
-        "Audio channel on protection",
-        "Audio level problem",
-        "Balance problem",
-        "Crosstalk",
-        "Distorted audio",
-        "Excessive audio level",
-        "Hiss",
-        "Hum",
-        "No audio",
-        "No muting",
-        "No or poor bass",
-        "No or poor treble",
-        "Noisy audio",
-        "Offset voltage too high",
-        "Poor frequency response",
-        "Pop or click noise",
-        "Scratching noise"
-      ]
-    },
-    "power": {
-      "label": "Power",
-      "symptoms": [
-        "Can't power up",
-        "Keep restarting",
-        "Power up but doesn't work",
-        "Switches off by itself"
-      ]
-    },
-    "cabinet": {
-      "label": "Cabinet",
-      "symptoms": [
-        "Accessories_broken_or_missing",
-        "Damaged plug/connectors",
-        "Grille broken",
-        "Loose parts inside",
-        "Moving parts",
-        "Painting defect",
-        "Vibration noise",
-        "Wrong color"
-      ]
-    },
-    "amplifier": {
-      "label": "Amplifier",
-      "symptoms": [
-        "Damaged plug/connectors",
-        "Faulty button",
-        "Missing button",
-        "Missing knob"
-      ]
-    },
-    "singlePhase": {
-      "label": "Single Phase",
-      "symptoms": [
-        "<100VAC",
-        "200-240V"
-      ]
-    },
-    "biPhase": {
-      "label": "Bi Phase",
-      "symptoms": [
-        "200-240V",
-        ">240V"
-      ]
-    },
-    "threePhaseWithNeutral": {
-      "label": "Three Phase With Neutral",
-      "symptoms": [
-        ">240VAC"
-      ]
-    },
-    "threePhaseWithoutNeutral": {
-      "label": "Three Phase Without Neutral",
-      "symptoms": [
-        ">240VAC"
-      ]
-    },
-    "Test_solo_per_quello": {
-      "label": "Test ",
-      "symptoms": [
-        "A",
-        "B",
-        "C",
-        "D",
-        "E"
-      ]
-    }
-  },
-  "modelSymptomSets": {
-    "DVS_10P_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "DVS_115_SW_iSP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "DVS_118_SW_iSP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "DVS_12P_iSP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "DVS_15P_iSP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "DVS_8P_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "FLYSUB_15_iSP": [
-      "amplifier_1",
-      "cabinet_1",
-      "hardware_1",
-      "power_1"
-    ],
-    "HARD115_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "HARD212_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "HARD212NET_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "HARD45_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "iSM_112": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "iSM_115": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "iSM_212": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "Ki_10SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "Ki_12SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "MICRA2_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "miniCOM.P.A.S.S._iSP": [
-      "amplifier_1",
-      "cabinet_1",
-      "hardware_1",
-      "power_1"
-    ],
-    "Monaco_215_CX_SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "SUB_110SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "SUB_118SP": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "V10_KIT": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "V15_KIT": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "V24_BGM_KIT": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "V6.5_KIT": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "V8CX_KIT": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "AI_41": [
-      "cabinet_1"
-    ],
-    "AI_81": [
-      "cabinet_1"
-    ],
-    "ARENA_215_CX": [
-      "cabinet_1"
-    ],
-    "AS_6": [
-      "cabinet_1"
-    ],
-    "BUTTERFLY_CDH_483": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "Charlie_4": [
-      "cabinet_1"
-    ],
-    "DBS_18_2": [
-      "cabinet_1"
-    ],
-    "EIDOS_108S": [
-      "cabinet_1"
-    ],
-    "EIDOS_215S": [
-      "cabinet_1"
-    ],
-    "EIDOS_265LA": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "FLYSUB_15": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "GTO": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "GTO_C12": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "GTO_DF": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "GTO_LOW": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "GTO_SUB": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "HARD212": [
-      "cabinet_1"
-    ],
-    "Ki_10": [
-      "cabinet_1"
-    ],
-    "Ki_12": [
-      "cabinet_1"
-    ],
-    "LAB_21_HS": [
-      "cabinet_1"
-    ],
-    "LIPF_082": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "MANTAS": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "MANTAS_28": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "MICRA_R": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "MICRA2": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "MONACO_215_CX": [
-      "cabinet_1"
-    ],
-    "MOVIE_B_215": [
-      "cabinet_1"
-    ],
-    "MOVIE_FX_101": [
-      "cabinet_1"
-    ],
-    "MOVIE_H_102": [
-      "cabinet_1"
-    ],
-    "MOVIE_MV1CX": [
-      "cabinet_1"
-    ],
-    "MOVIE_MV2CX": [
-      "cabinet_1"
-    ],
-    "MOVIE_S_118": [
-      "cabinet_1"
-    ],
-    "MOVIE_S_218": [
-      "cabinet_1"
-    ],
-    "OMNIA": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "SCALA_100_30": [
-      "cabinet_1"
-    ],
-    "SCALA_90": [
-      "cabinet_1"
-    ],
-    "STADIA_100_10_LA": [
-      "cabinet_1"
-    ],
-    "STADIA_100_20_LA": [
-      "cabinet_1"
-    ],
-    "STADIA_100_30_LA": [
-      "cabinet_1"
-    ],
-    "STADIA_28": [
-      "cabinet_1"
-    ],
-    "STSUB_215": [
-      "cabinet_1"
-    ],
-    "SUB_110": [
-      "cabinet_1"
-    ],
-    "SUB_118": [
-      "cabinet_1"
-    ],
-    "SUB_218": [
-      "cabinet_1"
-    ],
-    "SUPERFLY": [
-      "cabinet_1",
-      "hardware_1"
-    ],
-    "VEGAS_10": [
-      "cabinet_1"
-    ],
-    "VEGAS_12": [
-      "cabinet_1"
-    ],
-    "VEGAS_12CX": [
-      "cabinet_1"
-    ],
-    "VEGAS_15": [
-      "cabinet_1"
-    ],
-    "VEGAS_15CX": [
-      "cabinet_1"
-    ],
-    "VEGAS_24": [
-      "cabinet_1"
-    ],
-    "VEGAS_4": [
-      "cabinet_1"
-    ],
-    "VEGAS_6.5": [
-      "cabinet_1"
-    ],
-    "VEGAS_8CX": [
-      "cabinet_1"
-    ],
-    "Genius_24": [
-      "audio_1",
-      "connections_1",
-      "control_software_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "Genius_26": [
-      "audio_1",
-      "connections_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "Genius_M_412": [
-      "audio_1",
-      "connections_1",
-      "power_1"
-    ],
-    "iP_24": [
-      "audio_1",
-      "connections_1",
-      "control_software_1",
-      "dante_1",
-      "firmware_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "iP_24_v2": [
-      "audio_1",
-      "connections_1",
-      "control_software_1",
-      "dante_1",
-      "firmware_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "Newton_16": [
-      "audio_1",
-      "connections_1",
-      "control_software_1",
-      "dante_1",
-      "firmware_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "Newton_16_4": [
-      "audio_1",
-      "connections_1",
-      "control_software_1",
-      "dante_1",
-      "firmware_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "Newton_16_8": [
-      "audio_1",
-      "connections_1",
-      "control_software_1",
-      "dante_1",
-      "firmware_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "D4_3K": [
-      "power_1"
-    ],
-    "DPA_1002": [
-      "audio_1",
-      "in_out_1"
-    ],
-    "DPA_1004": [
-      "dante_1",
-      "display_1",
-      "firmware_1",
-      "dsp_1"
-    ],
-    "GTA_Otto": [
-      "dsp_1",
-      "firmware_1",
-      "in_out_1",
-      "mechanics_1"
-    ],
-    "GTA_Quattro": [
-      "firmware_1",
-      "in_out_1",
-      "mechanics_1"
-    ],
-    "L3000_": [
-      "in_out_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "L3000E": [
-      "mechanics_1",
-      "power_1"
-    ],
-    "LF_300": [
-      "power_1"
-    ],
-    "LF_400": [
-      "power_1"
-    ],
-    "LF_500": [
-      "power_1"
-    ],
-    "LF_550": [
-      "power_1"
-    ],
-    "LF_600": [
-      "power_1"
-    ],
-    "LF_700": [
-      "power_1"
-    ],
-    "LF_800": [
-      "power_1"
-    ],
-    "M2800_4": [
-      "power_1"
-    ],
-    "M5000_4": [
-      "power_1"
-    ],
-    "T_Eleven": [
-      "power_1"
-    ],
-    "T_Eleven_DSP": [
-      "power_1"
-    ],
-    "T_Five": [
-      "power_1"
-    ],
-    "T_Five_DSP": [
-      "power_1"
-    ],
-    "T_Nine": [
-      "power_1"
-    ],
-    "T_Nine_DSP": [
-      "power_1"
-    ],
-    "T_Seven": [
-      "power_1"
-    ],
-    "T_Seven_DSP": [
-      "power_1"
-    ],
-    "T2.5": [
-      "power_1"
-    ],
-    "T4.5": [
-      "power_1"
-    ],
-    "T6.5": [
-      "power_1"
-    ],
-    "TTM12K4": [
-      "power_1"
-    ],
-    "TTM12K4_D": [
-      "power_1"
-    ],
-    "TTM8K4": [
-      "power_1"
-    ],
-    "TTM8K4_D": [
-      "power_1"
-    ],
-    "ET250_3D": [
-      "display_1",
-      "electronics_1",
-      "mechanical_issue_1",
-      "power_1"
-    ],
-    "ET250R2_3D": [
-      "display_1",
-      "electronics_1",
-      "mechanical_issue_1",
-      "power_1"
-    ],
-    "ET50_3D": [
-      "display_1",
-      "electronics_1",
-      "mechanical_issue_1",
-      "power_1"
-    ],
-    "FASTQC_LS": [
-      "display_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "GSA": [
-      "audio_1",
-      "in_out_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "GSR": [
-      "audio_1",
-      "cabinet_1",
-      "speaker_1",
-      "power_1"
-    ],
-    "NG1_": [
-      "audio_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "SPL_Control_Plus": [
-      "audio_1",
-      "mechanics_1",
-      "power_1"
-    ],
-    "ABCD": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ],
-    "ABCD_copy": [
-      "amplifier_1",
-      "cabinet_1",
-      "power_1"
-    ]
-  },
-  "mainVoltageTypes": [
-    "Single_phase",
-    "Bi_phase",
-    "Three_phase_with_neutral",
-    "Three_phase_without_neutral"
-  ],
-  "mainVoltageRanges": {
-    "Single_phase": [
-      "<100VAC",
-      "200-240V"
-    ],
-    "Bi_phase": [
-      "200-240V",
-      ">240V"
-    ],
-    "Three_phase_with_neutral": [
-      ">240VAC"
-    ],
-    "Three_phase_without_neutral": [
-      ">240VAC"
-    ]
-  },
-  "outputLoadOptions": [
-    "2 Ohm",
-    "4 Ohm",
-    "8 Ohm",
-    "16 Ohm",
-    ">16 Ohm",
-    "Disconnected"
-  ],
-  "loadConnectionModes": [
-    "Single ended",
-    "Bridged",
-    "Parallel"
-  ],
-  "symptomOccurrences": [
-    "After a while",
-    "After long time switched off",
-    "After product upgrade",
-    "Constantly",
-    "Due to a physical damage",
-    "In a cold environment",
-    "In a hot environment",
-    "In a wet environment",
-    "Intermittently",
-    "Liquid contamination",
-    "One time event",
-    "Switched on the first time",
-    "Under stressed condition",
-    "Under vibration",
-    "When switching"
-  ],
-  "installationTypes": [
-    "Airport",
-    "Rail Station",
-    "Cinema",
-    "Theatre",
-    "Museum",
-    "Club / Disco",
-    "Pub",
-    "Concert",
-    "Touring Rental",
-    "Mall",
-    "Conference",
-    "Church",
-    "Boat",
-    "Laboratory"
-  ],
   "validationConfig": {
     "serial": {
-      "enabled": false,
-      "debugEnabled": false
+      "enabled": true,
+      "debugEnabled": true
     }
   },
   "attachmentsConfig": {
@@ -1035,472 +42,203 @@
     "maxFileSizeMb": 15,
     "maxTotalSizeMb": 80,
     "allowedMimeTypes": [
-      "image/jpeg",
-      "image/png",
-      "image/webp",
       "video/mp4",
-      "video/quicktime"
+      "video/quicktime",
+      "image/*"
     ]
   },
-  "emailConfig": {
-    "supplierRecipient": "supplier@example.com",
-    "testingRecipient": "test@example.com"
-  },
-  "voltageTypes": {
-    "Active Speaker": [
-      "Single_phase",
-      "Bi_phase"
-    ],
-    "Processor": [
-      "Single_phase",
-      "Three_phase_with_neutral",
-      "Three_phase_without_neutral"
-    ],
-    "Rack Amplifier": [
-      "Single_phase",
-      "Bi_phase",
-      "Three_phase_with_neutral"
-    ]
-  },
-  "voltageRangesByType": {
-    "Single_phase": [
-      "<100VAC",
-      "200-240V"
-    ],
-    "Bi_phase": [
-      "200-240V",
-      ">240V"
-    ],
-    "Three_phase_with_neutral": [
-      ">240VAC"
-    ],
-    "Three_phase_without_neutral": [
-      ">240VAC"
-    ]
+  "introEditorConfig": {
+    "title": false,
+    "subtitle": false,
+    "bulletPoints": true,
+    "checkboxLabel": false,
+    "startButtonLabel": false
   },
   "modelFieldConfigs": {
-    "DVS_10P_SP": [
+    "Test": [
       {
-        "id": "symptomArea",
-        "label": "Symptom Area",
+        "id": "test",
         "type": "select",
-        "required": true,
+        "label": "Test",
         "order": 0,
-        "conditions": [],
-        "section": "modelSymptomSets",
-        "isSymptomArea": true,
-        "options": []
-      },
-      {
-        "id": "symptomFound",
-        "label": "Symptom Found",
-        "type": "select",
-        "required": false,
-        "order": 1,
-        "conditions": [],
-        "section": "modelSymptomSets",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "main",
-        "valueMapping": {}
-      },
-      {
-        "id": "main",
-        "label": "Main",
-        "type": "select",
-        "required": true,
-        "order": 2,
-        "conditions": [],
-        "section": "modelSymptomSets",
-        "isSymptomArea": true,
-        "options": []
-      },
-      {
-        "id": "range",
-        "label": "Range",
-        "type": "select",
-        "required": false,
-        "order": 3,
-        "conditions": [],
-        "section": "modelSymptomSets",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "main",
-        "valueMapping": {}
-      },
-      {
-        "id": "image",
-        "label": "Image",
-        "type": "file",
-        "required": false,
-        "order": 4,
-        "conditions": [],
-        "section": "modelSymptomSets"
-      }
-    ],
-    "DVS_115_SW_iSP": [
-      {
-        "id": "symptomArea",
-        "label": "Symptom Area",
-        "type": "select",
-        "required": false,
-        "order": 0,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": true,
         "options": [
-          "armonia_1",
-          "mechanical_issue_1",
-          "electronics_1",
-          "hardware_1"
-        ]
-      },
-      {
-        "id": "symptomFound",
-        "label": "Symptom Found",
-        "type": "select",
-        "required": false,
-        "order": 1,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "symptomArea",
-        "valueMapping": {
-          "armonia_1": {
-            "type": "symptomSet",
-            "key": "armonia_1"
-          },
-          "mechanical_issue_1": {
-            "type": "symptomSet",
-            "key": "mechanical_issue_1"
-          },
-          "electronics_1": {
-            "type": "symptomSet",
-            "key": "electronics_1"
-          },
-          "hardware_1": {
-            "type": "static",
-            "options": [
-              "A",
-              "B",
-              "C"
-            ]
-          }
-        }
-      },
-      {
-        "id": "main",
-        "label": "Main",
-        "type": "select",
-        "required": false,
-        "order": 2,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": true,
-        "options": [
-          "singlePhase",
-          "biPhase",
-          "threePhaseWithNeutral",
-          "threePhaseWithoutNeutral"
-        ]
-      },
-      {
-        "id": "range",
-        "label": "Range",
-        "type": "select",
-        "required": false,
-        "order": 3,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "main",
-        "valueMapping": {
-          "singlePhase": {
-            "type": "symptomSet",
-            "key": "singlePhase"
-          },
-          "biPhase": {
-            "type": "symptomSet",
-            "key": "biPhase"
-          },
-          "threePhaseWithNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithNeutral"
-          },
-          "threePhaseWithoutNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithoutNeutral"
-          }
-        }
-      },
-      {
-        "id": "media",
-        "label": "Media",
-        "type": "file",
-        "required": false,
-        "order": 4,
-        "conditions": [],
-        "section": ""
-      }
-    ],
-    "DVS_118_SW_iSP": [
-      {
-        "id": "nome",
-        "label": "Nome",
-        "type": "text",
-        "required": false,
-        "order": 0,
-        "conditions": [],
-        "section": ""
-      },
-      {
-        "id": "cognome",
-        "label": "Cognome",
-        "type": "text",
-        "required": false,
-        "order": 1,
-        "conditions": [
-          {
-            "field": "nome",
-            "operator": "equals",
-            "value": "Valerio"
-          }
+          "a",
+          "b",
+          "c"
         ],
-        "section": ""
+        "section": "symptomInfo",
+        "required": false,
+        "conditions": [],
+        "isSymptomArea": false
       },
       {
-        "id": "campoA",
-        "label": "Campo A",
-        "type": "select",
-        "required": false,
-        "order": 2,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [
-          "Opzione 1",
-          "Opzione 2",
-          "Opzione 3"
-        ]
-      },
-      {
-        "id": "campoB",
-        "label": "Campo B",
-        "type": "select",
-        "required": false,
-        "order": 3,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "campoA",
-        "valueMapping": {
-          "Opzione 1": {
-            "type": "symptomSet",
-            "key": "audio"
-          },
-          "Opzione 2": {
-            "type": "static",
-            "options": [
-              "A\\nB\\nC"
-            ]
-          },
-          "Opzione 3": {
-            "type": "symptomSet",
-            "key": "Test_solo_per_quello"
-          }
-        }
-      }
-    ],
-    "Dupe": [
-      {
-        "id": "symptomArea_copy_1753799055488",
-        "label": "Symptom Area",
-        "type": "select",
-        "required": false,
-        "order": 0,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": true,
-        "options": [
-          "armonia_1",
-          "mechanical_issue_1",
-          "electronics_1",
-          "hardware_1"
-        ]
-      },
-      {
-        "id": "symptomFound_copy_1753799055488",
-        "label": "Symptom Found",
-        "type": "select",
-        "required": false,
+        "id": "immagine",
+        "type": "file",
+        "label": "Immagine",
         "order": 1,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "symptomArea_copy_1753799055488",
-        "valueMapping": {
-          "armonia_1": {
-            "type": "symptomSet",
-            "key": "armonia_1"
-          },
-          "mechanical_issue_1": {
-            "type": "symptomSet",
-            "key": "mechanical_issue_1"
-          },
-          "electronics_1": {
-            "type": "symptomSet",
-            "key": "electronics_1"
-          },
-          "hardware_1": {
-            "type": "symptomSet",
-            "key": "hardware_1"
-          }
-        }
-      },
-      {
-        "id": "main_copy_1753799055488",
-        "label": "Main",
-        "type": "select",
+        "section": "symptomInfo",
         "required": false,
-        "order": 2,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": true,
-        "options": [
-          "singlePhase",
-          "biPhase",
-          "threePhaseWithNeutral",
-          "threePhaseWithoutNeutral"
-        ]
-      },
-      {
-        "id": "range_copy_1753799055488",
-        "label": "Range",
-        "type": "select",
-        "required": false,
-        "order": 3,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "main_copy_1753799055488",
-        "valueMapping": {
-          "singlePhase": {
-            "type": "symptomSet",
-            "key": "singlePhase"
-          },
-          "biPhase": {
-            "type": "symptomSet",
-            "key": "biPhase"
-          },
-          "threePhaseWithNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithNeutral"
-          },
-          "threePhaseWithoutNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithoutNeutral"
-          }
-        }
-      }
-    ],
-    "DVS_115_SW_iSP_copy": [
-      {
-        "id": "symptomArea_copy_1753801183410",
-        "label": "Symptom Area",
-        "type": "select",
-        "required": false,
-        "order": 0,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": true,
-        "options": [
-          "armonia_1",
-          "mechanical_issue_1",
-          "electronics_1",
-          "hardware_1"
-        ]
-      },
-      {
-        "id": "symptomFound_copy_1753801183410",
-        "label": "Symptom Found",
-        "type": "select",
-        "required": false,
-        "order": 1,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "symptomArea_copy_1753801183410",
-        "valueMapping": {
-          "armonia_1": {
-            "type": "symptomSet",
-            "key": "armonia_1"
-          },
-          "mechanical_issue_1": {
-            "type": "symptomSet",
-            "key": "mechanical_issue_1"
-          },
-          "electronics_1": {
-            "type": "symptomSet",
-            "key": "electronics_1"
-          },
-          "hardware_1": {
-            "type": "symptomSet",
-            "key": "hardware_1"
-          }
-        }
-      },
-      {
-        "id": "main_copy_1753801183410",
-        "label": "Main",
-        "type": "select",
-        "required": false,
-        "order": 2,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": true,
-        "options": [
-          "singlePhase",
-          "biPhase",
-          "threePhaseWithNeutral",
-          "threePhaseWithoutNeutral"
-        ]
-      },
-      {
-        "id": "range_copy_1753801183410",
-        "label": "Range",
-        "type": "select",
-        "required": false,
-        "order": 3,
-        "conditions": [],
-        "section": "",
-        "isSymptomArea": false,
-        "options": [],
-        "dependsOn": "main_copy_1753801183410",
-        "valueMapping": {
-          "singlePhase": {
-            "type": "symptomSet",
-            "key": "singlePhase"
-          },
-          "biPhase": {
-            "type": "symptomSet",
-            "key": "biPhase"
-          },
-          "threePhaseWithNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithNeutral"
-          },
-          "threePhaseWithoutNeutral": {
-            "type": "symptomSet",
-            "key": "threePhaseWithoutNeutral"
-          }
-        }
+        "conditions": []
       }
     ]
+  },
+  "generalFieldsConfig": {
+    "sections": {
+      "companyData": [
+        {
+          "id": "companyname",
+          "type": "text",
+          "label": "Company Name",
+          "order": 0,
+          "isRequired": true
+        },
+        {
+          "id": "vatnumber",
+          "type": "text",
+          "label": "VAT number",
+          "order": 1,
+          "isRequired": true
+        },
+        {
+          "id": "email",
+          "type": "email",
+          "label": "e-Mail",
+          "order": 6,
+          "isRequired": true
+        },
+        {
+          "id": "phonenumber",
+          "type": "tel",
+          "label": "Phone Number",
+          "order": 7,
+          "isRequired": true
+        },
+        {
+          "id": "contact",
+          "type": "text",
+          "label": "Contact person name",
+          "order": 8,
+          "isRequired": true
+        },
+        {
+          "id": "pec",
+          "type": "email",
+          "label": "PEC (Italy only)",
+          "order": 9,
+          "isRequired": false
+        },
+        {
+          "id": "codiceunivoco",
+          "type": "text",
+          "label": "Codice Univoco (Italy only)",
+          "order": 10,
+          "isRequired": false
+        }
+      ],
+      "companyAddress": [
+        {
+          "id": "address",
+          "type": "text",
+          "label": "Address",
+          "order": 0,
+          "isRequired": true
+        },
+        {
+          "id": "city",
+          "type": "text",
+          "label": "City",
+          "order": 1,
+          "isRequired": true
+        },
+        {
+          "id": "zipcode",
+          "type": "number",
+          "label": "Zip Code",
+          "order": 2,
+          "isRequired": true
+        },
+        {
+          "id": "country",
+          "type": "text",
+          "label": "Country",
+          "order": 3,
+          "isRequired": true
+        }
+      ],
+      "otherReturnAddress": [
+        {
+          "id": "companyname",
+          "type": "text",
+          "label": "Company Name",
+          "order": 0,
+          "isRequired": true
+        },
+        {
+          "id": "address",
+          "type": "text",
+          "label": "Address",
+          "order": 1,
+          "isRequired": true
+        },
+        {
+          "id": "city",
+          "type": "text",
+          "label": "City",
+          "order": 2,
+          "isRequired": true
+        },
+        {
+          "id": "zipcode",
+          "type": "number",
+          "label": "Zip Code",
+          "order": 3,
+          "isRequired": true
+        },
+        {
+          "id": "country",
+          "type": "text",
+          "label": "Country",
+          "order": 4,
+          "isRequired": true
+        },
+        {
+          "id": "email",
+          "type": "email",
+          "label": "e-Mail",
+          "order": 5,
+          "isRequired": true
+        },
+        {
+          "id": "phonenumber",
+          "type": "tel",
+          "label": "Phone Number",
+          "order": 6,
+          "isRequired": true
+        },
+        {
+          "id": "contact",
+          "type": "text",
+          "label": "Contact person name",
+          "order": 7,
+          "isRequired": true
+        }
+      ],
+      "freightForwarderData": [
+        {
+          "id": "name",
+          "type": "text",
+          "label": "Freight Forwarder Name",
+          "order": 0,
+          "isRequired": false
+        },
+        {
+          "id": "accountnumber",
+          "type": "text",
+          "label": "Account Number",
+          "order": 1,
+          "isRequired": false
+        }
+      ]
+    }
   }
 }

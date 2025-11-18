@@ -247,9 +247,40 @@ let ConfigDataService = class ConfigDataService {
         const json = JSON.parse(raw);
         return this.importFromJson(json);
     }
+    async loadBaseConfigContent() {
+        const latest = await this.getLatest();
+        if (latest === null || latest === void 0 ? void 0 : latest.content) {
+            return JSON.parse(JSON.stringify(latest.content));
+        }
+        try {
+            const filePath = path.resolve(process.cwd(), '../src/assets/productData.json');
+            const raw = await fs.readFile(filePath, 'utf-8');
+            return JSON.parse(raw);
+        }
+        catch (e) {
+            console.warn('[ConfigDataService] Unable to load default productData.json:', String((e === null || e === void 0 ? void 0 : e.message) || e));
+            return {};
+        }
+    }
     async setEmailConfig(cfg) {
-        const { supplierRecipient = null, testingRecipient = null, downloadHtmlReports = true } = cfg || {};
-        await this.prisma.emailConfig.create({ data: { supplierRecipient, testingRecipient, downloadHtmlReports } });
+        const { supplierRecipient = null, testingRecipient = null, downloadHtmlReports = true, serialValidationEnabled, } = cfg || {};
+        const base = await this.loadBaseConfigContent();
+        base.emailConfig = { supplierRecipient, testingRecipient, downloadHtmlReports };
+        if (serialValidationEnabled !== undefined) {
+            base.validationConfig = base.validationConfig || {};
+            base.validationConfig.serial = base.validationConfig.serial || {};
+            base.validationConfig.serial.enabled = !!serialValidationEnabled;
+        }
+        try {
+            await this.prisma.emailConfig.create({
+                data: { supplierRecipient, testingRecipient, downloadHtmlReports },
+            });
+        }
+        catch (e) {
+            console.warn('[ConfigDataService] emailConfig persistence failed, continuing with snapshot update only:', String((e === null || e === void 0 ? void 0 : e.message) || e));
+        }
+        const saved = await this.create(base);
+        return saved.content;
     }
 };
 exports.ConfigDataService = ConfigDataService;

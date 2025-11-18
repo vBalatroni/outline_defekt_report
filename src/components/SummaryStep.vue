@@ -157,9 +157,9 @@ const goToBack = () => {
 
             <!-- General Information Section -->
             <div class="recap-general-info" >
-                <div  v-for="(section, sectionKey) in generalData" :key="sectionKey" class="mb-4 col-12 col-md-6">
+                <div  v-for="(section, sectionKey) in generalData" :key="sectionKey" class="single-info-card mb-4 col-12 col-md-6">
                     <!-- FIX: Check for section.street.value instead of section.address.value -->
-                    <template v-if="sectionKey !== 'otherReturnAddress' || (section.street && section.street.value)">
+                    <template class="info-card-content" v-if="sectionKey !== 'otherReturnAddress' || (section.street && section.street.value)">
                         <h3 class="section-header">{{ sectionTitles[sectionKey] }}</h3>
                         <div class="info-card">
                             <div v-for="(field, fieldKey) in section" :key="fieldKey" class="info-item">

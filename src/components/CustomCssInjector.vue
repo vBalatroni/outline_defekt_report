@@ -3,14 +3,39 @@
 </template>
 
 <script setup>
-import { computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue';
+import { computed, watch, onMounted, onBeforeUnmount, nextTick, ref } from 'vue';
 import { useProductStore } from '@/stores/productStore';
 
 const store = useProductStore();
 
 let styleElement = null;
+const localCss = ref(null);
+
+// In sviluppo locale, carica il file CSS locale
+if (import.meta.env.DEV) {
+  fetch('/local-custom.css')
+    .then(res => res.text())
+    .then(css => {
+      localCss.value = css.trim();
+      console.log('Local CSS loaded from /local-custom.css');
+      // Inietta il CSS locale dopo il caricamento
+      nextTick(() => {
+        injectCss();
+      });
+    })
+    .catch(err => {
+      console.warn('Local CSS file not found or error loading:', err);
+      // Se il file non esiste, continua senza CSS locale
+    });
+}
 
 const customCss = computed(() => {
+  // In sviluppo, usa il CSS locale se disponibile, altrimenti quello dal backend
+  if (import.meta.env.DEV && localCss.value) {
+    return localCss.value;
+  }
+  
+  // In produzione, usa sempre il CSS dal backend
   const css = store.productMapping?.customCss;
   if (!css || !css.trim()) return null;
   // Rimuovi eventuali tag <style> esistenti per evitare duplicati
@@ -38,7 +63,13 @@ const injectCss = () => {
   styleElement.type = 'text/css';
   styleElement.textContent = css;
   document.head.appendChild(styleElement);
-  console.log('Custom CSS injected:', css.substring(0, 50) + '...');
+  
+  // Log informativo
+  if (import.meta.env.DEV && localCss.value) {
+    console.log('✅ CSS locale caricato da /local-custom.css');
+  } else {
+    console.log('✅ Custom CSS dal backend:', css.substring(0, 50) + '...');
+  }
 };
 
 const removeCss = () => {
@@ -51,6 +82,15 @@ const removeCss = () => {
     styleElement = null;
   }
 };
+
+// Watch su localCss per re-iniettare quando viene caricato in sviluppo
+watch(localCss, () => {
+  if (import.meta.env.DEV && localCss.value) {
+    nextTick(() => {
+      injectCss();
+    });
+  }
+});
 
 // Watch sia su customCss che su productMapping per reagire ai cambiamenti
 watch(customCss, () => {

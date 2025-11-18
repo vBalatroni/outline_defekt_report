@@ -1,0 +1,29 @@
+/* 
+ * CSS locale per sviluppo
+ * Questo file viene letto automaticamente in fase di sviluppo locale
+ * Copia il contenuto qui quando vuoi testare le modifiche CSS
+ * 
+ * Per usare questo file in produzione, copia il contenuto nella tab "Custom CSS" 
+ * dell'editor di configurazione (admin/config-editor)
+ */
+
+/* Import font moderno simile a Outline */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Reset e base styling - Stile help page */
+body {
+  background-color: #ffffff !important;
+}
+
+.form-layout,
+.container {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+  letter-spacing: -0.01em;
+  color: #1a1a1a;
+  max-width: 1200px !important;
+  margin: 0 auto !important;
+  padding: 0 2rem !important;
+}
+
+/* Aggiungi qui il tuo CSS personalizzato per lo sviluppo */
+

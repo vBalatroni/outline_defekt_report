@@ -41,9 +41,14 @@ let ConfigDataController = class ConfigDataController {
     async setEmail(body) {
         if (!body || typeof body !== 'object')
             throw new common_1.BadRequestException('Invalid payload');
-        const { supplierRecipient, testingRecipient } = body;
-        await this.service.setEmailConfig({ supplierRecipient, testingRecipient });
-        return { ok: true };
+        const { supplierRecipient, testingRecipient, downloadHtmlReports, serialValidationEnabled, } = body;
+        const updatedContent = await this.service.setEmailConfig({
+            supplierRecipient,
+            testingRecipient,
+            downloadHtmlReports,
+            serialValidationEnabled,
+        });
+        return { ok: true, content: updatedContent };
     }
 };
 exports.ConfigDataController = ConfigDataController;
