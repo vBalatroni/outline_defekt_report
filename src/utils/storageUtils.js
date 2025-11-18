@@ -2,6 +2,8 @@
  * Utility functions for managing storage of form configuration and product mapping data
  */
 
+import { logger } from './logger';
+
 const STORAGE_KEYS = {
   FORM_CONFIG: 'formConfig',
   PRODUCT_MAPPING: 'productMapping',
@@ -17,7 +19,7 @@ export function saveFormConfig(config) {
   try {
     localStorage.setItem(STORAGE_KEYS.FORM_CONFIG, JSON.stringify(config));
   } catch (error) {
-    console.error('Error saving form configuration:', error);
+    logger.error('Error saving form configuration:', error);
   }
 }
 
@@ -30,7 +32,7 @@ export function loadFormConfig() {
     const stored = localStorage.getItem(STORAGE_KEYS.FORM_CONFIG);
     return stored ? JSON.parse(stored) : null;
   } catch (error) {
-    console.error('Error loading form configuration:', error);
+    logger.error('Error loading form configuration:', error);
     return null;
   }
 }
@@ -43,7 +45,7 @@ export function saveProductMapping(mapping) {
   try {
     localStorage.setItem(STORAGE_KEYS.PRODUCT_MAPPING, JSON.stringify(mapping));
   } catch (error) {
-    console.error('Error saving product mapping:', error);
+    logger.error('Error saving product mapping:', error);
   }
 }
 
@@ -56,7 +58,7 @@ export function loadProductMapping() {
     const stored = localStorage.getItem(STORAGE_KEYS.PRODUCT_MAPPING);
     return stored ? JSON.parse(stored) : null;
   } catch (error) {
-    console.error('Error loading product mapping:', error);
+    logger.error('Error loading product mapping:', error);
     return null;
   }
 }
@@ -75,7 +77,7 @@ export function saveUploadedConfig(filename, config) {
     };
     localStorage.setItem(STORAGE_KEYS.UPLOADED_CONFIGS, JSON.stringify(uploaded));
   } catch (error) {
-    console.error('Error saving uploaded configuration:', error);
+    logger.error('Error saving uploaded configuration:', error);
   }
 }
 
@@ -88,7 +90,7 @@ export function getUploadedConfigs() {
     const stored = localStorage.getItem(STORAGE_KEYS.UPLOADED_CONFIGS);
     return stored ? JSON.parse(stored) : {};
   } catch (error) {
-    console.error('Error loading uploaded configurations:', error);
+    logger.error('Error loading uploaded configurations:', error);
     return {};
   }
 }
@@ -103,7 +105,7 @@ export function deleteUploadedConfig(filename) {
     delete uploaded[filename];
     localStorage.setItem(STORAGE_KEYS.UPLOADED_CONFIGS, JSON.stringify(uploaded));
   } catch (error) {
-    console.error('Error deleting uploaded configuration:', error);
+    logger.error('Error deleting uploaded configuration:', error);
   }
 }
 
@@ -121,7 +123,7 @@ export function saveUploadedMapping(filename, mapping) {
     };
     localStorage.setItem(STORAGE_KEYS.UPLOADED_MAPPINGS, JSON.stringify(uploaded));
   } catch (error) {
-    console.error('Error saving uploaded mapping:', error);
+    logger.error('Error saving uploaded mapping:', error);
   }
 }
 
@@ -134,7 +136,7 @@ export function getUploadedMappings() {
     const stored = localStorage.getItem(STORAGE_KEYS.UPLOADED_MAPPINGS);
     return stored ? JSON.parse(stored) : {};
   } catch (error) {
-    console.error('Error loading uploaded mappings:', error);
+    logger.error('Error loading uploaded mappings:', error);
     return {};
   }
 }
@@ -149,7 +151,7 @@ export function deleteUploadedMapping(filename) {
     delete uploaded[filename];
     localStorage.setItem(STORAGE_KEYS.UPLOADED_MAPPINGS, JSON.stringify(uploaded));
   } catch (error) {
-    console.error('Error deleting uploaded mapping:', error);
+    logger.error('Error deleting uploaded mapping:', error);
   }
 }
 
@@ -162,7 +164,7 @@ export function clearAllStorage() {
       localStorage.removeItem(key);
     });
   } catch (error) {
-    console.error('Error clearing storage:', error);
+    logger.error('Error clearing storage:', error);
   }
 }
 
@@ -192,7 +194,7 @@ export function getStorageUsage() {
     
     return stats;
   } catch (error) {
-    console.error('Error getting storage usage:', error);
+    logger.error('Error getting storage usage:', error);
     return {};
   }
 }
@@ -212,7 +214,7 @@ export function exportAllData() {
     });
     return data;
   } catch (error) {
-    console.error('Error exporting data:', error);
+    logger.error('Error exporting data:', error);
     return {};
   }
 }
@@ -230,6 +232,6 @@ export function importData(data) {
       }
     });
   } catch (error) {
-    console.error('Error importing data:', error);
+    logger.error('Error importing data:', error);
   }
 } 

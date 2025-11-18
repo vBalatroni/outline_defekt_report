@@ -97,6 +97,7 @@
 <script setup>
 import { ref, computed, reactive, onMounted, watch } from 'vue';
 import { useProductStore } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 
 const productStore = useProductStore();
 
@@ -191,7 +192,7 @@ const saveToServer = async () => {
     syncSnapshot();
     showToast({ message: 'Symptom sets saved to server.', type: 'success', duration: 4000 });
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     showToast({ message: `Failed to save: ${e.message || e}`, type: 'danger', duration: 5000 });
   } finally {
     isSaving.value = false;
@@ -206,7 +207,7 @@ const reloadFromServer = async () => {
     syncSnapshot();
     showToast({ message: 'Symptom sets reloaded from server.', type: 'success', duration: 3500 });
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger', duration: 5000 });
   } finally {
     isReloading.value = false;

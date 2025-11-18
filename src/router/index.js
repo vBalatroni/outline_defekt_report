@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useProductStore } from '@/stores/productStore'; // Import the store
+import { logger } from '@/utils/logger';
 import HomeView from '../views/HomeView.vue'
 import FormLayout from '../views/FormLayout.vue'
 import ConfirmationStep from '../components/ConfirmationStep.vue'
@@ -53,7 +54,7 @@ const router = createRouter({
       path: '/admin/config-editor',
       name: 'config-editor',
       component: ConfigEditorView
-    }
+    },
   ]
 })
 
@@ -74,7 +75,7 @@ router.beforeEach((to, from, next) => {
     const sessionExists = store.formState.sessionId || sessionStorage.getItem('defekt_report_session_id');
     
     if (!sessionExists) {
-      console.warn('Access denied. No active session. Redirecting to confirmation.');
+      logger.warn('Access denied. No active session. Redirecting to confirmation.');
       // If no session, redirect to the first step
       next({ name: 'step-confirmation' });
     } else {
@@ -82,7 +83,7 @@ router.beforeEach((to, from, next) => {
       next();
     }
   } else {
-    // If the route doesn't require a session, proceed
+    // If the route doesn't require a session, continue evaluation
     next();
   }
 });

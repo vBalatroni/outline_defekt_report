@@ -2,6 +2,7 @@
 import { ref, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
 import { useProductStore } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 import { generateSupplierHtml, generateCustomerHtml } from '@/utils/htmlGenerator';
 import StepHeader from './StepHeader.vue';
 import Button from './Button.vue';
@@ -145,7 +146,7 @@ onMounted(async () => {
                         });
                     });
                 });
-            } catch (e) { console.warn('Failed collecting media files:', e); }
+            } catch (e) { logger.warn('Failed collecting media files:', e); }
             return fd;
         };
 
@@ -153,19 +154,19 @@ onMounted(async () => {
         if (supplierRecipient && customerRecipient) {
             try {
                 const fd = buildFormData();
-                console.log('[Email] Invio email in corso...');
+                logger.log('[Email] Invio email in corso...');
                 const response = await fetch('/mail/send-multipart', {
                     method: 'POST',
                     body: fd,
                 });
 
-                console.log('[Email] Response status:', response.status, response.statusText);
+                logger.debug('[Email] Response status:', response.status, response.statusText);
                 const result = await response.json().catch((e) => {
                     console.error('[Email] Errore parsing JSON:', e);
                     return { success: false, message: 'Errore risposta server' };
                 });
                 
-                console.log('[Email] Response data:', result);
+                logger.debug('[Email] Response data:', result);
                 
                 if (!response.ok || (result && result.success === false)) {
                     const errorMsg = result?.message || result?.error || `HTTP ${response.status}: ${response.statusText}`;
@@ -173,7 +174,7 @@ onMounted(async () => {
                     throw new Error(errorMsg);
                 }
                 emailStatus.value = 'success';
-                console.log('[Email] Email inviata con successo');
+                logger.log('[Email] Email inviata con successo');
             } catch (error) {
                 console.error('[Email] Errore completo:', error);
                 emailStatus.value = 'error';
@@ -186,7 +187,7 @@ onMounted(async () => {
         }
 
     } else {
-        console.warn('No products found to generate report.');
+        logger.warn('No products found to generate report.');
         emailStatus.value = 'error';
         emailError.value = 'No product data found to create a report.';
     }
@@ -205,7 +206,7 @@ onMounted(async () => {
             })
         });
     } catch (e) {
-        console.warn('Failed to save submission to DB:', e);
+        logger.warn('Failed to save submission to DB:', e);
     }
 
     store.resetForm();

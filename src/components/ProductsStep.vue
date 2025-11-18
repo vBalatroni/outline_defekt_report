@@ -9,6 +9,7 @@ import DynamicProductForm from './DynamicProductForm.vue'; // Make sure this is 
 import 'bootstrap-icons/font/bootstrap-icons.css';
 import { useProductStore } from '@/stores/productStore';
 import { fileToBase64 } from '@/utils/fileUtils';
+import { logger } from '@/utils/logger';
 
 const emit = defineEmits(['step-validation']);
 
@@ -398,8 +399,7 @@ const openNewProductModal = () => {
     showModal.value = true;
     currentProductModel.value = '';
     
-    // Debug log
-    console.log('Initialized currentProduct:', currentProduct.value);
+    logger.debug('Initialized currentProduct:', currentProduct.value);
 };
 
 const canAddDefekt = computed(() => {
@@ -426,6 +426,7 @@ const canAddDefekt = computed(() => {
             // Check required fields
             if (field.isRequired) {
                 if (!fieldValue || fieldValue === null || fieldValue === undefined || fieldValue === '') {
+                    logger.debug(`Required field not filled: ${sectionKey}.${fieldKey}`);
                     hasRequiredFields = false;
                 }
             }
@@ -452,21 +453,21 @@ const canAddDefekt = computed(() => {
 
 // Add debug watch for dynamicDefektData to track when fields are filled
 watch(() => dynamicDefektData.value, (newData) => {
-    console.log('Dynamic Defekt Data changed:', newData);
-    console.log('Can add defekt:', canAddDefekt.value);
+    logger.debug('Dynamic Defekt Data changed:', newData);
+    logger.debug('Can add defekt:', canAddDefekt.value);
 }, { deep: true });
 
 // Add debug watch for required fields
 watch(() => currentDefekt.value, () => {
     if (currentDefekt.value) {
-        console.log('Checking required fields:');
+        logger.debug('Checking required fields');
         for (const sectionKey in currentDefekt.value) {
             const fields = currentDefekt.value[sectionKey];
             Object.keys(fields).forEach(fieldKey => {
                 const field = currentDefekt.value[sectionKey][fieldKey];
                 if (field.isRequired) {
                     const fieldValue = dynamicDefektData.value[fieldKey];
-                    console.log(`${sectionKey}.${fieldKey}: ${fieldValue ? 'filled' : 'empty'}`);
+                    logger.debug(`${sectionKey}.${fieldKey}: ${fieldValue ? 'filled' : 'empty'}`);
                 }
             });
         }
@@ -485,7 +486,7 @@ watch(() => currentProduct.value?.basicInfo.category.value, (newCategory) => {
 
 // Add a debug watch for currentProduct
 watch(() => currentProduct.value?.basicInfo, (newVal) => {
-    console.log('Current Product Basic Info:', newVal);
+    logger.debug('Current Product Basic Info:', newVal);
 }, { deep: true });
 
 // Add computed property for next button validation

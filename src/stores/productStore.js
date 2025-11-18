@@ -2,6 +2,7 @@ import { defineStore } from 'pinia';
 import { ref, computed, watch } from 'vue';
 import { loadProductMapping, saveProductMapping } from '@/utils/storageUtils';
 import productDataJson from '@/assets/productData.json';
+import { logger } from '@/utils/logger';
 
 export const defaultIntroContent = {
   title: 'Before starting',
@@ -133,12 +134,12 @@ export const useProductStore = defineStore('product', () => {
             ensureValidationConfig(incoming);
             ensureAttachmentsConfig(incoming);
             productMapping.value = incoming;
-            console.log('Configuration loaded from backend.');
+            logger.log('Configuration loaded from backend.');
             return;
           }
         }
       } catch (e) {
-        console.warn('Backend config not available, falling back to bundled productData.json');
+        logger.warn('Backend config not available, falling back to bundled productData.json');
       }
 
       // 2) Fallback: usa il file bundle
@@ -147,7 +148,7 @@ export const useProductStore = defineStore('product', () => {
       ensureValidationConfig(currentMapping);
       ensureAttachmentsConfig(currentMapping);
       productMapping.value = currentMapping;
-      console.log('Configuration loaded from file.');
+      logger.log('Configuration loaded from file.');
 
     } catch (e) {
       console.error(e);
@@ -181,14 +182,14 @@ export const useProductStore = defineStore('product', () => {
     formState.value.generalData = generateGeneralDataFromConfig(productMapping.value?.generalFieldsConfig) || getDefaultGeneralDataTemplate();
     formState.value.savedProducts = [];
     localStorage.removeItem('defekt_report_form_data');
-    console.log('Form state and persisted data have been reset.');
+    logger.log('Form state and persisted data have been reset.');
   };
 
   const startSession = () => {
     const newSessionId = `session-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     formState.value.sessionId = newSessionId;
     sessionStorage.setItem('defekt_report_session_id', newSessionId);
-    console.log('Form session started:', newSessionId);
+    logger.log('Form session started:', newSessionId);
     // Ensure current generalFieldsConfig is applied to the live form when starting a new session
     const cfg = productMapping.value?.generalFieldsConfig;
     const generated = generateGeneralDataFromConfig(cfg);
@@ -201,7 +202,7 @@ export const useProductStore = defineStore('product', () => {
     const storedSessionId = sessionStorage.getItem('defekt_report_session_id');
     if (storedSessionId) {
       formState.value.sessionId = storedSessionId;
-      console.log('Form session loaded from sessionStorage:', storedSessionId);
+      logger.log('Form session loaded from sessionStorage:', storedSessionId);
 
       const persistedData = localStorage.getItem('defekt_report_form_data');
       if (persistedData) {
@@ -209,9 +210,9 @@ export const useProductStore = defineStore('product', () => {
           const parsedData = JSON.parse(persistedData);
           formState.value.generalData = parsedData.generalData;
           formState.value.savedProducts = parsedData.savedProducts;
-          console.log('Successfully hydrated form state from localStorage.');
+          logger.log('Successfully hydrated form state from localStorage.');
         } catch (error) {
-          console.error('Failed to parse persisted form data:', error);
+          logger.error('Failed to parse persisted form data:', error);
         }
       }
     }

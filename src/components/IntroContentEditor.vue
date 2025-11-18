@@ -106,6 +106,7 @@
 <script setup>
 import { reactive, ref, watch, computed, nextTick } from 'vue';
 import { useProductStore, defaultIntroContent } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 import WysiwygOrTextEditor from '@/components/WysiwygOrTextEditor.vue';
 
 const store = useProductStore();
@@ -316,7 +317,7 @@ const saveIntroContent = async () => {
     showToast({ message: 'Acceptance page updated successfully.', type: 'success' });
     resetDirty();
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     showToast({ message: error.message || 'Failed to save acceptance page.', type: 'danger', duration: 6000 });
   } finally {
     isSaving.value = false;
@@ -331,7 +332,7 @@ const reloadFromServer = async () => {
     applyIntroToForm(currentIntro.value || defaultIntroContent);
     showToast({ message: 'Acceptance page reloaded.', type: 'info' });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     showToast({ message: error.message || 'Failed to reload acceptance page.', type: 'danger', duration: 6000 });
   } finally {
     isReloading.value = false;

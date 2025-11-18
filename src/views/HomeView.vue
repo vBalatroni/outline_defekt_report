@@ -72,7 +72,7 @@ const categoryConfigs = {
 };
 
 // Verify categoryConfigs is correctly added to productData
-console.log('Category Configs:', categoryConfigs);
+logger.debug('Category Configs:', categoryConfigs);
 
 // Use computed properties from the store instead of local definitions
 const categoryModels = computed(() => productStore.categoryModels);
@@ -461,7 +461,7 @@ watch(() => categoryModels.value, (newCategories) => {
 // Initialize the store when component is mounted
 onMounted(async () => {
   await productStore.loadConfiguration();
-  console.log('Product store initialized:', {
+  logger.debug('Product store initialized:', {
     categories: productStore.categories,
     categoryModels: productStore.categoryModels,
     modelSymptomAreas: productStore.modelSymptomAreas,

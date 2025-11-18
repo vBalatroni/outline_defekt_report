@@ -7,6 +7,9 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview",
+    "test": "vitest",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
     "style": "sass src/assets/custom.scss src/assets/custom.css",
     "watch-style": "sass --watch src/assets/custom.scss:src/assets/custom.css",
     "deploy": "npm run build && gh-pages -d dist"
@@ -22,11 +25,18 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^6.1.5",
+    "@testing-library/vue": "^8.1.0",
     "@vitejs/plugin-vue": "^5.2.1",
+    "@vitest/coverage-v8": "^4.0.10",
+    "@vitest/ui": "^4.0.10",
+    "@vue/test-utils": "^2.4.6",
     "gh-pages": "^6.3.0",
+    "jsdom": "^24.0.0",
     "sass": "^1.85.0",
     "sass-loader": "^16.0.5",
     "vite": "^6.0.11",
-    "vite-plugin-vue-devtools": "^7.7.1"
+    "vite-plugin-vue-devtools": "^7.7.1",
+    "vitest": "^4.0.10"
   }
 }

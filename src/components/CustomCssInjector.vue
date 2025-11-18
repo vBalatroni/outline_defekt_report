@@ -5,6 +5,7 @@
 <script setup>
 import { computed, watch, onMounted, onBeforeUnmount, nextTick, ref } from 'vue';
 import { useProductStore } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 
 const store = useProductStore();
 
@@ -17,14 +18,14 @@ if (import.meta.env.DEV) {
     .then(res => res.text())
     .then(css => {
       localCss.value = css.trim();
-      console.log('Local CSS loaded from /local-custom.css');
+      logger.log('Local CSS loaded from /local-custom.css');
       // Inietta il CSS locale dopo il caricamento
       nextTick(() => {
         injectCss();
       });
     })
     .catch(err => {
-      console.warn('Local CSS file not found or error loading:', err);
+      logger.warn('Local CSS file not found or error loading:', err);
       // Se il file non esiste, continua senza CSS locale
     });
 }
@@ -66,9 +67,9 @@ const injectCss = () => {
   
   // Log informativo
   if (import.meta.env.DEV && localCss.value) {
-    console.log('✅ CSS locale caricato da /local-custom.css');
+    logger.log('✅ CSS locale caricato da /local-custom.css');
   } else {
-    console.log('✅ Custom CSS dal backend:', css.substring(0, 50) + '...');
+    logger.debug('✅ Custom CSS dal backend:', css.substring(0, 50) + '...');
   }
 };
 

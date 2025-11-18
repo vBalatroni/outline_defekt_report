@@ -89,6 +89,7 @@
 <script setup>
 import { ref, watch, computed, nextTick, onMounted } from 'vue';
 import { useProductStore } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 
 const store = useProductStore();
 
@@ -174,7 +175,7 @@ const saveCustomCss = async () => {
     showToast({ message: 'Custom CSS updated successfully.', type: 'success' });
     resetDirty();
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     showToast({ message: error.message || 'Failed to save custom CSS.', type: 'danger', duration: 6000 });
   } finally {
     isSaving.value = false;
@@ -189,7 +190,7 @@ const reloadFromServer = async () => {
     applyCssToForm(currentCustomCss.value || '');
     showToast({ message: 'Custom CSS reloaded.', type: 'info' });
   } catch (error) {
-    console.error(error);
+    logger.error(error);
     showToast({ message: error.message || 'Failed to reload custom CSS.', type: 'danger', duration: 6000 });
   } finally {
     isReloading.value = false;

@@ -5,6 +5,7 @@ import { useProductStore } from '@/stores/productStore';
 import SectionHeader from './StepHeader.vue';
 import Button from './Button.vue';
 import Divider from './Divider.vue';
+import { logger } from '@/utils/logger';
 import 'bootstrap-icons/font/bootstrap-icons.css';
 
 // Expose File for template
@@ -81,7 +82,7 @@ const getDefektSections = (defekt) => {
         }
     });
     
-    console.log('getDefektSections result:', sections);
+    logger.debug('getDefektSections result:', sections);
     return sections;
 };
 
@@ -117,39 +118,10 @@ const openProductDetails = (product) => {
     };
     
     selectedProduct.value = cloneProduct(product);
-    console.log('=== PRODUCT DETAILS DEBUG ===');
-    console.log('Selected product (raw):', selectedProduct.value);
-    console.log('Defekts:', selectedProduct.value.defekts);
-    console.log('Defekts length:', selectedProduct.value.defekts?.length);
-    
-    if (selectedProduct.value.defekts && selectedProduct.value.defekts.length > 0) {
-        selectedProduct.value.defekts.forEach((defekt, index) => {
-            console.log(`\n--- Defekt ${index + 1} ---`);
-            console.log('Defekt:', defekt);
-            console.log('Defekt keys:', Object.keys(defekt || {}));
-            
-            Object.keys(defekt || {}).forEach(sectionName => {
-                const section = defekt[sectionName];
-                console.log(`\n  Section "${sectionName}":`, section);
-                console.log(`  Section keys:`, Object.keys(section || {}));
-                
-                if (section) {
-                    Object.keys(section).forEach(fieldKey => {
-                        const field = section[fieldKey];
-                        console.log(`    Field "${fieldKey}":`, field);
-                        if (field) {
-                            console.log(`      - id:`, field.id);
-                            console.log(`      - label:`, field.label);
-                            console.log(`      - value:`, field.value);
-                            console.log(`      - preview:`, field.preview);
-                            console.log(`      - has value:`, !!field.value);
-                        }
-                    });
-                }
-            });
-        });
-    }
-    console.log('=== END DEBUG ===\n');
+    logger.debug('Product details opened:', {
+        product: selectedProduct.value,
+        defektsCount: selectedProduct.value.defekts?.length
+    });
     showProductModal.value = true;
 };
 

@@ -481,6 +481,7 @@
 <script setup>
 import { ref, computed, onMounted, reactive, watch } from 'vue';
 import { useRouter } from 'vue-router';
+import { logger } from '@/utils/logger';
 import { useProductStore } from '@/stores/productStore';
 
 const productStore = useProductStore();
@@ -1087,7 +1088,7 @@ const handleFileImportChange = (event) => {
             markDirty();
             showToast({ message: 'Configuration imported. Review and save to server.', type: 'success', duration: 5000 });
         } catch (error) {
-            console.error(error);
+            logger.error(error);
             showToast({ message: `Failed to import configuration: ${error.message}`, type: 'danger', duration: 6000 });
         }
     };
@@ -1311,7 +1312,7 @@ const doSaveConfigurationToServer = async () => {
     resetDirty();
     showToast({ message: 'Configuration saved to server.', type: 'success' });
   } catch (error) {
-    console.error('Failed to save configuration to server:', error);
+    logger.error('Failed to save configuration to server:', error);
     showToast({ message: `Failed to save configuration: ${error.message}`, type: 'danger', duration: 6000 });
   } finally {
     isSaving.value = false;
@@ -1337,7 +1338,7 @@ const reloadFromServer = async () => {
     snapshot.value = computeSnapshot(productStore.productMapping);
     showToast({ message: 'Configuration reloaded from server.', type: 'info' });
   } catch (e) {
-    console.error(e);
+    logger.error(e);
     showToast({ message: `Failed to reload: ${e.message || e}`, type: 'danger' });
   } finally {
     isReloading.value = false;

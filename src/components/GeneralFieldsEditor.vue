@@ -112,6 +112,7 @@
 <script setup>
 import { computed, reactive, ref, watch, onMounted } from 'vue';
 import { useProductStore } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 
 const store = useProductStore();
 const sectionTitles = {
@@ -206,7 +207,7 @@ const saveToServer = async () => {
     snapshotRef.value = currentSignature.value;
     hasUnsavedChanges.value = false;
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   } finally {
     isSaving.value = false;
   }
@@ -221,7 +222,7 @@ const reloadFromServer = async () => {
     snapshotRef.value = currentSignature.value;
     hasUnsavedChanges.value = false;
   } catch (e) {
-    console.error(e);
+    logger.error(e);
   } finally {
     isReloading.value = false;
   }
