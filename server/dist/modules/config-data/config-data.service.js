@@ -227,6 +227,9 @@ let ConfigDataService = class ConfigDataService {
             }
             await tx.config.create({ data: { content } });
             return { ok: true };
+        }, {
+            timeout: 60000,
+            maxWait: 10000,
         });
     }
     async purgeNormalizedData(tx) {
