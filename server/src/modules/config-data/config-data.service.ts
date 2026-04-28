@@ -257,6 +257,10 @@ export class ConfigDataService {
       // Also store original JSON as last Config snapshot
       await tx.config.create({ data: { content } });
       return { ok: true };
+    }, {
+      // Default Prisma è 5s: insufficiente per la riscrittura full-config.
+      timeout: 60_000,
+      maxWait: 10_000,
     });
   }
 
