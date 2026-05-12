@@ -9,6 +9,7 @@ import ProductsStep from '@/components/ProductsStep.vue';
 import SummaryStep from '@/components/SummaryStep.vue';
 import SuccessStep from '@/components/SuccessStep.vue';
 import { useProductStore } from '@/stores/productStore';
+import { logger } from '@/utils/logger';
 
 const productStore = useProductStore();
 
