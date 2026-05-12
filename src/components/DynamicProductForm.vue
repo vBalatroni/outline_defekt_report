@@ -264,18 +264,12 @@ const visibleFields = computed(() => {
 });
 
 const getOptionsForField = (field) => {
-    // For symptom areas, we now return the full object { value, label }
+    // Se il field è marcato come "Use Symptom Sets as options",
+    // espandi i symptoms del singolo set selezionato (field.options = [setKey]).
     if (field.isSymptomArea) {
-        const symptomSets = productStore.symptomSets || {};
-        const areaOptions = [];
-        if (Array.isArray(field.options)) {
-            field.options.forEach(setKey => {
-                if (symptomSets[setKey]) {
-                    areaOptions.push({ value: setKey, label: symptomSets[setKey].label });
-                }
-            });
-        }
-        return areaOptions;
+        const setKey = Array.isArray(field.options) ? field.options[0] : null;
+        if (!setKey) return [];
+        return productStore.getSymptomSetSymptoms(setKey) || [];
     }
     
     if (field.dependsOn) {

@@ -202,7 +202,7 @@
                                             <label for="isSymptomArea">Use Symptom Sets as options</label>
                                         </div>
                                         <p class="helper-text">
-                                            Attiva questa opzione se il menù deve mostrare i Symptom Set disponibili per il modello.
+                                            Scegli un Symptom Set: le voci del menu saranno i suoi symptoms.
                                         </p>
                                         <div v-if="activeField.isSymptomArea" class="form-group">
                                             <label>Available Symptom Sets</label>
@@ -938,7 +938,10 @@ const saveField = () => {
     if (activeField.type === 'select') {
         fieldData.isSymptomArea = activeField.isSymptomArea;
         if (activeField.isSymptomArea) {
-            fieldData.options = activeField.options;
+            // Single-set: normalizza eventuali array legacy multi-key a 1 elemento.
+            fieldData.options = Array.isArray(activeField.options)
+                ? activeField.options.slice(0, 1)
+                : [];
         } else {
             fieldData.options = manualOptions.value.filter(Boolean);
         }
@@ -1045,15 +1048,9 @@ const isSymptomSetSelected = (value) => {
 };
 
 const toggleSymptomSet = (value) => {
-    if (!Array.isArray(activeField.options)) {
-        activeField.options = [];
-    }
-    const index = activeField.options.indexOf(value);
-    if (index >= 0) {
-        activeField.options.splice(index, 1);
-    } else {
-        activeField.options.push(value);
-    }
+    // Single-select: cliccare un set lo sceglie come unico, ricliccarlo lo deseleziona.
+    const current = Array.isArray(activeField.options) ? activeField.options[0] : null;
+    activeField.options = current === value ? [] : [value];
     symptomSelectionCache.value = [...activeField.options];
     markDirty();
 };
