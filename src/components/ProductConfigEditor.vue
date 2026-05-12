@@ -724,7 +724,15 @@ const availableConditionFields = computed(() => {
 const parentFieldOptions = computed(() => {
     if (!activeField.dependsOn) return [];
     const parentField = modelFields.value.find(field => field.id === activeField.dependsOn);
-    return parentField ? parentField.options || [] : [];
+    if (!parentField) return [];
+    // Se il parent è "Use Symptom Sets as options", a runtime mostra i symptoms del set:
+    // il mapping admin deve iterare su quegli stessi symptoms, non sul setKey.
+    if (parentField.isSymptomArea) {
+        const setKey = Array.isArray(parentField.options) ? parentField.options[0] : null;
+        if (!setKey) return [];
+        return productStore.getSymptomSetSymptoms(setKey) || [];
+    }
+    return parentField.options || [];
 });
 
 watch(() => parentFieldOptions.value, (newOptions) => {
