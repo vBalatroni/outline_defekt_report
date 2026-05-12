@@ -89,6 +89,7 @@
             <option value="email">email</option>
             <option value="tel">tel</option>
             <option value="number">number</option>
+            <option value="country">country</option>
             <option value="file">file</option>
           </select>
         </div>

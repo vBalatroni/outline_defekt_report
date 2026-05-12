@@ -1,6 +1,7 @@
 <script setup>
 import { defineProps, defineEmits, computed } from 'vue';
 import FileUpload from './FileUpload.vue';
+import { COUNTRIES } from '@/constants/countries';
 
 const props = defineProps({
     id: String,
@@ -70,12 +71,28 @@ const safeOptions = computed(() => {
         <template v-else-if="type === 'file'">
             <FileUpload v-model="value" />
         </template>
+        <template v-else-if="type === 'country'">
+            <input
+                type="text"
+                :id="id"
+                :list="`countries-${id}`"
+                :required="isRequired"
+                v-model="value"
+                :disabled="disabled"
+                autocomplete="off"
+                placeholder="Start typing a country..."
+                class="form-control"
+            />
+            <datalist :id="`countries-${id}`">
+                <option v-for="country in COUNTRIES" :key="country" :value="country" />
+            </datalist>
+        </template>
         <template v-else>
-            <input 
-                :type="type" 
-                :id="id" 
-                :required="isRequired" 
-                v-model="value" 
+            <input
+                :type="type"
+                :id="id"
+                :required="isRequired"
+                v-model="value"
                 :disabled="disabled"
                 class="form-control"
             />
