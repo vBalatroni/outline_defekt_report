@@ -110,7 +110,9 @@ export const useProductStore = defineStore('product', () => {
 
   const symptomSetOptions = computed(() => {
     const sets = productMapping.value?.symptomSets || {};
-    return Object.entries(sets).map(([key, val]) => ({ value: key, label: val.label || key }));
+    return Object.entries(sets)
+      .map(([key, val]) => ({ value: key, label: val.label || key }))
+      .sort((a, b) => a.label.localeCompare(b.label));
   });
 
   const defectSections = computed(() => {

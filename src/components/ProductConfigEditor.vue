@@ -367,7 +367,7 @@
                                     <option value="equals">equals</option>
                                     <option value="not_equals">not equals</option>
                                     <option value="contains">contains</option>
-                                    <option value="exists">exists</option>
+                                    <option value="exists">is filled (any value)</option>
                                 </select>
                                 <input type="text" v-model="condition.value" placeholder="Value" class="condition-control">
                                 <button @click="removeCondition(index)" class="btn btn-sm btn-danger">Remove</button>
@@ -479,7 +479,7 @@
 </template>
 
 <script setup>
-import { ref, computed, onMounted, reactive, watch } from 'vue';
+import { ref, computed, onMounted, reactive, watch, nextTick } from 'vue';
 import { useRouter } from 'vue-router';
 import { logger } from '@/utils/logger';
 import { useProductStore } from '@/stores/productStore';
@@ -736,6 +736,9 @@ const parentFieldOptions = computed(() => {
 });
 
 watch(() => parentFieldOptions.value, (newOptions) => {
+    // Evita di distruggere il valueMapping quando il modal sta inizializzando
+    // un field salvato (apertura Edit): il fix preserva i mapping symptomSet già caricati.
+    if (initializingField.value) return;
     const newMapping = {};
     newOptions.forEach(opt => {
         newMapping[opt] = activeField.valueMapping[opt] || { type: 'static', value: '' };
@@ -840,7 +843,7 @@ const closeModelEditor = () => {
     showFieldModal.value = false;
 };
 
-const openAddFieldModal = () => {
+const openAddFieldModal = async () => {
     initializingField.value = true;
     isEditing.value = false;
     editingFieldIndex.value = null;
@@ -861,10 +864,12 @@ const openAddFieldModal = () => {
     manualOptionDraft.value = '';
     symptomSelectionCache.value = [];
     Object.keys(mappingDrafts).forEach(key => { mappingDrafts[key] = ''; });
+    // Lascia processare gli effetti reattivi (watch parentFieldOptions) prima di sbloccare
+    await nextTick();
     initializingField.value = false;
 };
 
-const openEditFieldModal = (index) => {
+const openEditFieldModal = async (index) => {
     initializingField.value = true;
     isEditing.value = true;
     editingFieldIndex.value = index;
@@ -888,19 +893,26 @@ const openEditFieldModal = (index) => {
         symptomSelectionCache.value = [];
         const valueMappingForEdit = {};
         if (fieldToEdit.valueMapping) {
-            const parentField = modelFields.value.find(f => f.id === fieldToEdit.dependsOn);
-            const parentOptions = parentField ? parentField.options || [] : Object.keys(fieldToEdit.valueMapping);
-            
+            // Allineiamo le parent options alla stessa logica di parentFieldOptions:
+            // se il parent è isSymptomArea, sono i symptoms del set, non il setKey.
+            const expandedParentOptions = parentFieldOptions.value;
+            const parentOptions = expandedParentOptions.length > 0
+                ? expandedParentOptions
+                : Object.keys(fieldToEdit.valueMapping);
+
             parentOptions.forEach(key => {
                 const mapping = fieldToEdit.valueMapping[key];
-                if (mapping) {
-                    if (mapping.type === 'static') {
-                        valueMappingForEdit[key] = { type: 'static', value: mapping.options.join('\\n') };
-                    } else {
-                        valueMappingForEdit[key] = { type: 'symptomSet', value: mapping.key };
-                    }
+                if (!mapping) {
+                    valueMappingForEdit[key] = { type: 'static', value: '' };
+                    return;
+                }
+                if (mapping.type === 'static') {
+                    const opts = Array.isArray(mapping.options) ? mapping.options : [];
+                    valueMappingForEdit[key] = { type: 'static', value: opts.join('\n') };
+                } else if (mapping.type === 'symptomSet') {
+                    valueMappingForEdit[key] = { type: 'symptomSet', value: mapping.key || '' };
                 } else {
-                     valueMappingForEdit[key] = { type: 'static', value: '' };
+                    valueMappingForEdit[key] = { type: 'static', value: '' };
                 }
             });
         }
@@ -919,6 +931,9 @@ const openEditFieldModal = (index) => {
     symptomSearch.value = '';
     manualOptionDraft.value = '';
     Object.keys(mappingDrafts).forEach(key => { mappingDrafts[key] = ''; });
+    // Aspetta che il watch reattivo su parentFieldOptions abbia processato
+    // prima di sbloccare: previene la sovrascrittura del valueMapping caricato.
+    await nextTick();
     initializingField.value = false;
 };
 
