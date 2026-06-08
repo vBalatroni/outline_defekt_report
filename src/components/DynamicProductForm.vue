@@ -103,7 +103,7 @@ const props = defineProps({
   modelValue: { type: Object, default: () => ({}) }
 });
 
-const emit = defineEmits(['update:modelValue']);
+const emit = defineEmits(['update:modelValue', 'update:visibleFieldIds']);
 
 const productStore = useProductStore();
 const formData = ref({});
@@ -274,6 +274,31 @@ const visibleFields = computed(() => {
     return field.conditions.every(checkCondition);
   });
 });
+
+// Quando un field smette di essere visibile, resettiamo il suo valore in formData:
+// così non finisce nel defekt salvato né nel report email.
+watch(visibleFields, (newVisible, oldVisible) => {
+  if (!Array.isArray(oldVisible)) return;
+  const newIds = new Set(newVisible.map(f => f.id));
+  oldVisible.forEach(field => {
+    if (newIds.has(field.id)) return;
+    if (formData.value[field.id] === undefined) return;
+    if (field.type === 'file') {
+      formData.value[field.id] = [];
+      previews.value[field.id] = [];
+    } else if (field.type === 'checkbox') {
+      formData.value[field.id] = false;
+    } else {
+      formData.value[field.id] = '';
+    }
+  });
+}, { flush: 'post' });
+
+// Pubblica al parent la lista dei field id visibili, per validazioni che dipendono
+// dalla visibilità (es. salta required per field nascosti).
+watch(visibleFields, (val) => {
+  emit('update:visibleFieldIds', val.map(f => f.id));
+}, { immediate: true });
 
 const getOptionsForField = (field) => {
     // Se il field è marcato come "Use Symptom Sets as options",

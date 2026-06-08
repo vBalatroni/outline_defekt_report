@@ -23,6 +23,7 @@ const currentProduct = ref(null);
 const currentDefekt = ref(null);
 const editingDefektIndex = ref(-1);
 const dynamicDefektData = ref({});
+const visibleDefektFieldIds = ref([]);
 
 // Add new ref for current product model
 const currentProductModel = ref('');
@@ -416,13 +417,20 @@ const canAddDefekt = computed(() => {
     let hasAnyValue = false;
     let hasRequiredFields = true;
 
+    // I field non visibili (display conditions non soddisfatte) sono saltati:
+    // niente required check né conteggio "almeno un campo compilato".
+    const visibleIds = visibleDefektFieldIds.value && visibleDefektFieldIds.value.length
+        ? new Set(visibleDefektFieldIds.value)
+        : null;
+
     // Check each section in the template structure
     for (const sectionKey in currentDefekt.value) {
         const fields = currentDefekt.value[sectionKey];
         for (const fieldKey of Object.keys(fields)) {
             const field = currentDefekt.value[sectionKey][fieldKey];
+            if (visibleIds && !visibleIds.has(field.id || fieldKey)) continue;
             const fieldValue = dynamicData[fieldKey]; // Get value from dynamicDefektData
-            
+
             // Check required fields
             if (field.isRequired) {
                 if (!fieldValue || fieldValue === null || fieldValue === undefined || fieldValue === '') {
@@ -705,11 +713,12 @@ const goToBack = () => {
                         <div class="defect-form mb-4">
                             <h3 class="section-header">Defect</h3>
                             
-                            <DynamicProductForm 
+                            <DynamicProductForm
                                 v-if="currentProduct?.basicInfo.model.value"
                                 :productCategory="currentProduct.basicInfo.category.value"
                                 :productModel="currentProduct.basicInfo.model.value"
                                 v-model:modelValue="dynamicDefektData"
+                                @update:visible-field-ids="visibleDefektFieldIds = $event"
                             />
 
                             <div class=" add-edit-button text-center mt-4">
