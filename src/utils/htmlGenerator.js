@@ -18,12 +18,35 @@ const renderFieldRow = (label, value) => {
     </tr>`;
 };
 
-const renderField = (field) => {
-  if (!field || field.value == null || field.value === '') return '';
+const renderCheckboxField = (field, productMapping) => {
+  const checked = field.value === true;
+  let note = '';
+  if (field.noteSource === 'symptomSet' && field.noteSetKey) {
+    const sets = productMapping?.symptomSets || {};
+    const set = sets[field.noteSetKey];
+    const items = set?.symptoms || set?.options || [];
+    note = items[0] || '';
+  } else {
+    note = field.note || '';
+  }
+  const valueHtml = `${checked ? '&#10004; Yes' : '&#9744; No'}${note ? ' &mdash; ' + esc(note) : ''}`;
+  return `
+    <tr>
+      <td style="padding:8px;border:1px solid #ddd;font-weight:bold;vertical-align:top;width:35%;">${esc(field.label)}</td>
+      <td style="padding:8px;border:1px solid #ddd;vertical-align:top;">${valueHtml}</td>
+    </tr>`;
+};
+
+const renderField = (field, productMapping) => {
+  if (!field) return '';
+  if (field.type === 'checkbox') {
+    return renderCheckboxField(field, productMapping);
+  }
+  if (field.value == null || field.value === '') return '';
   return renderFieldRow(field.label, field.value);
 };
 
-export const generateSupplierHtml = (generalData, savedProducts) => {
+export const generateSupplierHtml = (generalData, savedProducts, productMapping) => {
     let body = `<h2 style="margin:24px 0 8px;">General Information</h2>`;
 
     for (const sectionKey in generalData) {
@@ -32,7 +55,7 @@ export const generateSupplierHtml = (generalData, savedProducts) => {
         body += `<h3 style="margin:16px 0 6px;">${esc(sectionTitle)}</h3>`;
         let rows = '';
         for (const fieldKey in sectionObj) {
-            rows += renderField(sectionObj[fieldKey]);
+            rows += renderField(sectionObj[fieldKey], productMapping);
         }
         if (rows) body += `<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">${rows}</table>`;
     }
@@ -44,18 +67,18 @@ export const generateSupplierHtml = (generalData, savedProducts) => {
         if (product.basicInfo) {
             let rows = '';
             for (const fieldKey in product.basicInfo) {
-                rows += renderField(product.basicInfo[fieldKey]);
+                rows += renderField(product.basicInfo[fieldKey], productMapping);
             }
             if (rows) body += `<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">${rows}</table>`;
         }
-        
+
         product.defekts.forEach((defekt, dIndex) => {
             body += `<div style="margin-top:10px; padding-left:10px; border-left:3px solid #004a99;"><h4 style="margin:0 0 6px;">Defect ${dIndex + 1}</h4>`;
             for (const sectionKey in defekt) {
                 const sec = defekt[sectionKey] || {};
                 let rows = '';
                 for (const fieldKey in sec) {
-                    rows += renderField(sec[fieldKey]);
+                    rows += renderField(sec[fieldKey], productMapping);
                 }
                 if (rows) body += `<table cellpadding="0" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;">${rows}</table>`;
             }
@@ -83,7 +106,7 @@ export const generateSupplierHtml = (generalData, savedProducts) => {
     `;
 };
 
-export const generateCustomerHtml = (generalData, savedProducts) => {
+export const generateCustomerHtml = (generalData, savedProducts, productMapping) => {
     let body = `
         <p style="margin:6px 0;">Dear ${esc(generalData.companyData?.contactPerson?.value || 'Customer')},</p>
         <p style="margin:6px 0;">Thank you for submitting your Defekt Report. Here is a summary of the reported products:</p>
@@ -93,7 +116,7 @@ export const generateCustomerHtml = (generalData, savedProducts) => {
         body += `
             <div style="margin:12px 0; padding:12px; border:1px solid #eee;">
                 <h3 style="margin:0 0 6px;">Product ${index + 1}: ${esc(product.modelName)}</h3>
-                ${renderField(product.basicInfo?.serialNumber)}
+                ${renderField(product.basicInfo?.serialNumber, productMapping)}
                 <p style="margin:6px 0;">We will process your request and get back to you shortly.</p>
             </div>
         `;

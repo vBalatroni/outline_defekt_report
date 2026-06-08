@@ -46,7 +46,11 @@ const getDefektSections = (defekt) => {
                     id: field.id || fieldKey,
                     label: field.label || fieldKey,
                     value: field.value,
-                    preview: field.preview || null
+                    preview: field.preview || null,
+                    type: field.type,
+                    note: field.note,
+                    noteSource: field.noteSource,
+                    noteSetKey: field.noteSetKey
                 };
             }
         });
@@ -69,7 +73,11 @@ const getDefektSections = (defekt) => {
                     id: field.id || fieldKey,
                     label: field.label || fieldKey,
                     value: field.value,
-                    preview: field.preview
+                    preview: field.preview,
+                    type: field.type,
+                    note: field.note,
+                    noteSource: field.noteSource,
+                    noteSetKey: field.noteSetKey
                 });
             }
         });
@@ -213,15 +221,29 @@ const getFieldPreviews = (field) => {
     return previews;
 };
 
+const resolveCheckboxNote = (field) => {
+    if (field?.noteSource === 'symptomSet' && field.noteSetKey) {
+        const symptoms = store.getSymptomSetSymptoms(field.noteSetKey) || [];
+        return symptoms[0] || '';
+    }
+    return field?.note || '';
+};
+
 const formatFieldValue = (field) => {
     if (!field) return '';
-    
+
+    if (field.type === 'checkbox') {
+        const checked = field.value === true;
+        const note = resolveCheckboxNote(field);
+        return `${checked ? '✓ Checked' : '☐ Not checked'}${note ? ' — ' + note : ''}`;
+    }
+
     // If there's a preview, don't show the value as text
     const previews = getFieldPreviews(field);
     if (previews.length > 0) {
         return '';
     }
-    
+
     const value = field.value;
     if (value === null || value === undefined || value === '') return '';
 

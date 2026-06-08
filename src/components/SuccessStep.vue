@@ -50,8 +50,8 @@ onMounted(async () => {
     const customerRecipient = (generalData?.companyData?.email?.value) || findFirstEmail(generalData) || testingRecipient || '';
 
     if (savedProducts.length > 0) {
-        let supplierHtml = generateSupplierHtml(generalData, savedProducts) || '';
-        let customerHtml = generateCustomerHtml(generalData, savedProducts) || '';
+        let supplierHtml = generateSupplierHtml(generalData, savedProducts, store.productMapping) || '';
+        let customerHtml = generateCustomerHtml(generalData, savedProducts, store.productMapping) || '';
         const contactName = (generalData?.companyData?.contactPerson?.value || '').trim();
         const companyName = (generalData?.companyData?.companyName?.value || '').trim();
         const fallbackIfEmpty = (str, title) => {

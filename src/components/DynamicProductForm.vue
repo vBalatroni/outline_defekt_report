@@ -34,9 +34,21 @@
             </select>
           </template>
 
+          <template v-if="field.type === 'checkbox'">
+              <div class="checkbox-field">
+                  <input
+                      type="checkbox"
+                      :id="field.id"
+                      v-model="formData[field.id]"
+                      :required="field.required"
+                  />
+                  <label :for="field.id" class="checkbox-note">{{ getCheckboxNote(field) }}</label>
+              </div>
+          </template>
+
           <template v-if="field.type === 'file'">
-              <input 
-                  type="file" 
+              <input
+                  type="file"
                   :id="field.id"
                   :accept="acceptedMimeTypes"
                   multiple
@@ -291,6 +303,14 @@ const getOptionsForField = (field) => {
     return field.options || [];
 };
 
+const getCheckboxNote = (field) => {
+    if (field.noteSource === 'symptomSet' && field.noteSetKey) {
+        const symptoms = productStore.getSymptomSetSymptoms(field.noteSetKey) || [];
+        return symptoms[0] || '';
+    }
+    return field.note || '';
+};
+
 const handleFieldChange = (changedFieldId) => {
     // This new logic is more robust.
     // It iterates through all fields to find any that depend on the one that just changed.
@@ -300,9 +320,13 @@ const handleFieldChange = (changedFieldId) => {
             // The template will automatically re-render and call getOptionsForField,
             // which will then provide the correct new options.
             if (formData.value[field.id] !== undefined) {
-                formData.value[field.id] = field.type === 'file' ? [] : '';
                 if (field.type === 'file') {
+                    formData.value[field.id] = [];
                     previews.value[field.id] = [];
+                } else if (field.type === 'checkbox') {
+                    formData.value[field.id] = false;
+                } else {
+                    formData.value[field.id] = '';
                 }
             }
         }
@@ -475,6 +499,21 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
+  cursor: pointer;
+}
+.checkbox-field {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 6px 0;
+}
+.checkbox-field input[type="checkbox"] {
+  margin-top: 3px;
+  flex-shrink: 0;
+}
+.checkbox-note {
+  font-weight: normal;
+  line-height: 1.4;
   cursor: pointer;
 }
 </style> 

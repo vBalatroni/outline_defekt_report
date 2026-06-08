@@ -178,6 +178,7 @@
                                                 <option value="text">Text</option>
                                                 <option value="select">Select</option>
                                                 <option value="file">File</option>
+                                                <option value="checkbox">Checkbox</option>
                                             </select>
                                         </div>
                                         <div class="form-group">
@@ -340,6 +341,39 @@
                                                     </div>
                                                 </div>
                                             </div>
+                                        </div>
+                                    </div>
+                                </template>
+                                <template v-if="activeField.type === 'checkbox'">
+                                    <div class="form-section">
+                                        <h4>Note next to checkbox</h4>
+                                        <p class="helper-text">
+                                            Testo che apparirà accanto alla casella di spunta. Può essere statico, oppure preso da un Symptom Set (primo elemento del set).
+                                        </p>
+                                        <div class="form-group">
+                                            <label>Note source</label>
+                                            <select v-model="activeField.noteSource" class="condition-control">
+                                                <option value="inline">Inline text</option>
+                                                <option value="symptomSet">From a Symptom Set</option>
+                                            </select>
+                                        </div>
+                                        <div v-if="activeField.noteSource !== 'symptomSet'" class="form-group">
+                                            <label>Inline note text</label>
+                                            <textarea
+                                                v-model="activeField.note"
+                                                rows="3"
+                                                placeholder="Es: Ho letto e accetto le condizioni di trattamento dati..."
+                                                class="condition-control"
+                                            ></textarea>
+                                        </div>
+                                        <div v-else class="form-group">
+                                            <label>Symptom Set (uses first item as note text)</label>
+                                            <select v-model="activeField.noteSetKey" class="condition-control">
+                                                <option value="">Select a set...</option>
+                                                <option v-for="set in availableSymptomSets" :key="set.value" :value="set.value">
+                                                    {{ set.label }}
+                                                </option>
+                                            </select>
                                         </div>
                                     </div>
                                 </template>
@@ -578,7 +612,10 @@ const activeField = reactive({
   required: false,
   order: 0,
   conditions: [],
-  section: defaultFieldSection.value
+  section: defaultFieldSection.value,
+  noteSource: 'inline',
+  note: '',
+  noteSetKey: ''
 });
 
 const generateId = (str) => {
@@ -858,6 +895,9 @@ const openAddFieldModal = async () => {
     activeField.order = modelFields.value.length;
     activeField.conditions = [];
     activeField.section = defaultFieldSection.value;
+    activeField.noteSource = 'inline';
+    activeField.note = '';
+    activeField.noteSetKey = '';
     showFieldModal.value = true;
     symptomSearch.value = '';
     manualOptions.value = [];
@@ -884,6 +924,9 @@ const openEditFieldModal = async (index) => {
     activeField.order = fieldToEdit.order === undefined ? index : fieldToEdit.order;
     activeField.conditions = fieldToEdit.conditions || [];
     activeField.section = fieldToEdit.section || defaultFieldSection.value;
+    activeField.noteSource = fieldToEdit.noteSource || (fieldToEdit.noteSetKey ? 'symptomSet' : 'inline');
+    activeField.note = fieldToEdit.note || '';
+    activeField.noteSetKey = fieldToEdit.noteSetKey || '';
 
     if (activeField.isSymptomArea) {
         activeField.options = Array.isArray(fieldToEdit.options) ? [...fieldToEdit.options] : [];
@@ -992,6 +1035,17 @@ const saveField = () => {
         } else {
             delete fieldData.dependsOn;
             delete fieldData.valueMapping;
+        }
+    }
+
+    if (activeField.type === 'checkbox') {
+        fieldData.noteSource = activeField.noteSource === 'symptomSet' ? 'symptomSet' : 'inline';
+        if (fieldData.noteSource === 'symptomSet') {
+            fieldData.noteSetKey = activeField.noteSetKey || '';
+            fieldData.note = '';
+        } else {
+            fieldData.note = String(activeField.note || '');
+            fieldData.noteSetKey = '';
         }
     }
 

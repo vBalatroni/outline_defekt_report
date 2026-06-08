@@ -440,6 +440,8 @@ const canAddDefekt = computed(() => {
                     hasAnyValue = true;
                 } else if (typeof fieldValue === 'string' && fieldValue.trim() !== '') {
                     hasAnyValue = true;
+                } else if (typeof fieldValue === 'boolean' && fieldValue === true) {
+                    hasAnyValue = true;
                 } else if (typeof fieldValue === 'object' && fieldValue !== null) {
                     hasAnyValue = true;
                 }
